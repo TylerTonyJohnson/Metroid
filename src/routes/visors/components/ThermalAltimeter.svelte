@@ -1,0 +1,117 @@
+<script>
+	import { vertLook, horzLook } from '../../../lib/stores';
+
+	$: leftOffset =
+		$vertLook * 200 * Math.cos((30 * Math.PI) / 180) -
+		$horzLook * 300 * Math.sin((30 * Math.PI) / 180);
+	$: rightOffset =
+		$vertLook * 200 * Math.cos((30 * Math.PI) / 180) +
+		$horzLook * 300 * Math.sin((30 * Math.PI) / 180);
+</script>
+
+<div class="altimeter bot-left">
+	<div class="lines a left" style="background-position-y: calc({leftOffset}% + 0px);" />
+	<div class="lines b left" style="background-position-y: calc({leftOffset}% + 8px);" />
+	<div class="lines c left" style="background-position-y: calc({leftOffset}% + 16px);" />
+	<div class="lines d left" style="background-position-y: calc({leftOffset}% + 24px);" />
+</div>
+<div class="altimeter top-left">
+	<div class="lines a left" style="background-position-y: calc({leftOffset}% + 0px);" />
+	<div class="lines b left" style="background-position-y: calc({leftOffset}% + 8px);" />
+	<div class="lines c left" style="background-position-y: calc({leftOffset}% + 16px);" />
+	<div class="lines d left" style="background-position-y: calc({leftOffset}% + 24px);" />
+</div>
+<div class="altimeter bot-right">
+	<div class="lines a right" style="background-position-y: calc({rightOffset}% + 0px);" />
+	<div class="lines b right" style="background-position-y: calc({rightOffset}% + 8px);" />
+	<div class="lines c right" style="background-position-y: calc({rightOffset}% + 16px);" />
+	<div class="lines d right" style="background-position-y: calc({rightOffset}% + 24px);" />
+</div>
+<div class="altimeter top-right">
+	<div class="lines a right" style="background-position-y: calc({rightOffset}% + 0px);" />
+	<div class="lines b right" style="background-position-y: calc({rightOffset}% + 8px);" />
+	<div class="lines c right" style="background-position-y: calc({rightOffset}% + 16px);" />
+	<div class="lines d right" style="background-position-y: calc({rightOffset}% + 24px);" />
+</div>
+
+<style>
+	:root {
+		--altim-width: 12px;
+		--altim-spacing: 32px;
+		--altim-light: hsl(200, 50%, 75%, 10%);
+		--altim-med: hsl(200, 50%, 75%, 20%);
+		--altim-bright: hsl(200, 50%, 75%, 30%);
+	}
+
+	.altimeter {
+		position: absolute;
+		width: var(--altim-width);
+		height: 200px;
+		overflow: hidden;
+	}
+
+	.bot-left {
+		rotate: 30deg;
+		top: calc(50% - 192px);
+		right: calc(50% + 560px);
+		border-bottom-left-radius: var(--altim-width);
+	}
+
+	.bot-right {
+		rotate: -30deg;
+		top: calc(50% - 192px);
+		left: calc(50% + 560px);
+		border-bottom-right-radius: var(--altim-width);
+	}
+
+	.top-left {
+		rotate: 30deg;
+		top: calc(50% - 396px);
+		right: calc(50% + 442px);
+		border-top-left-radius: var(--altim-width);
+	}
+
+	.top-right {
+		rotate: -30deg;
+		top: calc(50% - 396px);
+		left: calc(50% + 442px);
+		border-top-right-radius: var(--altim-width);
+	}
+
+	.lines {
+		position: absolute;
+		height: 100%;
+	}
+
+	.lines.left {
+		right: 0;
+	}
+	.lines.right {
+		left: 0;
+	}
+
+	.lines.a {
+		width: 100%;
+		background: linear-gradient(to top, var(--altim-bright) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+		/* background-position-y: 0px; */
+	}
+	.lines.b {
+		width: 60%;
+		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+		/* background-position-y: 8px; */
+	}
+	.lines.c {
+		width: 40%;
+		background: linear-gradient(to top, var(--altim-med) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+		/* background-position-y: 16px; */
+	}
+	.lines.d {
+		width: 100%;
+		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+		/* background-position-y: 24px; */
+	}
+</style>
