@@ -1,6 +1,5 @@
 <!-- LOGIC -->
 <script>
-	import { compute_slots } from 'svelte/internal';
 	import { isZoomed, lookMovement } from '../../../lib/stores';
 
 	const minWidth = 532;
@@ -15,7 +14,7 @@
 	$: offsetY = $isZoomed ? 50 : 50 + maxOffsetY * $lookMovement.y;
 
 	const smallZoom = 6;
-	const spreadOffset = 20;
+	const spreadOffset = 15;
 
 	$: zoomOffsetBotX = $isZoomed ? 0 : 0;
 	$: zoomOffsetBotY = $isZoomed ? smallZoom : 0;

@@ -5,8 +5,9 @@
 	viewBox="0 0 1920 1080"
 	fill="none"
 	xmlns="http://www.w3.org/2000/svg"
+	
 >
-	<g class="decor" width="100%" height="100%" x="0" y="0">
+	<g class="decor" width="100%" height="100%" x="0" y="0" mask="url(#fadeMask)">
 		<!-- TRIANGLE -->
 		<path
 			class="triangle"
@@ -102,18 +103,17 @@
 		<path class="lines" d="M410 484L547 246" />
 		<path class="lines" d="M1510 484L1373 246" />
 	</g>
+	
 	<defs>
-		<linearGradient id="fadeGradient">
-			<stop offset="0%" stop-color="#000000" />
-			<stop offset="50%" stop-color="#FFFFFF" />
-			<stop offset="100%" stop-color="#000000" />
-		</linearGradient>
+		<radialGradient id="fadeGradient">
+			<stop offset="50%" stop-color="white" />
+			<stop offset="100%" stop-color="black" />
+		</radialGradient>
 		<mask id="fadeMask">
-			<!-- Everything under a white pixel will be visible -->
-			<rect x="0" y="0" width="100" height="100" fill="white" />
-			<!-- <rect x="0" y="0" width="100" height="100" fill="black" /> -->
+			<rect width="100%" height="100%" fill="url(#fadeGradient)" />
 		</mask>
-		<linearGradient
+
+		<!-- <linearGradient
 			id="redGradient"
 			x1="0"
 			x2="1"
@@ -160,8 +160,9 @@
 				xChannelSelector="R"
 				yChannelSelector="B"
 			/>
-		</filter>
+		</filter> -->
 	</defs>
+
 </svg>
 
 <style>
