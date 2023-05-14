@@ -39,7 +39,7 @@
 	#health-display {
 		position: absolute;
 		display: grid;
-		margin-top: 112px;
+		bottom: calc(50% + 300px);
 		left: 50%;
 		transform: translate(-50%, 0);
 		grid-template-areas:

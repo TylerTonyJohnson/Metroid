@@ -11,7 +11,9 @@ import {
 	horzLook,
 	currentDanger,
 	currentAmmo,
-	maxAmmo
+	maxAmmo,
+	readoutShow,
+	controls as $controls
 } from './stores';
 
 /**
@@ -158,8 +160,8 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 		const { movementX, movementY } = event;
 		const percentX = -Math.max(Math.min(movementX / moveMaxX, 1), -1);
 		const percentY = -Math.max(Math.min(movementY / moveMaxY, 1), -1);
-		
-		_lookMovement.set({x: percentX, y: percentY});
+
+		_lookMovement.set({ x: percentX, y: percentY });
 
 		this.yawObject.rotation.y -= movementX * 0.002;
 		this.pitchObject.rotation.x -= movementY * 0.002;
@@ -171,8 +173,8 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 			Math.min(Math.PI / 2, this.pitchObject.rotation.x)
 		);
 
-		const pitchPercent = (this.pitchObject.rotation.x % (2 * Math.PI))/(Math.PI);
-		const yawPercent = (this.yawObject.rotation.y % (2 * Math.PI))/( 2 * Math.PI);
+		const pitchPercent = (this.pitchObject.rotation.x % (2 * Math.PI)) / Math.PI;
+		const yawPercent = (this.yawObject.rotation.y % (2 * Math.PI)) / (2 * Math.PI);
 
 		vertLook.set(pitchPercent);
 		horzLook.set(yawPercent);
@@ -188,7 +190,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 			value.y = 0;
 			return value;
 		});
-	}
+	};
 
 	onKeyDown = (event) => {
 		switch (event.code) {
@@ -270,43 +272,51 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 					currentVisor.set(VisorType.Xray);
 				}
 				break;
-			// DANGER 
+			// DANGER
 			case 'KeyY':
-				currentDanger.update(value => {
+				currentDanger.update((value) => {
 					value++;
 					return value;
-				})
+				});
 				break;
 			case 'KeyH':
-				currentDanger.update(value => {
+				currentDanger.update((value) => {
 					value--;
 					return value;
-				})
+				});
 				break;
-			// AMMO 
+			// AMMO
 			case 'KeyU':
-				currentAmmo.update(value => {
+				currentAmmo.update((value) => {
 					value++;
 					return value;
-				})
+				});
 				break;
 			case 'KeyJ':
-				currentAmmo.update(value => {
+				currentAmmo.update((value) => {
 					value--;
 					return value;
-				})
+				});
 				break;
 			case 'KeyI':
-				maxAmmo.update(value => {
+				maxAmmo.update((value) => {
 					value++;
 					return value;
-				})
+				});
 				break;
 			case 'KeyK':
-				maxAmmo.update(value => {
+				maxAmmo.update((value) => {
 					value--;
 					return value;
-				})
+				});
+				break;
+			case 'KeyB':
+				readoutShow.set(true);
+				$controls.lock;
+				break;
+			case 'KeyN':
+				readoutShow.set(false);
+				$controls.unlock;
 				break;
 		}
 	};

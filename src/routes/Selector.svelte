@@ -198,12 +198,12 @@
 	}
 
 	.left-screen {
-		left: 220px;
+		right: calc(50% + 558px);
 		transform: rotateY(35deg);
 		transform-origin: left;
 	}
 	.right-screen {
-		right: 220px;
+		left: calc(50% + 558px);
 		transform: rotateY(-35deg);
 		transform-origin: right;
 	}

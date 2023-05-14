@@ -8,7 +8,7 @@
 
 </script>
 
-<div class="visor" transition:fade>
+<div id="visor" transition:fade>
 
 	<!-- BACKDROP -->
 	<svg id='backdrop'></svg>
@@ -27,7 +27,7 @@
 		--fuzz-color: rgba(100, 20, 200, 0.1);
 	}
 
-	.visor {
+	#visor {
 		position: absolute;
 		inset: 0;
 		font-family: 'vdl-gigajr', sans-serif;

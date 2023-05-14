@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon';
 import { PointerLockControlsCannon } from './controls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { currentVisor as visor, 
+import { controls as $controls, 
+	currentVisor as visor, 
 	currentHealth as health, 
 	maxHealth, 
 	lookDistance, 
@@ -250,85 +251,85 @@ function initCannon() {
 	}
 
 	// Pickup cylinders
-	const cylinderShape = new CANNON.Cylinder(0.25, 0.75, 1, 10);
-	const cylinderGeometry = new THREE.CylinderGeometry(0.25, 0.5, 1, 10);
-	const cylinderMatUp = new THREE.MeshStandardMaterial({ emissive: 0x00ff00 });
+	// const cylinderShape = new CANNON.Cylinder(0.25, 0.75, 1, 10);
+	// const cylinderGeometry = new THREE.CylinderGeometry(0.25, 0.5, 1, 10);
+	// const cylinderMatUp = new THREE.MeshStandardMaterial({ emissive: 0x00ff00 });
 
-	for (let i = 0; i < 7; i++) {
-		const pickupBody = new CANNON.Body({ mass: 0 });
-		pickupBody.addShape(cylinderShape);
-		const pickupMesh = new THREE.Mesh(cylinderGeometry, cylinderMatUp);
+	// for (let i = 0; i < 7; i++) {
+	// 	const pickupBody = new CANNON.Body({ mass: 0 });
+	// 	pickupBody.addShape(cylinderShape);
+	// 	const pickupMesh = new THREE.Mesh(cylinderGeometry, cylinderMatUp);
 
-		const x = (Math.random() - 0.5) * 40;
-		const y = 1;
-		const z = (Math.random() - 0.5) * 40;
+	// 	const x = (Math.random() - 0.5) * 40;
+	// 	const y = 1;
+	// 	const z = (Math.random() - 0.5) * 40;
 
-		pickupBody.position.set(x, y, z);
-		pickupMesh.position.copy(pickupBody.position);
+	// 	pickupBody.position.set(x, y, z);
+	// 	pickupMesh.position.copy(pickupBody.position);
 
-		pickupMesh.castShadow = true;
-		// pickupMesh.receiveShadow = true;
+	// 	pickupMesh.castShadow = true;
+	// 	// pickupMesh.receiveShadow = true;
 
-		world.addBody(pickupBody);
-		scene.add(pickupMesh);
-		boxes.push(pickupBody);
-		sceneMeshes.push(pickupMesh);
+	// 	world.addBody(pickupBody);
+	// 	scene.add(pickupMesh);
+	// 	boxes.push(pickupBody);
+	// 	sceneMeshes.push(pickupMesh);
 
-		pickupBody.addEventListener('collide', pickupHealth);
-	}
+	// 	pickupBody.addEventListener('collide', pickupHealth);
+	// }
 
-	const cylinderMatDown = new THREE.MeshStandardMaterial({ emissive: 0xff0000 });
+	// const cylinderMatDown = new THREE.MeshStandardMaterial({ emissive: 0xff0000 });
 
-	for (let i = 0; i < 7; i++) {
-		const pickupBody = new CANNON.Body({ mass: 0 });
-		pickupBody.addShape(cylinderShape);
-		const pickupMesh = new THREE.Mesh(cylinderGeometry, cylinderMatDown);
+	// for (let i = 0; i < 7; i++) {
+	// 	const pickupBody = new CANNON.Body({ mass: 0 });
+	// 	pickupBody.addShape(cylinderShape);
+	// 	const pickupMesh = new THREE.Mesh(cylinderGeometry, cylinderMatDown);
 
-		const x = (Math.random() - 0.5) * 40;
-		const y = 1;
-		const z = (Math.random() - 0.5) * 40;
+	// 	const x = (Math.random() - 0.5) * 40;
+	// 	const y = 1;
+	// 	const z = (Math.random() - 0.5) * 40;
 
-		pickupBody.position.set(x, y, z);
-		pickupMesh.position.copy(pickupBody.position);
+	// 	pickupBody.position.set(x, y, z);
+	// 	pickupMesh.position.copy(pickupBody.position);
 
-		pickupMesh.castShadow = true;
-		// pickupMesh.receiveShadow = true;
+	// 	pickupMesh.castShadow = true;
+	// 	// pickupMesh.receiveShadow = true;
 
-		world.addBody(pickupBody);
-		scene.add(pickupMesh);
-		boxes.push(pickupBody);
-		sceneMeshes.push(pickupMesh);
+	// 	world.addBody(pickupBody);
+	// 	scene.add(pickupMesh);
+	// 	boxes.push(pickupBody);
+	// 	sceneMeshes.push(pickupMesh);
 
-		pickupBody.addEventListener('collide', pickupDamage);
-	}
+	// 	pickupBody.addEventListener('collide', pickupDamage);
+	// }
 
 	// Stars
-	const starGeo = new THREE.SphereGeometry(0.1, 24, 24);
-	const starMat = new THREE.MeshStandardMaterial({ color: 0xffffaa, emissive: 0xffffff });
+	// const starGeo = new THREE.SphereGeometry(0.1, 24, 24);
+	// const starMat = new THREE.MeshStandardMaterial({ color: 0xffffaa, emissive: 0xffffff });
 
-	for (let i = 0; i < 1000; i++) {
-		const star = new THREE.Mesh(starGeo, starMat);
+	// for (let i = 0; i < 1000; i++) {
+	// 	const star = new THREE.Mesh(starGeo, starMat);
 
-		const [x, y, z] = Array(3)
-			.fill()
-			.map(() => THREE.MathUtils.randFloatSpread(100));
+	// 	const [x, y, z] = Array(3)
+	// 		.fill()
+	// 		.map(() => THREE.MathUtils.randFloatSpread(100));
 
-		star.position.set(x, y, z);
-		scene.add(star);
-	}
+	// 	star.position.set(x, y, z);
+	// 	scene.add(star);
+	// }
 
 	// Sphere
-	const testRad = 2;
-	const testGeo = new THREE.SphereGeometry(testRad, 24, 24);
-	const testMat = new THREE.MeshStandardMaterial({ color: 'magenta'});
-	const testMesh = new THREE.Mesh(testGeo, testMat);
+	// const testRad = 2;
+	// const testGeo = new THREE.SphereGeometry(testRad, 24, 24);
+	// const testMat = new THREE.MeshStandardMaterial({ color: 'magenta'});
+	// const testMesh = new THREE.Mesh(testGeo, testMat);
 
-	const testShape = new CANNON.Sphere(testRad);
-	const testBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
-	testBody.addShape(sphereShape);
-	testBody.position.set(0, 0, 0);
-	// sphereBody.linearDamping = 0.9;
-	world.addBody(testBody);
+	// const testShape = new CANNON.Sphere(testRad);
+	// const testBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
+	// testBody.addShape(sphereShape);
+	// testBody.position.set(0, 0, 0);
+	// // sphereBody.linearDamping = 0.9;
+	// world.addBody(testBody);
 
 
 	// Girl
@@ -481,6 +482,7 @@ function zoom(num) {
 function initPointerLock(element) {
 	controls = new PointerLockControlsCannon(camera, sphereBody);
 	scene.add(controls.getObject());
+	$controls.set(controls);
 
 	element.addEventListener('click', () => {
 		controls.lock();
