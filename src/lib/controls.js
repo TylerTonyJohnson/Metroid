@@ -7,6 +7,8 @@ import {
 	currentBeam,
 	unlockedBeams as beams,
 	lookMovement as _lookMovement,
+	isLockable,
+	isLocked,
 	vertLook,
 	horzLook,
 	currentDanger,
@@ -317,6 +319,18 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 			case 'KeyN':
 				readoutShow.set(false);
 				$controls.unlock;
+				break;
+			case 'Comma':
+				isLocked.set(true);
+				break;
+			case 'Period':
+				isLocked.set(false);
+				break;
+			case 'Semicolon':
+				isLockable.set(true);
+				break;
+			case 'Quote':
+				isLockable.set(false);
 				break;
 		}
 	};

@@ -1,40 +1,76 @@
 <script>
-	import { vertLook, horzLook } from '../../../lib/stores';
+	import { vertLook } from '../../../lib/stores';
 
-	$: leftOffset =
-		$vertLook * 200 * Math.cos((30 * Math.PI) / 180) -
-		$horzLook * 300 * Math.sin((30 * Math.PI) / 180);
-	$: rightOffset =
-		$vertLook * 200 * Math.cos((30 * Math.PI) / 180) +
-		$horzLook * 300 * Math.sin((30 * Math.PI) / 180);
+    $: altHeight = $vertLook * 100;
 </script>
 
-<svg id='altimeters' width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <mask id="mask0_220_6" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="123" y="356" width="24" height="318">
-        <rect x="123" y="356" width="24" height="318" fill="#B90090" />
-    </mask>
-    <g mask="url(#mask0_220_6)">
-        <path
-            d="M164 661.637V396.49C164 393.701 162.548 391.114 160.167 389.661L117.167 363.424C111.836 360.171 105 364.008 105 370.253V642.323C105 645.473 106.849 648.33 109.722 649.621L152.722 668.935C158.016 671.312 164 667.44 164 661.637Z"
-            fill="#B90090" stroke="#9F8A60" stroke-opacity="0.5" stroke-width="2" />
-    </g>
-    <mask id="mask1_220_6" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="1773" y="356" width="24" height="318">
-        <rect width="24" height="318" transform="matrix(-1 0 0 1 1797 356)" fill="#B90090" />
-    </mask>
-    <g mask="url(#mask1_220_6)">
-        <path
-            d="M1756 661.637V396.49C1756 393.701 1757.45 391.114 1759.83 389.661L1802.83 363.424C1808.16 360.171 1815 364.008 1815 370.253V642.323C1815 645.473 1813.15 648.33 1810.28 649.621L1767.28 668.935C1761.98 671.312 1756 667.44 1756 661.637Z"
-            fill="#B90090" stroke="#9F8A60" stroke-opacity="0.5" stroke-width="2" />
-    </g>
-</svg>
+<div id='altimeters'>
+    <div class='altimeter left'>
+        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
+        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
+        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
+        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
+    </div>
+    <div class='altimeter right'>
+        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
+        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
+        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
+        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
+    </div>
+</div>
+
 
 <style>
     #altimeters {
         position: absolute;
         height: 100%;
+        aspect-ratio: 1920/1080;
         left: 50%;
         top: 50%;
         translate: -50% -50%;
     }
 
+    .altimeter {
+        position: absolute;
+        top: 34%;
+        width: 1.2%;
+        height: 27.8%;
+    }
+
+    .altimeter.left {
+        left: 6.4%;
+        clip-path: polygon(0% 0%, 100% 5%, 100% 100%, 0% 95%);
+    }
+    .altimeter.right {
+        right: 6.4%;
+        clip-path: polygon(0% 5%, 100% 0%, 100% 95%, 0% 100%);
+    }
+
+    .lines {
+		position: absolute;
+		height: 100%;
+        left: 50%;
+        translate: -50% 0%;
+	}
+
+    .lines.a {
+		width: 100%;
+		background: linear-gradient(to top, var(--altim-bright) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+	}
+	.lines.b {
+		width: 60%;
+		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+	}
+	.lines.c {
+		width: 40%;
+		background: linear-gradient(to top, var(--altim-med) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+	}
+	.lines.d {
+		width: 100%;
+		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+	}
 </style>

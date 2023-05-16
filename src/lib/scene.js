@@ -2,18 +2,21 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon';
 import { PointerLockControlsCannon } from './controls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { controls as $controls, 
-	currentVisor as visor, 
-	currentHealth as health, 
-	maxHealth, 
-	lookDistance, 
+import {
+	controls as $controls,
+	currentVisor as visor,
+	currentHealth as health,
+	maxHealth,
+	lookDistance,
 	currentBeam as beam,
-	isZoomed as _isZoomed } from './stores';
+	isZoomed as _isZoomed,
+	seekerPosition
+} from './stores';
 import { BeamType, VisorType } from './enums';
 import { Vector3 } from 'three';
 
 // THREE variables
-let camera, scene, renderer, raycaster;
+let camera, frustum, scene, renderer, raycaster;
 let material;
 let lookObject;
 
@@ -30,13 +33,15 @@ const balls = [];
 const ballMeshes = [];
 const sceneMeshes = [];
 
+let seekerObject;
+let canvas;
 let sound, ambient;
-
 let currentVisor, currentHealth, currentBeam, isZoomed;
 
 // SETUP
 
 export function setup(element) {
+	canvas = element;
 	visor.subscribe((value) => {
 		currentVisor = value;
 	});
@@ -47,13 +52,13 @@ export function setup(element) {
 
 	beam.subscribe((value) => {
 		currentBeam = value;
-	})
+	});
 
 	_isZoomed.subscribe((value) => {
 		isZoomed = value;
-	})
+	});
 
-	window.alert = function() {};
+	window.alert = function () {};
 
 	initThree(element);
 	initCannon();
@@ -69,24 +74,22 @@ function initThree(element) {
 
 	// Sound
 	const listener = new THREE.AudioListener();
-	camera.add( listener );
-	sound = new THREE.Audio( listener );
+	camera.add(listener);
+	sound = new THREE.Audio(listener);
 
 	const audioLoader = new THREE.AudioLoader();
-	audioLoader.load('laser.wav', function( buffer ) {
+	audioLoader.load('laser.wav', function (buffer) {
 		sound.setBuffer(buffer);
 		sound.setVolume(0.5);
 	});
 
-	ambient = new THREE.Audio( listener );
-	audioLoader.load('ambient.mp3', function(buffer) {
+	ambient = new THREE.Audio(listener);
+	audioLoader.load('ambient.mp3', function (buffer) {
 		ambient.setBuffer(buffer);
 		ambient.setLoop(true);
 		ambient.setVolume(0.5);
 		// ambient.play();
-	})
-
-
+	});
 
 	// Scene
 	scene = new THREE.Scene();
@@ -250,6 +253,10 @@ function initCannon() {
 		sceneMeshes.push(boxMesh);
 	}
 
+	seekerObject = sceneMeshes[0];
+	seekerObject.geometry.computeBoundingBox();
+
+
 	// Pickup cylinders
 	// const cylinderShape = new CANNON.Cylinder(0.25, 0.75, 1, 10);
 	// const cylinderGeometry = new THREE.CylinderGeometry(0.25, 0.5, 1, 10);
@@ -331,7 +338,6 @@ function initCannon() {
 	// // sphereBody.linearDamping = 0.9;
 	// world.addBody(testBody);
 
-
 	// Girl
 
 	const loader = new GLTFLoader();
@@ -359,7 +365,7 @@ function initCannon() {
 	loader.load(`plasma_beam.glb`, (glb) => {
 		const gltf = glb.scene;
 		camera.add(gltf);
-		gltf.position.set(0.1, 0, -0.5)
+		gltf.position.set(0.1, 0, -0.5);
 		gltf.rotation.set(0.1, Math.PI, 1);
 		// gltf.quaternion.copy(camera.quaternion);
 	});
@@ -382,7 +388,6 @@ function initCannon() {
 
 	window.addEventListener('mousedown', handlePointerDown);
 	window.addEventListener('mouseup', handlePointerUp);
-
 
 	function handlePointerDown(event) {
 		switch (event.which) {
@@ -417,7 +422,7 @@ function initCannon() {
 		const ballBody = new CANNON.Body({ type: 4 });
 		ballBody.addShape(ballShape);
 		let beamMaterial;
-		
+
 		switch (currentBeam) {
 			case BeamType.Power:
 				beamMaterial = powerBeamMaterial;
@@ -436,7 +441,7 @@ function initCannon() {
 				sound.detune = 600;
 				break;
 		}
-		
+
 		const ballMesh = new THREE.Mesh(ballGeometry, beamMaterial);
 
 		// ballMesh.castShadow = true;
@@ -464,19 +469,17 @@ function initCannon() {
 		sound.stop();
 		sound.play();
 	}
-
 }
 
 function zoom(num) {
 	camera.zoom = num;
 	camera.updateProjectionMatrix();
-	
+
 	if (num > 1) {
 		_isZoomed.set(true);
 	} else {
 		_isZoomed.set(false);
 	}
-	
 }
 
 function initPointerLock(element) {
@@ -561,6 +564,26 @@ function animate() {
 	// camera.zoom.lerp(2, 0.01);
 	// camera.updateProjectionMatrix();
 	renderer.render(scene, camera);
+	updateSeekerPosition();
+}
+
+function updateSeekerPosition() {
+	const center = new THREE.Vector3();
+	// seekerObject.geometry.boundingBox.getCenter( center );
+	// seekerObject.localToWorld( center );
+	// const center = seekerObject.position;
+	console.log(center);
+
+	center.project(camera);
+	center.x = Math.round((0.5 + center.x / 2) * (canvas.width / window.devicePixelRatio));
+	center.y = Math.round((0.5 - center.y / 2) * (canvas.height / window.devicePixelRatio));
+
+	// console.log(vector.x, vector.y);
+
+	seekerPosition.set({
+		x: center.x,
+		y: center.y
+	});
 }
 
 function pickupHealth(event) {

@@ -10,11 +10,17 @@ export const unlockedVisors = writable([VisorType.Combat, VisorType.Scan, VisorT
 export const currentBeam = writable(BeamType.Power);
 export const unlockedBeams = writable([BeamType.Power, BeamType.Wave, BeamType.Ice, BeamType.Plasma]);
 
+
+
 export const lookDistance = writable(0);
 export const lookDistMin = readable(5);
 export const lookDistMax = readable(50);
 
+// Look variables
 export const isZoomed = writable(false);
+export const isLockable = writable(true);
+export const seekerPosition = writable({x: 0, y: 0});
+export const isLocked = writable(false);
 export const lookMovement = writable({x: 0, y: 0});
 export const vertLook = writable(50);
 export const horzLook = writable(50);

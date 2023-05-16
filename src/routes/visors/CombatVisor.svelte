@@ -4,7 +4,9 @@
 </script>
 
 <div id='visor' transition:fade>
+	<!-- DECORATION -->
 	<img id='decor' src="Combat 1x.png" alt="helmet" />
+	<!-- ALTIMETERS -->
 	<CombatAltimeters />
 </div>
 

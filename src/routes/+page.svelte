@@ -1,10 +1,11 @@
 <script>
 	import World from './World.svelte';
 	import Visor from './Visor.svelte';
+	import Hud from './HUD.svelte';
 </script>
 
 <div id='body'>
-	<Visor />
+    <Hud />
 	<World />
 </div>
 
