@@ -4,13 +4,19 @@
 </script>
 
 {#if $isLockable}
-	<img id="cursor" src="Combat Seeker 1x.png" 
-        transition:fade  
-        style='left: {$seekerPosition.x}px;
-            top: {$seekerPosition.y}px;'
-        alt="Combat Seeker" />
-        <div id='debug'         style='left: {$seekerPosition.x}px;
-        top: {$seekerPosition.y}px;'></div>
+	<img
+		id="cursor"
+		src="Combat Seeker 1x.png"
+		transition:fade
+		style="left: {$seekerPosition.x}px;
+            top: {$seekerPosition.y}px;"
+		alt="Combat Seeker"
+	/>
+	<div
+		id="debug"
+		style="left: {$seekerPosition.x}px;
+            top: {$seekerPosition.y}px;"
+	/>
 {/if}
 
 <style>
@@ -20,17 +26,17 @@
 		top: 50%;
 		translate: -50% -50%;
 		transition: transform 2s ease-out;
-        animation: spin 5s linear infinite forwards;
+		animation: spin 5s linear infinite forwards;
 	}
 
-    #debug {
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        translate: -50% -50%;
-        border-radius: 50%;
-        background-color: blue;
-    }
+	#debug {
+		position: absolute;
+		width: 6px;
+		height: 6px;
+		translate: -50% -50%;
+		border-radius: 50%;
+		background-color: blue;
+	}
 
 	@keyframes spin {
 		from {

@@ -97,8 +97,8 @@
 <style>
 	#visor {
 		position: absolute;
-		width: 104%;
-		height: 104%;
+		width: 100%;
+		height: 100%;
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
@@ -115,6 +115,8 @@
 	}
 
 	.static-components {
+		width: 104%;
+		height: 104%;
 		transition-property: transform;
 		transition-duration: 0.2s;
 		transition-timing-function: ease-out;

@@ -256,7 +256,6 @@ function initCannon() {
 	seekerObject = sceneMeshes[0];
 	seekerObject.geometry.computeBoundingBox();
 
-
 	// Pickup cylinders
 	// const cylinderShape = new CANNON.Cylinder(0.25, 0.75, 1, 10);
 	// const cylinderGeometry = new THREE.CylinderGeometry(0.25, 0.5, 1, 10);
@@ -568,22 +567,24 @@ function animate() {
 }
 
 function updateSeekerPosition() {
-	const center = new THREE.Vector3();
-	// seekerObject.geometry.boundingBox.getCenter( center );
-	// seekerObject.localToWorld( center );
-	// const center = seekerObject.position;
-	console.log(center);
+	const center = seekerObject.position;
+	const frustum = new THREE.Frustum();
+	const matrix = new THREE.Matrix4().multiplyMatrices(
+		camera.projectionMatrix,
+		camera.matrixWorldInverse
+	);
+	frustum.setFromProjectionMatrix(matrix);
 
-	center.project(camera);
-	center.x = Math.round((0.5 + center.x / 2) * (canvas.width / window.devicePixelRatio));
-	center.y = Math.round((0.5 - center.y / 2) * (canvas.height / window.devicePixelRatio));
+	if (frustum.containsPoint(center)) {
+		center.project(camera);
+		center.x = Math.round((0.5 + center.x / 2) * (canvas.width / window.devicePixelRatio));
+		center.y = Math.round((0.5 - center.y / 2) * (canvas.height / window.devicePixelRatio));
 
-	// console.log(vector.x, vector.y);
-
-	seekerPosition.set({
-		x: center.x,
-		y: center.y
-	});
+		seekerPosition.set({
+			x: center.x,
+			y: center.y
+		});
+	}
 }
 
 function pickupHealth(event) {
