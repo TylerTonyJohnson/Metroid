@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon';
 import { VisorType, BeamType } from './enums';
+import { get } from 'svelte/store';
 import {
 	currentVisor,
-	unlockedVisors as visors,
+	unlockedVisors,
 	currentBeam,
-	unlockedBeams as beams,
-	lookMovement as _lookMovement,
+	unlockedBeams,
+	lookMovement,
 	isLockable,
 	isLocked,
 	vertLook,
@@ -15,44 +16,70 @@ import {
 	currentAmmo,
 	maxAmmo,
 	readoutShow,
-	controls as $controls
+	controls as $controls,
+	isDebugMode
 } from './stores';
+import { clamp } from './math';
+import { shoot, lockOn, lockOff } from './scene';
 
-/**
- * @author mrdoob / http://mrdoob.com/
- * @author schteppe / https://github.com/schteppe
- */
-let unlockedVisors;
-let unlockedBeams;
-let lookMovement;
+let $unlockedVisors;
+let $unlockedBeams;
+let $lookMovement;
+let $isLocked;
 let mouseTimer;
 
 const moveMaxX = 5;
 const moveMaxY = 5;
 
-class PointerLockControlsCannon extends THREE.EventDispatcher {
+export class PlayerController extends THREE.EventDispatcher {
 	constructor(camera, cannonBody) {
-		visors.subscribe((value) => {
-			unlockedVisors = value;
-		});
-
-		beams.subscribe((value) => {
-			unlockedBeams = value;
-		});
-
-		_lookMovement.subscribe((value) => {
-			lookMovement = value;
-		});
-
 		super();
 
-		this.enabled = false;
+		this.enabled = false; // Set this control as disabled until it's ready
 
-		this.cannonBody = cannonBody;
+		this.camera = camera;
+		this.cannonBody = cannonBody; // Link the physics body to the controller
 
-		// var eyeYPos = 2 // eyes are 2 meters above the ground
-		this.velocityFactor = 0.2;
-		this.jumpVelocity = 20;
+		this.rotation = new THREE.Quaternion();
+		this.position = new THREE.Vector3();
+
+		this.walkSpeed = 10;
+		this.strafeSpeed = 10;
+		this.jumpSpeed = 20;
+		this.maxJumps = 2;
+		this.jumps = this.maxJumps;
+
+		this.lockEvent = { type: 'lock' };
+		this.unlockEvent = { type: 'unlock' };
+
+		this.setupCannonBody();
+		this.subscribeToStores();
+		this.setupEventListeners();
+
+		// Runtime
+		this.phi = 0; // X-rotation
+		this.phiSpeed = 8; // Units?
+		this.theta = 0;
+		this.thetaSpeed = 5; // Units?
+
+		this.current = {
+			isLeftMouse: false,
+			isRightMouse: false,
+			isMiddleMouse: false,
+			movementX: 0,
+			movementY: 0
+		};
+
+		// GET RID OF
+		this.velocityFactor = 20;
+		this.quaternion = new THREE.Quaternion();
+
+		this.moveForward = false; // Set movement booleans
+		this.moveBackward = false;
+		this.moveLeft = false;
+		this.moveRight = false;
+		this.rotateLeft = false;
+		this.rotateRight = false;
 
 		this.pitchObject = new THREE.Object3D();
 		this.pitchObject.add(camera);
@@ -61,18 +88,29 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 		this.yawObject.position.y = 2;
 		this.yawObject.add(this.pitchObject);
 
-		this.quaternion = new THREE.Quaternion();
+		this.inputVelocity = new THREE.Vector3();
+		this.euler = new THREE.Euler();
+	}
 
-		this.moveForward = false;
-		this.moveBackward = false;
-		this.moveLeft = false;
-		this.moveRight = false;
-		this.rotateLeft = false;
-		this.rotateRight = false;
+	subscribeToStores() {
+		unlockedVisors.subscribe((value) => {
+			$unlockedVisors = value;
+		});
 
-		this.maxJumps = 2;
-		this.jumps = this.maxJumps;
+		unlockedBeams.subscribe((value) => {
+			$unlockedBeams = value;
+		});
 
+		lookMovement.subscribe((value) => {
+			$lookMovement = value;
+		});
+
+		isLocked.subscribe((value) => {
+			$isLocked = value;
+		});
+	}
+
+	setupCannonBody() {
 		const contactNormal = new CANNON.Vec3(); // Normal in the contact, pointing *out* of whatever the player touched
 		const upAxis = new CANNON.Vec3(0, 1, 0);
 		this.cannonBody.addEventListener('collide', (event) => {
@@ -96,35 +134,30 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 		});
 
 		this.velocity = this.cannonBody.velocity;
-
-		// Moves the camera to the cannon.js object position and adds velocity to the object if the run key is down
-		this.inputVelocity = new THREE.Vector3();
-		this.euler = new THREE.Euler();
-
-		this.lockEvent = { type: 'lock' };
-		this.unlockEvent = { type: 'unlock' };
-
-		this.connect();
 	}
 
-	connect() {
+	setupEventListeners() {
 		document.addEventListener('mousemove', this.onMouseMove);
+		document.addEventListener('mousedown', this.onMouseDown);
+		document.addEventListener('mouseup', this.onMouseUp);
 		document.addEventListener('pointerlockchange', this.onPointerlockChange);
 		document.addEventListener('pointerlockerror', this.onPointerlockError);
 		document.addEventListener('keydown', this.onKeyDown);
 		document.addEventListener('keyup', this.onKeyUp);
 	}
 
-	disconnect() {
+	dispose() {
+		this.removeEventListeners();
+	}
+
+	removeEventListeners() {
 		document.removeEventListener('mousemove', this.onMouseMove);
+		document.removeEventListener('mousedown', this.onMouseDown);
+		document.removeEventListener('mouseup', this.onMouseUp);
 		document.removeEventListener('pointerlockchange', this.onPointerlockChange);
 		document.removeEventListener('pointerlockerror', this.onPointerlockError);
 		document.removeEventListener('keydown', this.onKeyDown);
 		document.removeEventListener('keyup', this.onKeyUp);
-	}
-
-	dispose() {
-		this.disconnect();
 	}
 
 	lock() {
@@ -151,47 +184,161 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 		console.error('PointerLockControlsCannon: Unable to use Pointer Lock API');
 	};
 
-	onMouseMove = (event) => {
-		if (!this.enabled) {
+	update(timeElapsed) {
+		if (this.enabled === false) {
 			return;
 		}
 
-		clearTimeout(mouseTimer);
-		mouseTimer = setTimeout(this.onMouseStop, 20);
+		this.inputVelocity.set(0, 0, 0);
 
-		const { movementX, movementY } = event;
-		const percentX = -Math.max(Math.min(movementX / moveMaxX, 1), -1);
-		const percentY = -Math.max(Math.min(movementY / moveMaxY, 1), -1);
+		if (this.moveForward) {
+			this.inputVelocity.z = -this.velocityFactor * timeElapsed;
+		}
+		if (this.moveBackward) {
+			this.inputVelocity.z = this.velocityFactor * timeElapsed;
+		}
 
-		_lookMovement.set({ x: percentX, y: percentY });
+		if (this.moveLeft) {
+			this.inputVelocity.x = -this.velocityFactor * timeElapsed;
+		}
+		if (this.moveRight) {
+			this.inputVelocity.x = this.velocityFactor * timeElapsed;
+		}
+		if (this.rotateLeft) {
+		}
+		if (this.rotateRight) {
+		}
 
-		this.yawObject.rotation.y -= movementX * 0.002;
-		this.pitchObject.rotation.x -= movementY * 0.002;
+		// Convert velocity to world coordinates
+		// this.euler.x = this.pitchObject.rotation.x;
+		// this.euler.y = this.yawObject.rotation.y;
+		// this.euler.order = 'XYZ';
+		// this.quaternion.setFromEuler(this.euler);
+		this.inputVelocity.applyQuaternion(this.quaternion);
 
-		// this.yawObject.rotation.y = this.yawObject.y % (2 * Math.PI);
+		// Add to the object
+		this.velocity.x += this.inputVelocity.x;
+		this.velocity.z += this.inputVelocity.z;
 
-		this.pitchObject.rotation.x = Math.max(
+		this.yawObject.position.copy(this.cannonBody.position);
+		// this.position.copy(this.cannonBody.position);
+
+		this.updateRotation(timeElapsed);
+		this.updateCamera(timeElapsed);
+
+
+	}
+
+	updateRotation(timeElapsed) {
+		// Update rotation values
+		this.phi += -(this.current.movementX / window.innerWidth) * this.phiSpeed;
+		this.theta = clamp(
+			this.theta + -(this.current.movementY / window.innerHeight) * this.thetaSpeed,
 			-Math.PI / 2,
-			Math.min(Math.PI / 2, this.pitchObject.rotation.x)
+			Math.PI / 2
 		);
+		// console.log(this.phi, this.theta);
+		const qx = new THREE.Quaternion();
+		qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi);
+		const qz = new THREE.Quaternion();
+		qz.setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.theta);
 
+		const q = new THREE.Quaternion();
+		q.multiply(qx);
+		q.multiply(qz);
+
+		// this.quaternion = q;
+
+		const t = 1.0 - Math.pow(0.01, 5 * timeElapsed);
+		this.rotation.slerp(q, t);
+		// console.log(this.phi, this.theta);
+		// console.log(this.rotation);
+	}
+
+	updateCamera(timeElapsed) {
+		this.camera.quaternion.copy(this.rotation);
+	}
+
+	onMouseMove = (event) => {
+		if (!this.enabled) return;
+		if ($isLocked) return; // If we're locked on a target, don't allow mouse move
+
+		// Set up for mouse stopping
+		clearTimeout(mouseTimer);
+		mouseTimer = setTimeout(this.onMouseStop, 1);
+
+		this.current.movementX = event.movementX;
+		this.current.movementY = event.movementY;
+
+		// Update Store Values
+		this.updateMoveStores();
+
+		// OLD CODE
+		// const { movementX, movementY } = event;
+		// this.yawObject.rotation.y -= movementX * 0.002;
+		// this.pitchObject.rotation.x -= movementY * 0.002;
+
+		// this.pitchObject.rotation.x = Math.max(
+		// 	-Math.PI / 2,
+		// 	Math.min(Math.PI / 2, this.pitchObject.rotation.x)
+		// );	// Limit pitch movement
+	};
+
+	updateMoveStores() {
+		// Calculate store values
+		const percentX = -Math.max(Math.min(this.current.movementX / moveMaxX, 1), -1);
+		const percentY = -Math.max(Math.min(this.current.movementY / moveMaxY, 1), -1);
+
+		// TODO
 		const pitchPercent = (this.pitchObject.rotation.x % (2 * Math.PI)) / Math.PI;
 		const yawPercent = (this.yawObject.rotation.y % (2 * Math.PI)) / (2 * Math.PI);
 
+		// Set store values
+		lookMovement.set({ x: percentX, y: percentY });
 		vertLook.set(pitchPercent);
 		horzLook.set(yawPercent);
-	};
+	}
 
 	onMouseStop = () => {
-		_lookMovement.update((value) => {
+		this.current.movementX = 0;
+		this.current.movementY = 0;
+
+		lookMovement.update((value) => {
 			value.x = 0;
 			return value;
 		});
 
-		_lookMovement.update((value) => {
+		lookMovement.update((value) => {
 			value.y = 0;
 			return value;
 		});
+	};
+
+	onMouseDown = (event) => {
+		switch (event.which) {
+			case 1:
+				shoot(event);
+				break;
+			case 2:
+				break;
+			case 3:
+				// zoom(2);
+				lockOn();
+				break;
+		}
+	};
+
+	onMouseUp = (event) => {
+		switch (event.which) {
+			case 1:
+				break;
+			case 2:
+				break;
+			case 3:
+				lockOff();
+				// zoom(1);
+				break;
+		}
 	};
 
 	onKeyDown = (event) => {
@@ -223,7 +370,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 				break;
 			case 'Space':
 				if (this.jumps > 0) {
-					this.velocity.y = this.jumpVelocity;
+					this.velocity.y = this.jumpSpeed;
 				}
 				this.jumps--;
 				break;
@@ -231,46 +378,46 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 				this.velocityFactor = 0.4;
 				break;
 			case 'Digit1':
-				if (unlockedBeams.includes(BeamType.Power)) {
+				if ($unlockedBeams.includes(BeamType.Power)) {
 					currentBeam.set(BeamType.Power);
 				}
 				break;
 			case 'Digit2':
-				if (unlockedBeams.includes(BeamType.Wave)) {
+				if ($unlockedBeams.includes(BeamType.Wave)) {
 					currentBeam.set(BeamType.Wave);
 				}
 				break;
 			case 'Digit3':
-				if (unlockedBeams.includes(BeamType.Ice)) {
+				if ($unlockedBeams.includes(BeamType.Ice)) {
 					currentBeam.set(BeamType.Ice);
 				}
 				break;
 			case 'Digit4':
-				if (unlockedBeams.includes(BeamType.Plasma)) {
+				if ($unlockedBeams.includes(BeamType.Plasma)) {
 					currentBeam.set(BeamType.Plasma);
 				}
 				break;
 			case 'F1':
 				event.preventDefault();
-				if (unlockedVisors.includes(VisorType.Combat)) {
+				if ($unlockedVisors.includes(VisorType.Combat)) {
 					currentVisor.set(VisorType.Combat);
 				}
 				break;
 			case 'F2':
 				event.preventDefault();
-				if (unlockedVisors.includes(VisorType.Scan)) {
+				if ($unlockedVisors.includes(VisorType.Scan)) {
 					currentVisor.set(VisorType.Scan);
 				}
 				break;
 			case 'F3':
 				event.preventDefault();
-				if (unlockedVisors.includes(VisorType.Thermal)) {
+				if ($unlockedVisors.includes(VisorType.Thermal)) {
 					currentVisor.set(VisorType.Thermal);
 				}
 				break;
 			case 'F4':
 				event.preventDefault();
-				if (unlockedVisors.includes(VisorType.Xray)) {
+				if ($unlockedVisors.includes(VisorType.Xray)) {
 					currentVisor.set(VisorType.Xray);
 				}
 				break;
@@ -332,6 +479,10 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 			case 'Quote':
 				isLockable.set(false);
 				break;
+			case 'KeyP':
+				const currentMode = get(isDebugMode);
+				isDebugMode.set(!currentMode);
+				break;
 		}
 	};
 
@@ -377,48 +528,6 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 		vector.applyQuaternion(this.quaternion);
 		return vector;
 	}
-
-	update(delta) {
-		if (this.enabled === false) {
-			return;
-		}
-
-		delta *= 1000;
-		delta *= 0.1;
-
-		this.inputVelocity.set(0, 0, 0);
-
-		if (this.moveForward) {
-			this.inputVelocity.z = -this.velocityFactor * delta;
-		}
-		if (this.moveBackward) {
-			this.inputVelocity.z = this.velocityFactor * delta;
-		}
-
-		if (this.moveLeft) {
-			this.inputVelocity.x = -this.velocityFactor * delta;
-		}
-		if (this.moveRight) {
-			this.inputVelocity.x = this.velocityFactor * delta;
-		}
-		if (this.rotateLeft) {
-		}
-		if (this.rotateRight) {
-		}
-
-		// Convert velocity to world coordinates
-		this.euler.x = this.pitchObject.rotation.x;
-		this.euler.y = this.yawObject.rotation.y;
-		this.euler.order = 'XYZ';
-		this.quaternion.setFromEuler(this.euler);
-		this.inputVelocity.applyQuaternion(this.quaternion);
-
-		// Add to the object
-		this.velocity.x += this.inputVelocity.x;
-		this.velocity.z += this.inputVelocity.z;
-
-		this.yawObject.position.copy(this.cannonBody.position);
-	}
 }
 
-export { PointerLockControlsCannon };
+// export { PointerLockControlsCannon };

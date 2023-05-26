@@ -1,21 +1,14 @@
 <script>
-	import { fade } from 'svelte/transition';
-	import { isLockable, isLocked, seekerPosition } from '../../../lib/stores';
+	import { isLockable, isLocked, seekerPixelX, seekerPixelY } from '../../../lib/stores';
 </script>
 
 {#if $isLockable}
 	<img
 		id="cursor"
 		src="Combat Seeker 1x.png"
-		transition:fade
-		style="left: {$seekerPosition.x}px;
-            top: {$seekerPosition.y}px;"
+		style="left: {$seekerPixelX}px;
+            top: {$seekerPixelY}px;"
 		alt="Combat Seeker"
-	/>
-	<div
-		id="debug"
-		style="left: {$seekerPosition.x}px;
-            top: {$seekerPosition.y}px;"
 	/>
 {/if}
 
@@ -25,8 +18,8 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
-		transition: transform 2s ease-out;
-		animation: spin 5s linear infinite forwards;
+		transition: rotate 2s ease-out;
+		animation: spin 5s linear infinite both;
 	}
 
 	#debug {
@@ -40,10 +33,10 @@
 
 	@keyframes spin {
 		from {
-			transform: rotate(0deg);
+			rotate: 0deg;
 		}
 		to {
-			transform: rotate(360deg);
+			rotate: 360deg;
 		}
 	}
 </style>

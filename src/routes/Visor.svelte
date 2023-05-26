@@ -107,8 +107,7 @@
 
 	#visor > * {
 		position: absolute;
-		height: 100%;
-		width: 100%;
+
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
@@ -123,15 +122,23 @@
 	}
 
 	#visor-layer {
+		width: 104%;
+		height: 104%;
 	}
 
 	#seeker-layer {
+		width: 100%;
+		height: 100%;
 	}
 
 	#lock-layer {
+		width: 100%;
+		height: 100%;
 	}
 
 	#cursor-layer {
+		width: 100%;
+		height: 100%;
 	}
 
 	#helmet {

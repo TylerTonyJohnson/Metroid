@@ -4,7 +4,6 @@
     import { onMount } from "svelte";
 	import { set_input_type } from "svelte/internal";
     import { setup } from '../lib/scene.js';
-    import { PointerLockControlsCannon } from '../lib/controls';
 
     let element;
 
