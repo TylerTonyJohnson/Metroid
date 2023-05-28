@@ -11,6 +11,7 @@
 	import CombatCursor from './visors/components/CombatCursor.svelte';
 	import CombatSeeker from './visors/components/CombatSeeker.svelte';
 	import CombatLock from './visors/components/CombatLock.svelte';
+	import ScanSeeker from './visors/components/ScanSeeker.svelte';
 
 	const maxRotateX = 1.5; // Degrees
 	const maxRotateY = 1.5; // Degrees
@@ -53,7 +54,7 @@
 		{#if $currentVisor === VisorType.Combat}
 			<CombatSeeker />
 		{:else if $currentVisor === VisorType.Scan}
-			<CombatSeeker />
+			<ScanSeeker />
 		{:else if $currentVisor === VisorType.Thermal}
 			<CombatSeeker />
 		{:else if $currentVisor === VisorType.Xray}
@@ -127,6 +128,7 @@
 	}
 
 	#seeker-layer {
+		position: absolute;
 		width: 100%;
 		height: 100%;
 	}

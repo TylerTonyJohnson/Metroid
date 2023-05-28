@@ -34,6 +34,7 @@ export const isZoomed = writable(false);
 export const isLockable = writable(true);
 export const seekerPositionX = writable(0);
 export const seekerPositionY = writable(0);
+export const seekerPositions = writable([]);	// An array of positions
 
 export const seekerPixelX = derived(seekerPositionX, ($seekerPositionX) =>
 	Math.round((0.5 + $seekerPositionX / 2) * (window.innerWidth / window.devicePixelRatio))

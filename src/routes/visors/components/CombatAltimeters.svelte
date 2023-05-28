@@ -1,7 +1,7 @@
 <script>
 	import { vertLook } from '../../../lib/stores';
 
-    $: altHeight = $vertLook * 100;
+    $: altHeight = $vertLook * 300;
 </script>
 
 <div id='altimeters'>
@@ -51,6 +51,7 @@
 		height: 100%;
         left: 50%;
         translate: -50% 0%;
+        /* transition: all 0.1s linear; */
 	}
 
     .lines.a {

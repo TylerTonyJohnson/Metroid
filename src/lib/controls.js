@@ -20,7 +20,7 @@ import {
 	isDebugMode
 } from './stores';
 import { clamp } from './math';
-import { shoot, lockOn, lockOff } from './scene';
+import { shoot, getLockMesh as getLockMesh, releaseLockMesh } from './scene';
 
 let $unlockedVisors;
 let $unlockedBeams;
@@ -30,21 +30,22 @@ let mouseTimer;
 
 const moveMaxX = 5;
 const moveMaxY = 5;
+let lockTargetMesh = new THREE.Vector3(0, 0, 0);
 
 export class PlayerController extends THREE.EventDispatcher {
 	constructor(camera, cannonBody) {
 		super();
-
+		this.object = new THREE.Object3D();
 		this.enabled = false; // Set this control as disabled until it's ready
 
 		this.camera = camera;
+		this.object.add(this.camera);
 		this.cannonBody = cannonBody; // Link the physics body to the controller
 
-		this.rotation = new THREE.Quaternion();
-		this.position = new THREE.Vector3();
+		// this.rotation = new THREE.Quaternion();
+		// this.position = new THREE.Vector3();
 
-		this.walkSpeed = 10;
-		this.strafeSpeed = 10;
+		this.strafeSpeed = 10; // Unused right now
 		this.jumpSpeed = 20;
 		this.maxJumps = 2;
 		this.jumps = this.maxJumps;
@@ -57,6 +58,18 @@ export class PlayerController extends THREE.EventDispatcher {
 		this.setupEventListeners();
 
 		// Runtime
+		this.moveForward = false; // Set movement booleans
+		this.moveBackward = false;
+		this.moveLeft = false;
+		this.moveRight = false;
+		this.moveUp = false;
+		this.moveDown = false;
+		this.rotateLeft = false;
+		this.rotateRight = false;
+
+		this.inputVelocity = new THREE.Vector3();
+
+		this.walkSpeed = 20;
 		this.phi = 0; // X-rotation
 		this.phiSpeed = 8; // Units?
 		this.theta = 0;
@@ -69,27 +82,6 @@ export class PlayerController extends THREE.EventDispatcher {
 			movementX: 0,
 			movementY: 0
 		};
-
-		// GET RID OF
-		this.velocityFactor = 20;
-		this.quaternion = new THREE.Quaternion();
-
-		this.moveForward = false; // Set movement booleans
-		this.moveBackward = false;
-		this.moveLeft = false;
-		this.moveRight = false;
-		this.rotateLeft = false;
-		this.rotateRight = false;
-
-		this.pitchObject = new THREE.Object3D();
-		this.pitchObject.add(camera);
-
-		this.yawObject = new THREE.Object3D();
-		this.yawObject.position.y = 2;
-		this.yawObject.add(this.pitchObject);
-
-		this.inputVelocity = new THREE.Vector3();
-		this.euler = new THREE.Euler();
 	}
 
 	subscribeToStores() {
@@ -188,100 +180,85 @@ export class PlayerController extends THREE.EventDispatcher {
 		if (this.enabled === false) {
 			return;
 		}
+		this.updatePosition(timeElapsed);
+		if (!$isLocked) {
+			this.updateRotation(timeElapsed);
+		}
+	}
 
+	updatePosition(timeElapsed) {
+		// Calculate total direction of new velocity relative to player
 		this.inputVelocity.set(0, 0, 0);
-
 		if (this.moveForward) {
-			this.inputVelocity.z = -this.velocityFactor * timeElapsed;
+			this.inputVelocity.add(new THREE.Vector3(0, 0, -1));
 		}
 		if (this.moveBackward) {
-			this.inputVelocity.z = this.velocityFactor * timeElapsed;
+			this.inputVelocity.add(new THREE.Vector3(0, 0, 1));
 		}
-
 		if (this.moveLeft) {
-			this.inputVelocity.x = -this.velocityFactor * timeElapsed;
+			this.inputVelocity.add(new THREE.Vector3(-1, 0, 0));
 		}
 		if (this.moveRight) {
-			this.inputVelocity.x = this.velocityFactor * timeElapsed;
+			this.inputVelocity.add(new THREE.Vector3(1, 0, 0));
 		}
-		if (this.rotateLeft) {
+		if (this.moveUp) {
+			this.inputVelocity.add(new THREE.Vector3(0, -1, 0));
 		}
-		if (this.rotateRight) {
+		if (this.moveDown) {
+			this.inputVelocity.add(new THREE.Vector3(0, 1, 0));
 		}
 
-		// Convert velocity to world coordinates
-		// this.euler.x = this.pitchObject.rotation.x;
-		// this.euler.y = this.yawObject.rotation.y;
-		// this.euler.order = 'XYZ';
-		// this.quaternion.setFromEuler(this.euler);
-		this.inputVelocity.applyQuaternion(this.quaternion);
+		// Scale and rotate velocity to world coordinates
+		this.inputVelocity.multiplyScalar(this.walkSpeed * timeElapsed);
+		this.inputVelocity.applyQuaternion(this.object.quaternion);
 
-		// Add to the object
-		this.velocity.x += this.inputVelocity.x;
-		this.velocity.z += this.inputVelocity.z;
-
-		this.yawObject.position.copy(this.cannonBody.position);
-		// this.position.copy(this.cannonBody.position);
-
-		this.updateRotation(timeElapsed);
-		this.updateCamera(timeElapsed);
-
-
+		// Add total new velocity to the physics body
+		this.cannonBody.velocity.x += this.inputVelocity.x;
+		this.cannonBody.velocity.z += this.inputVelocity.z;
+		this.object.position.copy(this.cannonBody.position);
 	}
 
 	updateRotation(timeElapsed) {
-		// Update rotation values
+		if ($isLocked) {
+			// this.object.lookAt(lockTargetMesh.position);
+			return;
+		}
+
+		// Calculate angle change since last frame
 		this.phi += -(this.current.movementX / window.innerWidth) * this.phiSpeed;
 		this.theta = clamp(
 			this.theta + -(this.current.movementY / window.innerHeight) * this.thetaSpeed,
 			-Math.PI / 2,
 			Math.PI / 2
 		);
-		// console.log(this.phi, this.theta);
+
+		// Calculate new target quaternion
 		const qx = new THREE.Quaternion();
 		qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi);
 		const qz = new THREE.Quaternion();
 		qz.setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.theta);
-
 		const q = new THREE.Quaternion();
 		q.multiply(qx);
 		q.multiply(qz);
 
-		// this.quaternion = q;
-
+		// Interpolate to target quaternion
 		const t = 1.0 - Math.pow(0.01, 5 * timeElapsed);
-		this.rotation.slerp(q, t);
-		// console.log(this.phi, this.theta);
-		// console.log(this.rotation);
-	}
+		this.object.quaternion.slerp(q, t);
 
-	updateCamera(timeElapsed) {
-		this.camera.quaternion.copy(this.rotation);
+		// Reset movement to zero for next loop
+		this.current.movementX = 0;
+		this.current.movementY = 0;
 	}
 
 	onMouseMove = (event) => {
 		if (!this.enabled) return;
 		if ($isLocked) return; // If we're locked on a target, don't allow mouse move
 
-		// Set up for mouse stopping
-		clearTimeout(mouseTimer);
-		mouseTimer = setTimeout(this.onMouseStop, 1);
-
 		this.current.movementX = event.movementX;
 		this.current.movementY = event.movementY;
 
 		// Update Store Values
 		this.updateMoveStores();
-
-		// OLD CODE
-		// const { movementX, movementY } = event;
-		// this.yawObject.rotation.y -= movementX * 0.002;
-		// this.pitchObject.rotation.x -= movementY * 0.002;
-
-		// this.pitchObject.rotation.x = Math.max(
-		// 	-Math.PI / 2,
-		// 	Math.min(Math.PI / 2, this.pitchObject.rotation.x)
-		// );	// Limit pitch movement
 	};
 
 	updateMoveStores() {
@@ -290,8 +267,8 @@ export class PlayerController extends THREE.EventDispatcher {
 		const percentY = -Math.max(Math.min(this.current.movementY / moveMaxY, 1), -1);
 
 		// TODO
-		const pitchPercent = (this.pitchObject.rotation.x % (2 * Math.PI)) / Math.PI;
-		const yawPercent = (this.yawObject.rotation.y % (2 * Math.PI)) / (2 * Math.PI);
+		const yawPercent = this.phi / (2 * Math.PI);
+		const pitchPercent = this.theta / Math.PI;
 
 		// Set store values
 		lookMovement.set({ x: percentX, y: percentY });
@@ -299,20 +276,20 @@ export class PlayerController extends THREE.EventDispatcher {
 		horzLook.set(yawPercent);
 	}
 
-	onMouseStop = () => {
-		this.current.movementX = 0;
-		this.current.movementY = 0;
+	// onMouseStop = () => {
+	// 	this.current.movementX = 0;
+	// 	this.current.movementY = 0;
 
-		lookMovement.update((value) => {
-			value.x = 0;
-			return value;
-		});
+	// 	lookMovement.update((value) => {
+	// 		value.x = 0;
+	// 		return value;
+	// 	});
 
-		lookMovement.update((value) => {
-			value.y = 0;
-			return value;
-		});
-	};
+	// 	lookMovement.update((value) => {
+	// 		value.y = 0;
+	// 		return value;
+	// 	});
+	// };
 
 	onMouseDown = (event) => {
 		switch (event.which) {
@@ -323,7 +300,7 @@ export class PlayerController extends THREE.EventDispatcher {
 				break;
 			case 3:
 				// zoom(2);
-				lockOn();
+				this.lockOn();
 				break;
 		}
 	};
@@ -335,10 +312,22 @@ export class PlayerController extends THREE.EventDispatcher {
 			case 2:
 				break;
 			case 3:
-				lockOff();
+				this.lockOff();
 				// zoom(1);
 				break;
 		}
+	};
+
+	lockOn = () => {
+		lockTargetMesh = getLockMesh();
+		if (!lockTargetMesh) return;
+		isLocked.set(true);
+	};
+
+	lockOff = () => {
+		if (!$isLocked) return;
+		isLocked.set(false);
+		releaseLockMesh();
 	};
 
 	onKeyDown = (event) => {
@@ -347,35 +336,30 @@ export class PlayerController extends THREE.EventDispatcher {
 			case 'ArrowUp':
 				this.moveForward = true;
 				break;
-
 			case 'KeyA':
 			case 'ArrowLeft':
 				this.moveLeft = true;
 				break;
-
 			case 'KeyS':
 			case 'ArrowDown':
 				this.moveBackward = true;
 				break;
-
 			case 'KeyD':
 			case 'ArrowRight':
 				this.moveRight = true;
 				break;
 			case 'KeyQ':
-				this.rotateLeft = true;
+				this.moveUp = true;
 				break;
 			case 'KeyE':
-				this.rotateRight = true;
+				this.moveDown = true;
 				break;
 			case 'Space':
-				if (this.jumps > 0) {
-					this.velocity.y = this.jumpSpeed;
-				}
+				if (this.jumps > 0) this.velocity.y = this.jumpSpeed;
 				this.jumps--;
 				break;
 			case 'ShiftLeft':
-				this.velocityFactor = 0.4;
+				this.walkSpeed *= 1.4;
 				break;
 			case 'Digit1':
 				if ($unlockedBeams.includes(BeamType.Power)) {
@@ -492,35 +476,32 @@ export class PlayerController extends THREE.EventDispatcher {
 			case 'ArrowUp':
 				this.moveForward = false;
 				break;
-
 			case 'KeyA':
 			case 'ArrowLeft':
 				this.moveLeft = false;
 				break;
-
 			case 'KeyS':
 			case 'ArrowDown':
 				this.moveBackward = false;
 				break;
-
 			case 'KeyD':
 			case 'ArrowRight':
 				this.moveRight = false;
 				break;
 			case 'ShiftLeft':
-				this.velocityFactor = 0.2;
+				this.walkSpeed /= 1.4;
 				break;
 			case 'KeyQ':
-				this.rotateLeft = false;
+				this.moveUp = false;
 				break;
 			case 'KeyE':
-				this.rotateRight = false;
+				this.moveDown = false;
 				break;
 		}
 	};
 
 	getObject() {
-		return this.yawObject;
+		return this.object;
 	}
 
 	getDirection() {

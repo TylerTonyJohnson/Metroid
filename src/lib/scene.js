@@ -1,14 +1,11 @@
 import * as THREE from 'three';
-import { ConvexHull } from 'three/examples/jsm/math/ConvexHull';
 import * as CANNON from 'cannon';
 import CannonUtils from 'cannon-utils';
 import CannonDebugger from 'cannon-es-debugger';
-import TWEEN from '@tweenjs/tween.js';
 import { PlayerController } from './controls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { get } from 'svelte/store';
 import {
-	controls as $controls,
 	currentVisor as visor,
 	currentHealth as health,
 	maxHealth,
@@ -17,6 +14,7 @@ import {
 	isZoomed as _isZoomed,
 	seekerPositionX,
 	seekerPositionY,
+	seekerPositions,
 	isLockable,
 	isDebugMode,
 	isLocked
@@ -28,8 +26,6 @@ import { Vector3 } from 'three';
 let camera, frustum, scene, renderer, raycaster;
 let material;
 let lookObject;
-const lockMatrix = new THREE.Matrix4();
-const lockEuler = new THREE.Euler();
 
 // CANNON variables
 let physicsWorld;
@@ -44,12 +40,14 @@ const boxMeshes = [];
 const balls = [];
 const ballMeshes = [];
 const sceneMeshes = [];
+let visibleMeshes = [];
 
 let seekerMesh;
 let lockMesh;
 let canvas;
 let sound, ambient;
-let currentVisor, currentHealth, currentBeam, isZoomed;
+let $currentVisor, $currentHealth, $currentBeam, isZoomed;
+let $seekerPositions;
 
 const shootVelocity = 100;
 const ballBody = new CANNON.Body({ type: 4 });
@@ -65,16 +63,20 @@ const PlasmaBeamMaterial = new THREE.MeshBasicMaterial({ color: '#FF4A49' });
 export function setup(element) {
 	canvas = element;
 	visor.subscribe((value) => {
-		currentVisor = value;
+		$currentVisor = value;
 	});
 
 	health.subscribe((value) => {
-		currentHealth = value;
+		$currentHealth = value;
 	});
 
 	beam.subscribe((value) => {
-		currentBeam = value;
+		$currentBeam = value;
 	});
+
+	seekerPositions.subscribe(value => {
+		$seekerPositions = value;
+	})
 
 	_isZoomed.subscribe((value) => {
 		isZoomed = value;
@@ -254,7 +256,7 @@ function initCannon() {
 		halfExtents.z * 2
 	);
 
-	for (let i = 0; i < 1; i++) {
+	for (let i = 0; i < 10; i++) {
 		const boxBody = new CANNON.Body({ mass: 5 });
 		boxBody.addShape(boxShape);
 		const boxMesh = new THREE.Mesh(
@@ -262,12 +264,16 @@ function initCannon() {
 			new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff })
 		);
 
+		boxMesh.onBeforeRender = () => {
+			if (!visibleMeshes.includes(boxMesh)) visibleMeshes.push(boxMesh);
+		};
+
 		boxMesh.name = i;
 		const x = (Math.random() - 0.5) * 20;
 		const y = (Math.random() - 0.5) * 1 + 1;
 		const z = (Math.random() - 0.5) * 20;
 
-		boxBody.position.set(0, 2, 0);
+		boxBody.position.set(x, y, z);
 		boxMesh.position.copy(boxBody.position);
 
 		boxMesh.castShadow = true;
@@ -412,7 +418,7 @@ export function shoot(event) {
 	ballBody.addShape(ballShape);
 	let beamMaterial;
 
-	switch (currentBeam) {
+	switch ($currentBeam) {
 		case BeamType.Power:
 			beamMaterial = powerBeamMaterial;
 			// sound.detune = 0;
@@ -489,7 +495,7 @@ export function lockOff() {
 function initPointerLock(element) {
 	controls = new PlayerController(camera, sphereBody);
 	scene.add(controls.getObject());
-	$controls.set(controls);
+	// $controls.set(controls);
 
 	element.addEventListener('click', () => {
 		controls.lock();
@@ -511,12 +517,12 @@ function animate() {
 
 	// Manage time
 	const time = performance.now() / 1000;
-	const dt = time - lastCallTime;
+	const elapsedTime = time - lastCallTime;
 	lastCallTime = time;
 
 	// Controls
 	if (controls.enabled) {
-		physicsWorld.step(timeStep, dt);
+		physicsWorld.step(timeStep, elapsedTime);
 
 		// Raycaster update
 		raycaster.setFromCamera(new THREE.Vector2(), camera);
@@ -524,7 +530,7 @@ function animate() {
 		if (intersects.length > 0) {
 			lookDistance.set(intersects[0].distance);
 
-			switch (currentVisor) {
+			switch ($currentVisor) {
 				case VisorType.Combat:
 					lookObject = null;
 					break;
@@ -551,9 +557,9 @@ function animate() {
 		}
 
 		// Lock on
-		if (get(isLocked)) {
-			updateLockedView();
-		}
+		// if (get(isLocked)) {
+		// 	updateLockedView();
+		// }
 
 		// Update positions
 		for (let i = 0; i < boxes.length; i++) {
@@ -565,82 +571,80 @@ function animate() {
 			ballMeshes[i].position.copy(balls[i].position);
 			ballMeshes[i].quaternion.copy(balls[i].quaternion);
 		}
-	}
 
-	// Render
-	controls.update(dt);
-	renderer.render(scene, camera);
-	if (get(isDebugMode)) {
-		cannonDebugger.update();
-	} else {
-		cannonDebugger.enabled = false;
+		// Render
+
+		if (get(isDebugMode)) {
+			cannonDebugger.update();
+		} else {
+			cannonDebugger.enabled = false;
+		}
+		controls.update(elapsedTime);
+		renderer.render(scene, camera);
+		updateSeekerPosition();
+		
 	}
-	updateSeekerPosition();
 }
 
-function updateLockedView() {
-	// lockMatrix.lookAt(lockMesh.position, controls.yawObject.position, controls.yawObject.up);
-	// lockEuler.setFromRotationMatrix(lockMatrix);
-	// console.log(lockEuler.y);
+export function getLockMesh() {
+	// if (!isLockable) return null;
+	lockMesh = seekerMesh;
+	return lockMesh;
 }
+export function releaseLockMesh() {
+	lockMesh = null;
+}
+
+// function updateLockedView() {
+// 	// lockMatrix.lookAt(lockMesh.position, controls.yawObject.position, controls.yawObject.up);
+// 	// lockEuler.setFromRotationMatrix(lockMatrix);
+// 	// console.log(lockEuler.y);
+// 	// controls.camera.lookAt(new THREE.Vector3());
+// }
 
 function updateSeekerPosition() {
-	camera.updateProjectionMatrix();
-	camera.updateMatrixWorld();
-	const frustum = new THREE.Frustum();
-	const matrix = new THREE.Matrix4().multiplyMatrices(
-		camera.projectionMatrix,
-		camera.matrixWorldInverse
-	);
-	frustum.setFromProjectionMatrix(matrix);
 
-	let closestDistance = 1;
-	let closestMesh = null;
-	sceneMeshes.forEach((mesh) => {
-		const center = new THREE.Vector3().copy(mesh.position);
+	// Set visible meshes
+	seekerPositions.set(visibleMeshes.map(
+		object => object.position.project(camera)
+		).sort((a, b) => {
+			const aDist = Math.sqrt(Math.pow(a.x, 2) + Math.pow(a.y, 2));
+			const bDist = Math.sqrt(Math.pow(b.x, 2) + Math.pow(b.y, 2));
+			return aDist - bDist;
+		}));
+	// console.log($seekerPositions);
+	visibleMeshes = [];
 
-		if (frustum.containsPoint(center)) {
-			center.project(camera);
-			const distFromCenter = Math.sqrt(Math.pow(center.x, 2) + Math.pow(center.y, 2));
-			if (distFromCenter < closestDistance) {
-				closestDistance = distFromCenter;
-				closestMesh = mesh;
-			}
-		}
-	});
-
-	if (!closestMesh) {
+	if (!$seekerPositions.length) {
+		seekerMesh = null;
 		isLockable.set(false);
 		return;
 	}
 
 	isLockable.set(true);
-	// if (closestMesh === seekerMesh) return;
 
-	seekerMesh = closestMesh;
-	const seekerCenter = new THREE.Vector3().copy(closestMesh.position);
-	seekerCenter.project(camera);
-	seekerPositionX.set(seekerCenter.x);
-	seekerPositionY.set(seekerCenter.y);
+	seekerPositionX.set($seekerPositions[0].x);
+	seekerPositionY.set($seekerPositions[0].y);
+
 }
 
-function pickupHealth(event) {
-	console.log(event);
-	if (event.body === sphereBody) {
-		health.update((n) => n + 29);
-	}
-	// world.removeBody(event.target);
-	// scene.remove()
-}
+// function pickupHealth(event) {
+// 	console.log(event);
+// 	if (event.body === sphereBody) {
+// 		health.update((n) => n + 29);
+// 	}
+// 	// world.removeBody(event.target);
+// 	// scene.remove()
+// }
 
-function pickupDamage(event) {
-	// console.log(event);
-	if (event.body === sphereBody) {
-		health.update((n) => n - 29);
-	}
-	// world.removeBody(event.target);
-	// scene.remove()
-}
+// function pickupDamage(event) {
+// 	// console.log(event);
+// 	if (event.body === sphereBody) {
+// 		health.update((n) => n - 29);
+// 	}
+// 	// world.removeBody(event.target);
+// 	// scene.remove()
+// }
 
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;

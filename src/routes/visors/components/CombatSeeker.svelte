@@ -22,15 +22,6 @@
 		animation: spin 5s linear infinite both;
 	}
 
-	#debug {
-		position: absolute;
-		width: 6px;
-		height: 6px;
-		translate: -50% -50%;
-		border-radius: 50%;
-		background-color: blue;
-	}
-
 	@keyframes spin {
 		from {
 			rotate: 0deg;
