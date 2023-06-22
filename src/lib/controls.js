@@ -8,18 +8,19 @@ import {
 	currentBeam,
 	unlockedBeams,
 	lookMovement,
+	lookPosition,
 	isLockable,
 	isLocked,
-	vertLook,
-	horzLook,
 	currentDanger,
 	currentAmmo,
 	maxAmmo,
 	readoutShow,
 	controls as $controls,
-	isDebugMode
+	isDebugMode,
+	currentHealth,
+	maxHealth
 } from './stores';
-import { clamp } from './math';
+import { clamp, randomInt } from './math';
 import { shoot, getLockMesh as getLockMesh, releaseLockMesh } from './scene';
 
 let $unlockedVisors;
@@ -70,6 +71,7 @@ export class PlayerController extends THREE.EventDispatcher {
 		this.inputVelocity = new THREE.Vector3();
 
 		this.walkSpeed = 20;
+		this.sprintSpeed = this.walkSpeed * 2;
 		this.phi = 0; // X-rotation
 		this.phiSpeed = 8; // Units?
 		this.theta = 0;
@@ -181,9 +183,7 @@ export class PlayerController extends THREE.EventDispatcher {
 			return;
 		}
 		this.updatePosition(timeElapsed);
-		if (!$isLocked) {
-			this.updateRotation(timeElapsed);
-		}
+		this.updateRotation(timeElapsed);
 	}
 
 	updatePosition(timeElapsed) {
@@ -220,7 +220,8 @@ export class PlayerController extends THREE.EventDispatcher {
 
 	updateRotation(timeElapsed) {
 		if ($isLocked) {
-			// this.object.lookAt(lockTargetMesh.position);
+			console.log('locked');
+			this.object.lookAt(lockTargetMesh.position);
 			return;
 		}
 
@@ -246,6 +247,7 @@ export class PlayerController extends THREE.EventDispatcher {
 		this.object.quaternion.slerp(q, t);
 
 		// Reset movement to zero for next loop
+		this.updateMoveStores();
 		this.current.movementX = 0;
 		this.current.movementY = 0;
 	}
@@ -272,8 +274,9 @@ export class PlayerController extends THREE.EventDispatcher {
 
 		// Set store values
 		lookMovement.set({ x: percentX, y: percentY });
-		vertLook.set(pitchPercent);
-		horzLook.set(yawPercent);
+		lookPosition.set({ x: yawPercent, y: pitchPercent });
+		// vertLook.set(pitchPercent);
+		// horzLook.set(yawPercent);
 	}
 
 	// onMouseStop = () => {
@@ -322,12 +325,14 @@ export class PlayerController extends THREE.EventDispatcher {
 		lockTargetMesh = getLockMesh();
 		if (!lockTargetMesh) return;
 		isLocked.set(true);
+		console.log('locking');
 	};
 
 	lockOff = () => {
 		if (!$isLocked) return;
 		isLocked.set(false);
 		releaseLockMesh();
+		console.log('unlocking');
 	};
 
 	onKeyDown = (event) => {
@@ -467,6 +472,18 @@ export class PlayerController extends THREE.EventDispatcher {
 				const currentMode = get(isDebugMode);
 				isDebugMode.set(!currentMode);
 				break;
+			case 'Numpad7':
+				this.increaseCurrentHealth();
+				break;
+			case 'Numpad1':
+				this.decreaseCurrentHealth();
+				break;
+			case 'Numpad8':
+				this.increaseMaxHealth();
+				break;
+			case 'Numpad2':
+				this.decreaseMaxHealth();
+				break;
 		}
 	};
 
@@ -508,6 +525,22 @@ export class PlayerController extends THREE.EventDispatcher {
 		const vector = new CANNON.Vec3(0, 0, -1);
 		vector.applyQuaternion(this.quaternion);
 		return vector;
+	}
+
+	increaseCurrentHealth() {
+		currentHealth.update((n) => Math.min(n + randomInt(10, 35), get(maxHealth)));
+	}
+
+	decreaseCurrentHealth() {
+		currentHealth.update((n) => Math.max(n - randomInt(10, 35), 0));
+	}
+
+	increaseMaxHealth() {
+		maxHealth.update((n) => n + 100);
+	}
+
+	decreaseMaxHealth() {
+		maxHealth.update((n) => n - 100);
 	}
 }
 

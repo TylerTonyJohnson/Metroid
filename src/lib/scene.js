@@ -12,15 +12,13 @@ import {
 	lookDistance,
 	currentBeam as beam,
 	isZoomed as _isZoomed,
-	seekerPositionX,
-	seekerPositionY,
 	seekerPositions,
+	closestSeekerPosition,
 	isLockable,
 	isDebugMode,
 	isLocked
 } from './stores';
 import { BeamType, VisorType } from './enums';
-import { Vector3 } from 'three';
 
 // THREE variables
 let camera, frustum, scene, renderer, raycaster;
@@ -41,12 +39,12 @@ const balls = [];
 const ballMeshes = [];
 const sceneMeshes = [];
 let visibleMeshes = [];
+let $closestSeekerPosition;
 
-let seekerMesh;
 let lockMesh;
 let canvas;
 let sound, ambient;
-let $currentVisor, $currentHealth, $currentBeam, isZoomed;
+let $currentVisor, $currentHealth, $currentBeam, isZoomed, $isLockable;
 let $seekerPositions;
 
 const shootVelocity = 100;
@@ -78,9 +76,17 @@ export function setup(element) {
 		$seekerPositions = value;
 	})
 
+	closestSeekerPosition.subscribe(value => {
+		$closestSeekerPosition = value;
+	})
+
 	_isZoomed.subscribe((value) => {
 		isZoomed = value;
 	});
+
+	isLockable.subscribe(value => {
+		$isLockable = value;
+	})
 
 	window.alert = function () {};
 
@@ -483,15 +489,6 @@ function zoom(num) {
 	}
 }
 
-export function lockOn() {
-	isLocked.set(true);
-	lockMesh = seekerMesh;
-}
-export function lockOff() {
-	isLocked.set(false);
-	lockMesh = null;
-}
-
 function initPointerLock(element) {
 	controls = new PlayerController(camera, sphereBody);
 	scene.add(controls.getObject());
@@ -517,12 +514,12 @@ function animate() {
 
 	// Manage time
 	const time = performance.now() / 1000;
-	const elapsedTime = time - lastCallTime;
+	const timeElapsed = time - lastCallTime;
 	lastCallTime = time;
 
 	// Controls
 	if (controls.enabled) {
-		physicsWorld.step(timeStep, elapsedTime);
+		physicsWorld.step(timeStep, timeElapsed);
 
 		// Raycaster update
 		raycaster.setFromCamera(new THREE.Vector2(), camera);
@@ -551,7 +548,7 @@ function animate() {
 					break;
 			}
 		} else {
-			if (lookObject) lookObject.material.emissive.setHex(lookObject.currentHex);
+			// if (lookObject) lookObject.material.emissive.setHex(lookObject.currentHex);
 			lookObject = null;
 			lookDistance.set(Infinity);
 		}
@@ -573,36 +570,28 @@ function animate() {
 		}
 
 		// Render
-
 		if (get(isDebugMode)) {
 			cannonDebugger.update();
 		} else {
 			cannonDebugger.enabled = false;
 		}
-		controls.update(elapsedTime);
+		controls.update(timeElapsed);
 		renderer.render(scene, camera);
-		updateSeekerPosition();
+		updateSeekerPosition(timeElapsed);
 		
 	}
 }
 
 export function getLockMesh() {
-	// if (!isLockable) return null;
-	lockMesh = seekerMesh;
+	if (!$isLockable) return null;
+	lockMesh = $closestSeekerPosition;
 	return lockMesh;
 }
 export function releaseLockMesh() {
 	lockMesh = null;
 }
 
-// function updateLockedView() {
-// 	// lockMatrix.lookAt(lockMesh.position, controls.yawObject.position, controls.yawObject.up);
-// 	// lockEuler.setFromRotationMatrix(lockMatrix);
-// 	// console.log(lockEuler.y);
-// 	// controls.camera.lookAt(new THREE.Vector3());
-// }
-
-function updateSeekerPosition() {
+function updateSeekerPosition(timeElapsed) {
 
 	// Set visible meshes
 	seekerPositions.set(visibleMeshes.map(
@@ -615,16 +604,24 @@ function updateSeekerPosition() {
 	// console.log($seekerPositions);
 	visibleMeshes = [];
 
+	// Check if there are any seeker meshes
 	if (!$seekerPositions.length) {
-		seekerMesh = null;
+		closestSeekerPosition.set(new THREE.Vector3());
 		isLockable.set(false);
 		return;
 	}
 
+	// Handle interpolation
+	// const t = 1.0 - Math.pow(0.01, 5 * timeElapsed);
+	// const currentVector = x;
+	// closestSeekerPosition.set($closestSeekerPosition.lerp($seekerPositions[0], t));
+	// console.log($closestSeekerPosition);
+
+	closestSeekerPosition.set($seekerPositions[0]);
 	isLockable.set(true);
 
-	seekerPositionX.set($seekerPositions[0].x);
-	seekerPositionY.set($seekerPositions[0].y);
+	// seekerPositionX.set($seekerPositions[0].x);
+	// seekerPositionY.set($seekerPositions[0].y);
 
 }
 

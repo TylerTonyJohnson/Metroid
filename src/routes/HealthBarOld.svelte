@@ -1,7 +1,6 @@
 <!-- LOGIC -->
 <script>
 	import { currentHealth, maxHealth } from '../lib/stores';
-	import { tweened } from 'svelte/motion';
 
 	$: remainderHealth = $currentHealth % 100;
 </script>

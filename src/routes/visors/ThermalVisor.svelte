@@ -1,10 +1,9 @@
 <script>
     import { fade } from 'svelte/transition';
-	import ThermalCursor from './components/ThermalCursor.svelte';
-	import ThermalDecoration from './components/ThermalDecoration.svelte';
 	import ThermalAltimeter from './components/ThermalAltimeter.svelte';
 	import ThermalDanger from './components/ThermalDanger.svelte';
 	import ThermalAmmo from './components/ThermalAmmo.svelte';
+	import ThermalDecor from './components/ThermalDecor.svelte';
 
 </script>
 
@@ -13,13 +12,11 @@
 	<!-- BACKDROP -->
 	<svg id='backdrop'></svg>
 	<!-- DECORATION -->
-	<ThermalDecoration />
+	<ThermalDecor />
 	<!-- BARS -->
 	<ThermalAltimeter />
 	<ThermalDanger />
 	<ThermalAmmo />
-	<!-- CURSOR -->
-	<ThermalCursor />
 </div>
 
 <style>
@@ -29,13 +26,11 @@
 
 	#visor {
 		position: absolute;
-		inset: 0;
-		font-family: 'vdl-gigajr', sans-serif;
-		font-weight: 1000;
-		font-style: normal;
-		pointer-events: none;
-		/* backdrop-filter: sepia(1) hue-rotate(330deg) contrast(2) saturate(2);
-		filter: blur(0); */
+		height: 100%;
+		width: 100%;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
 	}
 
 	#backdrop {

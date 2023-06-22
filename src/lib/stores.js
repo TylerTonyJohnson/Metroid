@@ -1,13 +1,17 @@
 import { derived, readable, writable } from 'svelte/store';
 import { tweened } from 'svelte/motion';
+import { cubicOut } from 'svelte/easing';
 
 import { VisorType, BeamType } from './enums';
 
 // Runtime variables
 export const isDebugMode = writable(false);
 
-export const currentHealth = writable(199);
-export const maxHealth = writable(499);
+export const currentHealth = tweened(199, {
+	duration: 200
+});
+export const maxHealth = writable(599);
+export const capHealth = readable(1499);
 
 export const currentVisor = writable(VisorType.Combat);
 export const unlockedVisors = writable([
@@ -32,20 +36,13 @@ export const lookDistMax = readable(50);
 // Look variables
 export const isZoomed = writable(false);
 export const isLockable = writable(true);
-export const seekerPositionX = writable(0);
-export const seekerPositionY = writable(0);
 export const seekerPositions = writable([]);	// An array of positions
-
-export const seekerPixelX = derived(seekerPositionX, ($seekerPositionX) =>
-	Math.round((0.5 + $seekerPositionX / 2) * (window.innerWidth / window.devicePixelRatio))
-);
-export const seekerPixelY = derived(seekerPositionY, ($seekerPositionY) =>
-	Math.round((0.5 - $seekerPositionY / 2) * (window.innerHeight / window.devicePixelRatio))
-);
+export const closestSeekerPosition = writable({});	// The closest position
 export const isLocked = writable(false);
 export const lookMovement = writable({ x: 0, y: 0 });
-export const vertLook = writable(50);
-export const horzLook = writable(50);
+export const lookPosition = writable({ x: 0, y: 0 });
+export const vertLook = writable(50);	// Gonna get rid of these
+export const horzLook = writable(50);	// Gonna get rid of these
 
 export const currentDanger = writable(25);
 

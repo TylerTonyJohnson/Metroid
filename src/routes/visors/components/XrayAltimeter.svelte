@@ -1,30 +1,79 @@
-<svg
-	width="1712"
-	height="528"
-	viewBox="0 0 1712 528"
-	fill="none"
-	xmlns="http://www.w3.org/2000/svg"
->
-	<path
-		class="altimeter"
-		d="M55.2105 3.80751C48.9074 1.75953 42.1282 5.20919 40.169 11.5404C-10.723 175.995 -10.723 352.004 40.1689 516.459C42.1281 522.791 48.9073 526.24 55.2104 524.192L81.1172 515.775C87.4202 513.727 90.8599 506.957 88.9063 500.624C41.3512 346.463 41.3512 181.537 88.9064 27.3756C90.86 21.0427 87.4203 14.2731 81.1172 12.2251L55.2105 3.80751Z"
-	/>
-	<path
-		class="altimeter"
-		d="M1656.79 524.192C1663.09 526.24 1669.87 522.791 1671.83 516.459C1722.72 352.004 1722.72 175.996 1671.83 11.5406C1669.87 5.20938 1663.09 1.75971 1656.79 3.80769L1630.88 12.2253C1624.58 14.2733 1621.14 21.0429 1623.09 27.3758C1670.65 181.537 1670.65 346.463 1623.09 500.624C1621.14 506.957 1624.58 513.727 1630.88 515.775L1656.79 524.192Z"
-	/>
-</svg>
+
+<script>
+	import { lookPosition } from '../../../lib/stores';
+
+    const maxOffset = 300;      // Height percent
+    $: altHeight = $lookPosition.y * maxOffset;
+</script>
+
+<div id='altimeters'>
+    <div class='altimeter left'>
+        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
+        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
+        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
+        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
+    </div>
+    <div class='altimeter right'>
+        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
+        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
+        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
+        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
+    </div>
+</div>
+
 
 <style>
-	svg {
+    #altimeters {
+        position: absolute;
+        height: 100%;
+        aspect-ratio: 1920/1080;
+        left: 50%;
+        top: 50%;
+        translate: -50% -50%;
+    }
+
+    .altimeter {
+        position: absolute;
+        top: 34%;
+        width: 1.2%;
+        height: 27.8%;
+    }
+
+    .altimeter.left {
+        left: 6.4%;
+        clip-path: polygon(0% 0%, 100% 5%, 100% 100%, 0% 95%);
+    }
+    .altimeter.right {
+        right: 6.4%;
+        clip-path: polygon(0% 5%, 100% 0%, 100% 95%, 0% 100%);
+    }
+
+    .lines {
 		position: absolute;
-		left: 50%;
-		top: 50%;
-		translate: -50% -50%;
+		height: 100%;
+        left: 50%;
+        translate: -50% 0%;
+        /* transition: all 0.1s linear; */
 	}
 
-	.altimeter {
-		stroke: hsl(222, 25%, 30%, 50%);
-		stroke-width: 3;
+    .lines.a {
+		width: 100%;
+		background: linear-gradient(to top, var(--altim-bright) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+	}
+	.lines.b {
+		width: 60%;
+		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+	}
+	.lines.c {
+		width: 40%;
+		background: linear-gradient(to top, var(--altim-med) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
+	}
+	.lines.d {
+		width: 100%;
+		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
+		background-size: auto var(--altim-spacing);
 	}
 </style>

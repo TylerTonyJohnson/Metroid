@@ -1,28 +1,20 @@
 <script>
 	import { fade } from 'svelte/transition';
-	import {
-		isLockable,
-		isLocked,
-		seekerPixelX,
-		seekerPixelY,
-		seekerPositions
-	} from '../../../lib/stores';
-
-	$: seekerPercentX = (100 * ($seekerPositions[0].x + 1)) / 2;
-	$: seekerPercentY = 100 * (1 - ($seekerPositions[0].y + 1) / 2);
+	import { isLockable, isLocked, seekerPositions } from '../../../lib/stores';
 </script>
 
 {#if $isLockable}
 	{#each $seekerPositions as seekerPosition}
-        {@const x = (100 * (seekerPosition.x + 1)) / 2}
-        {@const y = 100 * (1 - (seekerPosition.y + 1) / 2)}
-		<img
-			id="cursor"
-			src="Scan Seeker Yellow 1x.png"
-			style="left: {x}%;
-            top: {y}%;"
-			alt="Combat Seeker"
-		/>
+		{@const x = (100 * (seekerPosition.x + 1)) / 2}
+		{@const y = 100 * (1 - (seekerPosition.y + 1) / 2)}
+		{#if true}
+			<img
+				id="cursor"
+				src="Scan Seeker Yellow 1x.png"
+				style="left: {x}%; top: {y}%;"
+				alt="Combat Seeker"
+			/>
+		{/if}
 	{/each}
 {/if}
 

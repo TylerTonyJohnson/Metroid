@@ -1,15 +1,19 @@
 <script>
-	import { isLockable, isLocked, seekerPixelX, seekerPixelY } from '../../../lib/stores';
+	import { isLockable, isLocked, closestSeekerPosition } from '../../../lib/stores';
+	let x = 50;
+	let y = 50;
 </script>
 
 {#if $isLockable}
-	<img
-		id="cursor"
-		src="Combat Seeker 1x.png"
-		style="left: {$seekerPixelX}px;
-            top: {$seekerPixelY}px;"
-		alt="Combat Seeker"
-	/>
+        {@const x = (100 * ($closestSeekerPosition.x + 1)) / 2}
+        {@const y = 100 * (1 - ($closestSeekerPosition.y + 1) / 2)}
+		<img
+			id="cursor"
+			src="Combat Seeker 1x.png"
+			style="left: {x}%;
+            top: {y}%;"
+			alt="Combat Seeker"
+		/>
 {/if}
 
 <style>

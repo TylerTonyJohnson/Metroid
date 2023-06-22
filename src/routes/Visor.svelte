@@ -6,15 +6,26 @@
 	import ScanVisor from './visors/ScanVisor.svelte';
 	import ThermalVisor from './visors/ThermalVisor.svelte';
 	import XrayVisor from './visors/XrayVisor.svelte';
-	import HealthBar from './HealthBar.svelte';
+	import HealthBarOld from './HealthBarOld.svelte';
 	import Selector from './Selector.svelte';
 	import CombatCursor from './visors/components/CombatCursor.svelte';
 	import CombatSeeker from './visors/components/CombatSeeker.svelte';
 	import CombatLock from './visors/components/CombatLock.svelte';
 	import ScanSeeker from './visors/components/ScanSeeker.svelte';
+	import ScanCursor from './visors/components/ScanCursor.svelte';
+	import ThermalLock from './visors/components/ThermalLock.svelte';
+	import ThermalCursor from './visors/components/ThermalCursor.svelte';
+	import XrayCursor from './visors/components/XrayCursor.svelte';
+	import HealthBar from './visors/components/HealthBar.svelte';
 
-	const maxRotateX = 1.5; // Degrees
-	const maxRotateY = 1.5; // Degrees
+	const maxRotateX = 1; // Degrees
+	const maxRotateY = 1; // Degrees
+	const maxSlideX = 1;
+	const maxSlideY = 1;
+
+	$: visorSlideX = maxSlideX * $lookMovement.x;
+	$: visorSlideY = maxSlideY * $lookMovement.y;
+
 	$: visorRotateX = maxRotateX * $lookMovement.x;
 	$: visorRotateY = maxRotateY * $lookMovement.y;
 </script>
@@ -24,7 +35,10 @@
 	<div
 		class="static-components"
 		style="transform: rotateY({-visorRotateX}deg) 
-	rotateX({visorRotateY}deg);
+			rotateX({visorRotateY}deg)
+			translateX({visorSlideX}%)
+			translateY({visorSlideY}%);
+
 "
 	>
 		<div id="visor-layer">
@@ -42,6 +56,7 @@
 			{/if}
 		</div>
 		<!-- CONTROLS -->
+		<!-- <HealthBarOld /> -->
 		<HealthBar />
 		<Selector selectorType={SelectorType.Beam} />
 		<Selector selectorType={SelectorType.Visor} />
@@ -49,6 +64,7 @@
 		<!-- HELMET -->
 		<img src="Helmet 1x.png" id="helmet" alt="helmet" />
 	</div>
+
 	<!-- SEEKER CURSOR -->
 	<div id="seeker-layer">
 		{#if $currentVisor === VisorType.Combat}
@@ -63,6 +79,7 @@
 			<div>No Cursor Available</div>
 		{/if}
 	</div>
+
 	<!-- LOCK CURSOR -->
 	<div id="lock-layer">
 		{#if $currentVisor === VisorType.Combat}
@@ -70,9 +87,9 @@
 		{:else if $currentVisor === VisorType.Scan}
 			<CombatLock />
 		{:else if $currentVisor === VisorType.Thermal}
-			<CombatLock />
+			<ThermalLock />
 		{:else if $currentVisor === VisorType.Xray}
-			<CombatLock />
+			<!-- <CombatLock /> -->
 		{:else}
 			<div>No Cursor Available</div>
 		{/if}
@@ -83,11 +100,12 @@
 		{#if $currentVisor === VisorType.Combat}
 			<CombatCursor />
 		{:else if $currentVisor === VisorType.Scan}
-			<CombatCursor />
+			<ScanCursor />
 		{:else if $currentVisor === VisorType.Thermal}
 			<CombatCursor />
+			<ThermalCursor />
 		{:else if $currentVisor === VisorType.Xray}
-			<CombatCursor />
+			<XrayCursor />
 		{:else}
 			<div>No Cursor Available</div>
 		{/if}
@@ -108,7 +126,6 @@
 
 	#visor > * {
 		position: absolute;
-
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;

@@ -1,7 +1,8 @@
 <script>
-	import { vertLook } from '../../../lib/stores';
+	import { lookPosition } from '../../../lib/stores';
 
-    $: altHeight = $vertLook * 300;
+    const maxOffset = 300;      // Height percent
+    $: altHeight = $lookPosition.y * maxOffset;
 </script>
 
 <div id='altimeters'>
@@ -51,7 +52,6 @@
 		height: 100%;
         left: 50%;
         translate: -50% 0%;
-        /* transition: all 0.1s linear; */
 	}
 
     .lines.a {
