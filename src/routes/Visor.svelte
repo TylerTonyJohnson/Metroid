@@ -3,11 +3,9 @@
 	import { currentVisor, lookMovement } from '../lib/stores';
 	import { VisorType, SelectorType } from '../lib/enums';
 	import CombatVisor from './visors/CombatVisor.svelte';
-	import ScanVisor from './visors/ScanVisor.svelte';
+	import ScanVisorOld from './visors/ScanVisorOld.svelte';
 	import ThermalVisor from './visors/ThermalVisor.svelte';
 	import XrayVisor from './visors/XrayVisor.svelte';
-	import HealthBarOld from './HealthBarOld.svelte';
-	import Selector from './Selector.svelte';
 	import CombatCursor from './visors/components/CombatCursor.svelte';
 	import CombatSeeker from './visors/components/CombatSeeker.svelte';
 	import CombatLock from './visors/components/CombatLock.svelte';
@@ -17,6 +15,9 @@
 	import ThermalCursor from './visors/components/ThermalCursor.svelte';
 	import XrayCursor from './visors/components/XrayCursor.svelte';
 	import HealthBar from './visors/components/HealthBar.svelte';
+	import Selector from './visors/components/Selector.svelte';
+	import DangerPing from './visors/components/DangerPing.svelte';
+	import ScanVisor from './visors/ScanVisor.svelte';
 
 	const maxRotateX = 1; // Degrees
 	const maxRotateY = 1; // Degrees
@@ -38,14 +39,14 @@
 			rotateX({visorRotateY}deg)
 			translateX({visorSlideX}%)
 			translateY({visorSlideY}%);
-
-"
+	"
 	>
+		<!-- VISOR LAYER -->
 		<div id="visor-layer">
-			<!-- VISOR LAYER -->
 			{#if $currentVisor === VisorType.Combat}
 				<CombatVisor />
 			{:else if $currentVisor === VisorType.Scan}
+				<!-- <ScanVisorOld /> -->
 				<ScanVisor />
 			{:else if $currentVisor === VisorType.Thermal}
 				<ThermalVisor />
@@ -55,11 +56,12 @@
 				<div>No Visor Available</div>
 			{/if}
 		</div>
-		<!-- CONTROLS -->
-		<!-- <HealthBarOld /> -->
+
+		<!-- CONTROLS LAYER -->
 		<HealthBar />
 		<Selector selectorType={SelectorType.Beam} />
 		<Selector selectorType={SelectorType.Visor} />
+		<DangerPing />
 
 		<!-- HELMET -->
 		<img src="Helmet 1x.png" id="helmet" alt="helmet" />
@@ -121,7 +123,7 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
-		perspective: 800px;
+		perspective: 100vh;
 	}
 
 	#visor > * {
@@ -145,7 +147,6 @@
 	}
 
 	#seeker-layer {
-		position: absolute;
 		width: 100%;
 		height: 100%;
 	}

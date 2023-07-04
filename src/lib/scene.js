@@ -16,9 +16,11 @@ import {
 	closestSeekerPosition,
 	isLockable,
 	isDebugMode,
-	isLocked
+	isLocked,
+	currentDanger
 } from './stores';
 import { BeamType, VisorType } from './enums';
+import { clamp, mapRange } from './math';
 
 // THREE variables
 let camera, frustum, scene, renderer, raycaster;
@@ -42,10 +44,14 @@ let visibleMeshes = [];
 let $closestSeekerPosition;
 
 let lockMesh;
+let dangerMesh;
 let canvas;
 let sound, ambient;
 let $currentVisor, $currentHealth, $currentBeam, isZoomed, $isLockable;
 let $seekerPositions;
+
+const dangerDistMin = 2;
+const dangerDistMax = 12;
 
 const shootVelocity = 100;
 const ballBody = new CANNON.Body({ type: 4 });
@@ -55,6 +61,8 @@ const powerBeamMaterial = new THREE.MeshBasicMaterial({ color: '#FFB508' });
 const waveBeamMaterial = new THREE.MeshBasicMaterial({ color: '#9C84FE' });
 const IceBeamMaterial = new THREE.MeshBasicMaterial({ color: '#5AE7F8' });
 const PlasmaBeamMaterial = new THREE.MeshBasicMaterial({ color: '#FF4A49' });
+
+export const listener = new THREE.AudioListener();
 
 // SETUP
 
@@ -106,9 +114,10 @@ function initThree(element) {
 	// Camera
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 30000);
 
+	
+
 	// // Sound
-	// const listener = new THREE.AudioListener();
-	// camera.add(listener);
+	camera.add(listener);
 	// sound = new THREE.Audio(listener);
 
 	// const audioLoader = new THREE.AudioLoader();
@@ -262,7 +271,7 @@ function initCannon() {
 		halfExtents.z * 2
 	);
 
-	for (let i = 0; i < 10; i++) {
+	for (let i = 0; i < 1; i++) {
 		const boxBody = new CANNON.Body({ mass: 5 });
 		boxBody.addShape(boxShape);
 		const boxMesh = new THREE.Mesh(
@@ -291,7 +300,9 @@ function initCannon() {
 		sceneMeshes.push(boxMesh);
 	}
 
-	lockMesh = sceneMeshes[0];
+	// dangerMesh = sceneMeshes[0];
+	// dangerMesh.material = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0xffffff });
+	// lockMesh = sceneMeshes[0];
 	// console.log(lockMesh);
 
 	// Pickup cylinders
@@ -575,10 +586,11 @@ function animate() {
 		} else {
 			cannonDebugger.enabled = false;
 		}
+
 		controls.update(timeElapsed);
 		renderer.render(scene, camera);
 		updateSeekerPosition(timeElapsed);
-		
+		updateDanger();
 	}
 }
 
@@ -623,6 +635,14 @@ function updateSeekerPosition(timeElapsed) {
 	// seekerPositionX.set($seekerPositions[0].x);
 	// seekerPositionY.set($seekerPositions[0].y);
 
+}
+
+function updateDanger() {
+	const distance = controls.object.position.distanceTo(new THREE.Vector3());
+	const clampedDist = clamp(distance, dangerDistMin, dangerDistMax);
+	const flippedDist =  dangerDistMax - clampedDist;
+	const scaledDist = mapRange(flippedDist, 0, 10, 0, 100);
+	currentDanger.set(scaledDist);
 }
 
 // function pickupHealth(event) {

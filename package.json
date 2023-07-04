@@ -29,6 +29,7 @@
 		"cannon": "^0.6.2",
 		"cannon-es-debugger": "^1.0.0",
 		"cannon-utils": "^0.1.4",
+		"firebase-admin": "^11.9.0",
 		"three": "^0.150.1"
 	}
 }

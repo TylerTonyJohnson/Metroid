@@ -2,14 +2,14 @@
 <script>
 	import { BeamType, SelectorType, VisorType } from '../lib/enums';
 	import { currentVisor, unlockedVisors, currentBeam, unlockedBeams } from '../lib/stores';
-	import CombatIcon from './icons/CombatIcon.svelte';
-	import ScanIcon from './icons/ScanIcon.svelte';
-	import ThermalIcon from './icons/ThermalIcon.svelte';
-	import XrayIcon from './icons/XrayIcon.svelte';
-	import PowerIcon from './icons/PowerIcon.svelte';
-	import WaveIcon from './icons/WaveIcon.svelte';
-	import IceIcon from './icons/IceIcon.svelte';
-	import PlasmaIcon from './icons/PlasmaIcon.svelte';
+	// import CombatIcon from '../icons/CombatIcon.svelte';
+	// import ScanIcon from '../icons/ScanIcon.svelte';
+	// import ThermalIcon from '../icons/ThermalIcon.svelte';
+	// import XrayIcon from '../icons/XrayIcon.svelte';
+	// import PowerIcon from '../icons/PowerIcon.svelte';
+	// import WaveIcon from '../icons/WaveIcon.svelte';
+	// import IceIcon from '../icons/IceIcon.svelte';
+	// import PlasmaIcon from '../icons/PlasmaIcon.svelte';
 
 	export let selectorType;
 
@@ -159,21 +159,21 @@
 			<!-- ICON SYMBOL -->
 
 			{#if unlockedItem === VisorType.Combat}
-				<CombatIcon {iconOffset} />
+				<!-- <CombatIcon {iconOffset} /> -->
 			{:else if unlockedItem === VisorType.Scan}
-				<ScanIcon {iconOffset} />
+				<!-- <ScanIcon {iconOffset} /> -->
 			{:else if unlockedItem === VisorType.Thermal}
-				<ThermalIcon {iconOffset} />
+				<!-- <ThermalIcon {iconOffset} /> -->
 			{:else if unlockedItem === VisorType.Xray}
-				<XrayIcon {iconOffset} />
+				<!-- <XrayIcon {iconOffset} /> -->
 			{:else if unlockedItem === BeamType.Power}
-				<PowerIcon {iconOffset} />
+				<!-- <PowerIcon {iconOffset} /> -->
 			{:else if unlockedItem === BeamType.Wave}
-				<WaveIcon {iconOffset} />
+				<!-- <WaveIcon {iconOffset} /> -->
 			{:else if unlockedItem === BeamType.Ice}
-				<IceIcon {iconOffset} />
+				<!-- <IceIcon {iconOffset} /> -->
 			{:else if unlockedItem === BeamType.Plasma}
-				<PlasmaIcon {iconOffset} />
+				<!-- <PlasmaIcon {iconOffset} /> -->
 			{/if}
 		</div>
 	{/each}
@@ -198,12 +198,13 @@
 	}
 
 	.left-screen {
-		right: calc(50% + 558px);
+		right: calc(50% + 100px);
 		transform: rotateY(35deg);
 		transform-origin: left;
 	}
+	
 	.right-screen {
-		left: calc(50% + 558px);
+		left: calc(50% + 100px);
 		transform: rotateY(-35deg);
 		transform-origin: right;
 	}

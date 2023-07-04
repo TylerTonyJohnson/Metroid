@@ -14,11 +14,13 @@ import {
 	currentDanger,
 	currentAmmo,
 	maxAmmo,
+	capAmmo,
 	readoutShow,
 	controls as $controls,
 	isDebugMode,
 	currentHealth,
-	maxHealth
+	maxHealth,
+	capHealth
 } from './stores';
 import { clamp, randomInt } from './math';
 import { shoot, getLockMesh as getLockMesh, releaseLockMesh } from './scene';
@@ -72,6 +74,7 @@ export class PlayerController extends THREE.EventDispatcher {
 
 		this.walkSpeed = 20;
 		this.sprintSpeed = this.walkSpeed * 2;
+		this.moveSpeed = this.walkSpeed;
 		this.phi = 0; // X-rotation
 		this.phiSpeed = 8; // Units?
 		this.theta = 0;
@@ -209,7 +212,7 @@ export class PlayerController extends THREE.EventDispatcher {
 		}
 
 		// Scale and rotate velocity to world coordinates
-		this.inputVelocity.multiplyScalar(this.walkSpeed * timeElapsed);
+		this.inputVelocity.multiplyScalar(this.moveSpeed * timeElapsed);
 		this.inputVelocity.applyQuaternion(this.object.quaternion);
 
 		// Add total new velocity to the physics body
@@ -364,7 +367,7 @@ export class PlayerController extends THREE.EventDispatcher {
 				this.jumps--;
 				break;
 			case 'ShiftLeft':
-				this.walkSpeed *= 1.4;
+				this.moveSpeed = this.sprintSpeed;
 				break;
 			case 'Digit1':
 				if ($unlockedBeams.includes(BeamType.Power)) {
@@ -412,41 +415,23 @@ export class PlayerController extends THREE.EventDispatcher {
 				break;
 			// DANGER
 			case 'KeyY':
-				currentDanger.update((value) => {
-					value++;
-					return value;
-				});
+				this.increaseDanger();
 				break;
 			case 'KeyH':
-				currentDanger.update((value) => {
-					value--;
-					return value;
-				});
+				this.decreaseDanger();
 				break;
 			// AMMO
 			case 'KeyU':
-				currentAmmo.update((value) => {
-					value++;
-					return value;
-				});
+				this.increaseCurrentAmmo();
 				break;
 			case 'KeyJ':
-				currentAmmo.update((value) => {
-					value--;
-					return value;
-				});
+				this.decreaseCurrentAmmo();
 				break;
 			case 'KeyI':
-				maxAmmo.update((value) => {
-					value++;
-					return value;
-				});
+				this.increaseMaxAmmo();
 				break;
 			case 'KeyK':
-				maxAmmo.update((value) => {
-					value--;
-					return value;
-				});
+				this.decreaseMaxAmmo();
 				break;
 			case 'KeyB':
 				readoutShow.set(true);
@@ -456,18 +441,18 @@ export class PlayerController extends THREE.EventDispatcher {
 				readoutShow.set(false);
 				$controls.unlock;
 				break;
-			case 'Comma':
-				isLocked.set(true);
-				break;
-			case 'Period':
-				isLocked.set(false);
-				break;
-			case 'Semicolon':
-				isLockable.set(true);
-				break;
-			case 'Quote':
-				isLockable.set(false);
-				break;
+			// case 'Comma':
+			// 	isLocked.set(true);
+			// 	break;
+			// case 'Period':
+			// 	isLocked.set(false);
+			// 	break;
+			// case 'Semicolon':
+			// 	isLockable.set(true);
+			// 	break;
+			// case 'Quote':
+			// 	isLockable.set(false);
+			// 	break;
 			case 'KeyP':
 				const currentMode = get(isDebugMode);
 				isDebugMode.set(!currentMode);
@@ -483,6 +468,9 @@ export class PlayerController extends THREE.EventDispatcher {
 				break;
 			case 'Numpad2':
 				this.decreaseMaxHealth();
+				break;
+			case 'Tab':
+				event.preventDefault();
 				break;
 		}
 	};
@@ -506,13 +494,16 @@ export class PlayerController extends THREE.EventDispatcher {
 				this.moveRight = false;
 				break;
 			case 'ShiftLeft':
-				this.walkSpeed /= 1.4;
+				this.moveSpeed = this.walkSpeed;
 				break;
 			case 'KeyQ':
 				this.moveUp = false;
 				break;
 			case 'KeyE':
 				this.moveDown = false;
+				break;
+			case 'Tab':
+				event.preventDefault();
 				break;
 		}
 	};
@@ -536,11 +527,43 @@ export class PlayerController extends THREE.EventDispatcher {
 	}
 
 	increaseMaxHealth() {
-		maxHealth.update((n) => n + 100);
+		maxHealth.update((n) => Math.min(n + 100, get(capHealth)));
 	}
 
 	decreaseMaxHealth() {
-		maxHealth.update((n) => n - 100);
+		maxHealth.update((n) => Math.max(n - 100, 0));
+		currentHealth.update((n) => Math.min(n, get(maxHealth)));
+	}
+
+	increaseDanger() {
+		currentDanger.update((n) => Math.min(n + 1, 100));
+	}
+
+	decreaseDanger() {
+		currentDanger.update((n) => Math.max(n - 1, 0));
+	}
+
+	increaseCurrentAmmo() {
+		currentAmmo.update((n) => Math.min(n + 1, get(maxAmmo)));
+	}
+
+	decreaseCurrentAmmo() {
+		currentAmmo.update((n) => Math.max(n - 1, 0));
+	}
+
+	increaseMaxAmmo() {
+		maxAmmo.update((n) => Math.min(n + 5, get(capAmmo)));
+	}
+
+	decreaseMaxAmmo() {
+		maxAmmo.update((n) => {
+			const shouldUpdate = n - 5 >= 0;
+			if (shouldUpdate) {
+				currentAmmo.update((m) => Math.min(m, n - 5));
+				return n - 5;
+			}
+			return 0;
+		});
 	}
 }
 

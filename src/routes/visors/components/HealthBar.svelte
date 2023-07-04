@@ -76,13 +76,8 @@
 		stroke-width: 4;
 		paint-order: stroke;
 		font-size: 200%;
-		/* font-size: 100%; */
 		dominant-baseline: central;
 		text-anchor: middle;
-		/* letter-spacing: 1; */
-		/* kerning: 10%; */
-		word-spacing: 100%;
-		font-variant-numeric: tabular-nums;
 	}
 
 	#health-box-container {

@@ -2,6 +2,8 @@
 	import { fade } from 'svelte/transition';
 	import CombatAltimeters from './components/CombatAltimeters.svelte';
 	import CombatDecor from './components/CombatDecor.svelte';
+	import CombatDanger from './components/CombatDanger.svelte';
+	import CombatAmmo from './components/CombatAmmo.svelte';
 </script>
 
 <div id='visor' transition:fade>
@@ -9,6 +11,10 @@
 	<CombatDecor />
 	<!-- ALTIMETERS -->
 	<CombatAltimeters />
+	<!-- DANGER BAR -->
+	<CombatDanger />
+	<!-- AMMO BAR -->
+	<CombatAmmo />
 </div>
 
 <style>
