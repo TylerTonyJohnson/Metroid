@@ -3,7 +3,6 @@
 	import { currentVisor, lookMovement } from '../lib/stores';
 	import { VisorType, SelectorType } from '../lib/enums';
 	import CombatVisor from './visors/CombatVisor.svelte';
-	import ScanVisorOld from './visors/ScanVisorOld.svelte';
 	import ThermalVisor from './visors/ThermalVisor.svelte';
 	import XrayVisor from './visors/XrayVisor.svelte';
 	import CombatCursor from './visors/components/CombatCursor.svelte';
@@ -18,6 +17,7 @@
 	import Selector from './visors/components/Selector.svelte';
 	import DangerPing from './visors/components/DangerPing.svelte';
 	import ScanVisor from './visors/ScanVisor.svelte';
+	import ScanMarker from './visors/components/ScanMarker.svelte';
 
 	const maxRotateX = 1; // Degrees
 	const maxRotateY = 1; // Degrees
@@ -33,46 +33,13 @@
 
 <!-- STRUCTURE -->
 <div id="visor">
-	<div
-		class="static-components"
-		style="transform: rotateY({-visorRotateX}deg) 
-			rotateX({visorRotateY}deg)
-			translateX({visorSlideX}%)
-			translateY({visorSlideY}%);
-	"
-	>
-		<!-- VISOR LAYER -->
-		<div id="visor-layer">
-			{#if $currentVisor === VisorType.Combat}
-				<CombatVisor />
-			{:else if $currentVisor === VisorType.Scan}
-				<!-- <ScanVisorOld /> -->
-				<ScanVisor />
-			{:else if $currentVisor === VisorType.Thermal}
-				<ThermalVisor />
-			{:else if $currentVisor === VisorType.Xray}
-				<XrayVisor />
-			{:else}
-				<div>No Visor Available</div>
-			{/if}
-		</div>
-
-		<!-- CONTROLS LAYER -->
-		<HealthBar />
-		<Selector selectorType={SelectorType.Beam} />
-		<Selector selectorType={SelectorType.Visor} />
-		<DangerPing />
-
-		<!-- HELMET -->
-		<img src="Helmet 1x.png" id="helmet" alt="helmet" />
-	</div>
-
 	<!-- SEEKER CURSOR -->
 	<div id="seeker-layer">
 		{#if $currentVisor === VisorType.Combat}
 			<CombatSeeker />
 		{:else if $currentVisor === VisorType.Scan}
 			<ScanSeeker />
+			<ScanMarker />
 		{:else if $currentVisor === VisorType.Thermal}
 			<CombatSeeker />
 		{:else if $currentVisor === VisorType.Xray}
@@ -111,6 +78,38 @@
 		{:else}
 			<div>No Cursor Available</div>
 		{/if}
+	</div>
+	<div
+		class="static-components"
+		style="transform: rotateY({-visorRotateX}deg) 
+			rotateX({visorRotateY}deg)
+			translateX({visorSlideX}%)
+			translateY({visorSlideY}%);
+	"
+	>
+		<!-- VISOR LAYER -->
+		<div id="visor-layer">
+			{#if $currentVisor === VisorType.Combat}
+				<CombatVisor />
+			{:else if $currentVisor === VisorType.Scan}
+				<ScanVisor />
+			{:else if $currentVisor === VisorType.Thermal}
+				<ThermalVisor />
+			{:else if $currentVisor === VisorType.Xray}
+				<XrayVisor />
+			{:else}
+				<div>No Visor Available</div>
+			{/if}
+		</div>
+
+		<!-- CONTROLS LAYER -->
+		<HealthBar />
+		<Selector selectorType={SelectorType.Beam} />
+		<Selector selectorType={SelectorType.Visor} />
+		<DangerPing />
+
+		<!-- HELMET -->
+		<img src="Helmet 1x.png" id="helmet" alt="helmet" />
 	</div>
 </div>
 

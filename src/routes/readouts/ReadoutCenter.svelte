@@ -375,15 +375,25 @@
 	}
 
 	.text {
-		dominant-baseline: middle;
+		font-family: 'Metroid';
+		fill: #ccffff;
+		stroke: hsl(200, 80%, 30%, 60%);
+		stroke-width: 4;
+		paint-order: stroke;
+		font-size: 200%;
+		dominant-baseline: central;
 		text-anchor: middle;
-		font-family: 'vdl-gigajr', sans-serif;
+
+
+		/* dominant-baseline: middle;
+		text-anchor: middle;
+		font-family: 'Metroid';
 		font-weight: 1000;
 		font-style: bold;
 		font-size: 38px;
 		line-height: 100%;
 		fill: hsl(192, 90%, 90%);
-		text-shadow: 0 0 20px hsl(200, 80%, 80%), 0 0 5px hsl(200, 80%, 10%);
+		text-shadow: 0 0 20px hsl(200, 80%, 80%), 0 0 5px hsl(200, 80%, 10%); */
 	}
 
 	/* @keyframes slide-down {

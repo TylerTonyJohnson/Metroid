@@ -250,7 +250,7 @@ function initCannon() {
 	sphereShape = new CANNON.Sphere(radius);
 	sphereBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
 	sphereBody.addShape(sphereShape);
-	sphereBody.position.set(0, 5, 0);
+	sphereBody.position.set(0, 5, 20);
 	sphereBody.linearDamping = 0.9;
 	sphereBody.fixedRotation = true;
 	physicsWorld.addBody(sphereBody);
