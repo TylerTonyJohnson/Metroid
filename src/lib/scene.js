@@ -1,17 +1,20 @@
+// Declarations
+
 import * as THREE from 'three';
 import * as CANNON from 'cannon';
 import CannonUtils from 'cannon-utils';
 import CannonDebugger from 'cannon-es-debugger';
 import { PlayerController } from './controls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import Stats from 'three/examples/jsm/libs/stats.module';
 import { get } from 'svelte/store';
 import {
-	currentVisor as visor,
-	currentHealth as health,
+	currentVisor,
+	currentHealth,
 	maxHealth,
 	lookDistance,
-	currentBeam as beam,
-	isZoomed as _isZoomed,
+	currentBeam,
+	isZoomed,
 	seekerPositions,
 	closestSeekerPosition,
 	isLockable,
@@ -47,7 +50,7 @@ let lockMesh;
 let dangerMesh;
 let canvas;
 let sound, ambient;
-let $currentVisor, $currentHealth, $currentBeam, isZoomed, $isLockable;
+let $currentVisor, $currentHealth, $currentBeam, $isZoomed, $isLockable;
 let $seekerPositions;
 
 const dangerDistMin = 2;
@@ -64,19 +67,34 @@ const PlasmaBeamMaterial = new THREE.MeshBasicMaterial({ color: '#FF4A49' });
 
 export const listener = new THREE.AudioListener();
 
-// SETUP
+const stats = new Stats();
+document.body.appendChild(stats.dom);
 
-export function setup(element) {
+
+export function start(element) {
 	canvas = element;
-	visor.subscribe((value) => {
+	init(canvas);
+	buildWorld();
+	animate();
+}
+
+function init(canvas) {
+	initSubscribe();
+	initThree(canvas);
+	initCannon();
+	initPointerLock(canvas);
+}
+
+function initSubscribe() {
+	currentVisor.subscribe((value) => {
 		$currentVisor = value;
 	});
 
-	health.subscribe((value) => {
+	currentHealth.subscribe((value) => {
 		$currentHealth = value;
 	});
 
-	beam.subscribe((value) => {
+	currentBeam.subscribe((value) => {
 		$currentBeam = value;
 	});
 
@@ -88,37 +106,23 @@ export function setup(element) {
 		$closestSeekerPosition = value;
 	})
 
-	_isZoomed.subscribe((value) => {
-		isZoomed = value;
+	isZoomed.subscribe((value) => {
+		$isZoomed = value;
 	});
 
 	isLockable.subscribe(value => {
 		$isLockable = value;
 	})
-
-	window.alert = function () {};
-
-	initThree(element);
-	initCannon();
-	initPointerLock(element);
-	animate();
 }
-
-export function doof() {
-	console.log('DOOOFEER');
-}
-
-// METHODS
 
 function initThree(element) {
 	// Camera
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 30000);
-
+	camera.up = new THREE.Vector3(0, 0, 1);	// Not sure this is necessary?
 	
 
-	// // Sound
+	// Sound
 	camera.add(listener);
-	// sound = new THREE.Audio(listener);
 
 	// const audioLoader = new THREE.AudioLoader();
 	// audioLoader.load('laser.wav', function (buffer) {
@@ -136,8 +140,8 @@ function initThree(element) {
 
 	// Scene
 	scene = new THREE.Scene();
-	// scene.fog = new THREE.Fog(0x000000, 0, 500);
-	// scene.background = new THREE.Color(0x111111);
+	// scene.fog = new THREE.Fog(0x000000, 0, 500);	// Sets background to black
+	// scene.background = new THREE.Color(0x111111); // Overwritten by the skybox
 
 	// Renderer
 	renderer = new THREE.WebGLRenderer({ antialias: true, canvas: element });
@@ -161,7 +165,7 @@ function initThree(element) {
 
 	// Floor
 	const floorGeometry = new THREE.PlaneGeometry(300, 300, 100, 100);
-	floorGeometry.rotateX(-Math.PI / 2);
+	floorGeometry.rotateX(-Math.PI / 2); 
 	const floor = new THREE.Mesh(floorGeometry, material);
 	floor.receiveShadow = true;
 	// scene.add(floor);
@@ -219,6 +223,7 @@ function initThree(element) {
 
 	// Cleanup
 	window.addEventListener('resize', onWindowResize);
+
 }
 
 function initCannon() {
@@ -250,7 +255,7 @@ function initCannon() {
 	sphereShape = new CANNON.Sphere(radius);
 	sphereBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
 	sphereBody.addShape(sphereShape);
-	sphereBody.position.set(0, 5, 20);
+	sphereBody.position.set(0, 5, -20);
 	sphereBody.linearDamping = 0.9;
 	sphereBody.fixedRotation = true;
 	physicsWorld.addBody(sphereBody);
@@ -428,6 +433,10 @@ function initCannon() {
 	// });
 }
 
+function buildWorld() {
+
+}
+
 export function shoot(event) {
 	if (!controls.enabled) {
 		return;
@@ -494,16 +503,15 @@ function zoom(num) {
 	camera.updateProjectionMatrix();
 
 	if (num > 1) {
-		_isZoomed.set(true);
+		isZoomed.set(true);
 	} else {
-		_isZoomed.set(false);
+		isZoomed.set(false);
 	}
 }
 
 function initPointerLock(element) {
 	controls = new PlayerController(camera, sphereBody);
 	scene.add(controls.getObject());
-	// $controls.set(controls);
 
 	element.addEventListener('click', () => {
 		controls.lock();
@@ -591,6 +599,9 @@ function animate() {
 		renderer.render(scene, camera);
 		updateSeekerPosition(timeElapsed);
 		updateDanger();
+
+		// Stats
+		stats.update();
 	}
 }
 
