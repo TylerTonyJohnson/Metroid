@@ -33,6 +33,21 @@
 
 <!-- STRUCTURE -->
 <div id="visor">
+	<!-- BASIC CURSOR -->
+	<div id="cursor-layer">
+		{#if $currentVisor === VisorType.Combat}
+			<CombatCursor />
+		{:else if $currentVisor === VisorType.Scan}
+			<ScanCursor />
+		{:else if $currentVisor === VisorType.Thermal}
+			<CombatCursor />
+			<ThermalCursor />
+		{:else if $currentVisor === VisorType.Xray}
+			<XrayCursor />
+		{:else}
+			<div>No Cursor Available</div>
+		{/if}
+	</div>
 	<!-- SEEKER CURSOR -->
 	<div id="seeker-layer">
 		{#if $currentVisor === VisorType.Combat}
@@ -54,31 +69,16 @@
 		{#if $currentVisor === VisorType.Combat}
 			<CombatLock />
 		{:else if $currentVisor === VisorType.Scan}
-			<CombatLock />
+			<!--  -->
 		{:else if $currentVisor === VisorType.Thermal}
 			<ThermalLock />
 		{:else if $currentVisor === VisorType.Xray}
-			<!-- <CombatLock /> -->
+			<!--  -->
 		{:else}
 			<div>No Cursor Available</div>
 		{/if}
 	</div>
 
-	<!-- BASIC CURSOR -->
-	<div id="cursor-layer">
-		{#if $currentVisor === VisorType.Combat}
-			<CombatCursor />
-		{:else if $currentVisor === VisorType.Scan}
-			<ScanCursor />
-		{:else if $currentVisor === VisorType.Thermal}
-			<CombatCursor />
-			<ThermalCursor />
-		{:else if $currentVisor === VisorType.Xray}
-			<XrayCursor />
-		{:else}
-			<div>No Cursor Available</div>
-		{/if}
-	</div>
 	<div
 		class="static-components"
 		style="transform: rotateY({-visorRotateX}deg) 

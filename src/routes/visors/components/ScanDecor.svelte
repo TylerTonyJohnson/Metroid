@@ -1,4 +1,4 @@
-<img id="decor" src="Combat 1x.png" alt="decoration" />
+<img id="decor" src="Scan Decor 1x.png" alt="decoration" />
 
 <style>
 	#decor {

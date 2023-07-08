@@ -33,15 +33,20 @@ let mouseTimer;
 
 const moveMaxX = 5;
 const moveMaxY = 5;
+const lockRotSpeed = 5;
+
+const targetMatrix = new THREE.Matrix4();
+const targetQuaternion = new THREE.Quaternion();
 let lockTargetMesh = new THREE.Vector3(0, 0, 0);
 
 export class PlayerController extends THREE.EventDispatcher {
 	constructor(camera, cannonBody) {
 		super();
-		this.object = new THREE.Object3D();
+		this.object = new THREE.Group();
 		this.enabled = false; // Set this control as disabled until it's ready
 
 		this.camera = camera;
+		camera.rotation.y = Math.PI;
 		this.object.add(this.camera);
 		this.cannonBody = cannonBody; // Link the physics body to the controller
 
@@ -193,16 +198,16 @@ export class PlayerController extends THREE.EventDispatcher {
 		// Calculate total direction of new velocity relative to player
 		this.inputVelocity.set(0, 0, 0);
 		if (this.moveForward) {
-			this.inputVelocity.add(new THREE.Vector3(0, 0, -1));
-		}
-		if (this.moveBackward) {
 			this.inputVelocity.add(new THREE.Vector3(0, 0, 1));
 		}
+		if (this.moveBackward) {
+			this.inputVelocity.add(new THREE.Vector3(0, 0, -1));
+		}
 		if (this.moveLeft) {
-			this.inputVelocity.add(new THREE.Vector3(-1, 0, 0));
+			this.inputVelocity.add(new THREE.Vector3(1, 0, 0));
 		}
 		if (this.moveRight) {
-			this.inputVelocity.add(new THREE.Vector3(1, 0, 0));
+			this.inputVelocity.add(new THREE.Vector3(-1, 0, 0));
 		}
 		if (this.moveUp) {
 			this.inputVelocity.add(new THREE.Vector3(0, -1, 0));
@@ -223,15 +228,32 @@ export class PlayerController extends THREE.EventDispatcher {
 
 	updateRotation(timeElapsed) {
 		if ($isLocked) {
-			console.log('locked');
-			this.object.lookAt(lockTargetMesh.position);
-			return;
+			this.updateLockedRotation(timeElapsed);
+		} else {
+			this.updateFreeRotation(timeElapsed);
 		}
+	}
 
+	updateLockedRotation(timeElapsed) {
+		console.log('updating rotation');
+
+		// Create target quaternion
+		targetMatrix.lookAt(lockTargetMesh, this.object.position, this.object.up);
+		targetQuaternion.setFromRotationMatrix(targetMatrix);
+
+		// Lerp toward target quaternion
+		const step = lockRotSpeed * timeElapsed;
+		this.object.quaternion.rotateTowards(targetQuaternion, step);
+
+		this.theta = this.object.rotation.x;
+		this.phi = this.object.rotation.y;
+	}
+
+	updateFreeRotation(timeElapsed) {
 		// Calculate angle change since last frame
 		this.phi += -(this.current.movementX / window.innerWidth) * this.phiSpeed;
 		this.theta = clamp(
-			this.theta + -(this.current.movementY / window.innerHeight) * this.thetaSpeed,
+			this.theta + (this.current.movementY / window.innerHeight) * this.thetaSpeed,
 			-Math.PI / 2,
 			Math.PI / 2
 		);
@@ -512,11 +534,11 @@ export class PlayerController extends THREE.EventDispatcher {
 		return this.object;
 	}
 
-	getDirection() {
-		const vector = new CANNON.Vec3(0, 0, -1);
-		vector.applyQuaternion(this.quaternion);
-		return vector;
-	}
+	// getDirection() {
+	// 	const vector = new CANNON.Vec3(0, 0, -1);
+	// 	vector.applyQuaternion(this.quaternion);
+	// 	return vector;
+	// }
 
 	increaseCurrentHealth() {
 		currentHealth.update((n) => Math.min(n + randomInt(10, 35), get(maxHealth)));
@@ -566,5 +588,3 @@ export class PlayerController extends THREE.EventDispatcher {
 		});
 	}
 }
-
-// export { PointerLockControlsCannon };
