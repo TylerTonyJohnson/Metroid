@@ -6,6 +6,7 @@ import { VisorType, BeamType } from './enums';
 
 // Runtime variables
 export const isDebugMode = writable(false);
+export const isRendering = writable(false);
 
 // Health
 export const currentHealth = tweened(199, {
@@ -30,7 +31,7 @@ export const maxAmmo = tweened(65, {
 export const capAmmo = readable(250);
 
 // Visor
-export const currentVisor = writable(VisorType.Scan);
+export const currentVisor = writable(VisorType.Combat);
 export const unlockedVisors = writable([
 	VisorType.Combat,
 	VisorType.Scan,
@@ -50,6 +51,10 @@ export const unlockedBeams = writable([
 export const lookDistance = writable(0);
 export const lookDistMin = readable(5);
 export const lookDistMax = readable(50);
+
+// Scanning
+export const isScanning = writable(false);
+export const scanProgress = writable(0);
 
 // Look variables
 export const isZoomed = writable(false);

@@ -17,3 +17,10 @@ export class BeamType {
     static Ice = new BeamType('ice');
     static Plasma = new BeamType('plasma');
 }
+
+export class DangerType {
+    static None = new DangerType('none');
+    static Sensing = new DangerType('sensing');
+    static Warning = new DangerType('warning');
+    static Damage = new DangerType('damage');
+}

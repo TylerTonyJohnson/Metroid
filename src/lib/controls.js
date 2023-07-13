@@ -3,6 +3,7 @@ import * as CANNON from 'cannon';
 import { VisorType, BeamType } from './enums';
 import { get } from 'svelte/store';
 import {
+	isRendering,
 	currentVisor,
 	unlockedVisors,
 	currentBeam,
@@ -11,6 +12,7 @@ import {
 	lookPosition,
 	isLockable,
 	isLocked,
+	isScanning,
 	currentDanger,
 	currentAmmo,
 	maxAmmo,
@@ -29,6 +31,7 @@ let $unlockedVisors;
 let $unlockedBeams;
 let $lookMovement;
 let $isLocked;
+let $isScanning;
 let mouseTimer;
 
 const moveMaxX = 5;
@@ -110,6 +113,10 @@ export class PlayerController extends THREE.EventDispatcher {
 		isLocked.subscribe((value) => {
 			$isLocked = value;
 		});
+
+		isScanning.subscribe((value) => {
+			$isScanning = value;
+		})
 	}
 
 	setupCannonBody() {
@@ -173,12 +180,12 @@ export class PlayerController extends THREE.EventDispatcher {
 	onPointerlockChange = () => {
 		if (document.pointerLockElement) {
 			this.dispatchEvent(this.lockEvent);
-
 			this.isLocked = true;
+			isRendering.set(true);
 		} else {
 			this.dispatchEvent(this.unlockEvent);
-
 			this.isLocked = false;
+			isRendering.set(false);
 		}
 	};
 
@@ -235,7 +242,7 @@ export class PlayerController extends THREE.EventDispatcher {
 	}
 
 	updateLockedRotation(timeElapsed) {
-		console.log('updating rotation');
+		// console.log('updating rotation');
 
 		// Create target quaternion
 		targetMatrix.lookAt(lockTargetMesh, this.object.position, this.object.up);
@@ -244,12 +251,35 @@ export class PlayerController extends THREE.EventDispatcher {
 		// Lerp toward target quaternion
 		const step = lockRotSpeed * timeElapsed;
 		this.object.quaternion.rotateTowards(targetQuaternion, step);
+		
+		this.current.movementX = 0;
+		this.current.movementY = 0;
+		this.updateMoveStores();
 
-		this.theta = this.object.rotation.x;
-		this.phi = this.object.rotation.y;
+		console.log(new THREE.Euler().setFromQuaternion(this.object.quaternion));
 	}
 
 	updateFreeRotation(timeElapsed) {
+
+		// // Calcluate look movement speed
+		// const lookMoveX = this.current.movementX * timeElapsed * lookSpeedX;
+		// const lookMoveY = this.current.movementY * timeElapsed * lookSpeedY;
+		// console.log(lookMoveX, lookMoveY);
+
+		// // Calculate the change quaternion
+		// const quatX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), lookMoveX);
+		// const quatY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), lookMoveY);
+		// const quatZ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0);
+		// const quatDelta = new THREE.Quaternion().multiply(quatX).multiply(quatY);
+		
+		// // Calculate the target quaternion
+		// const targetQuaternion = this.object.quaternion.clone().multiply(quatDelta);
+
+		// // Interpolate to target quaternion
+		// const t = 1.0 - Math.pow(0.01, 5 * timeElapsed);
+		// this.object.quaternion.slerp(targetQuaternion, t);
+
+
 		// Calculate angle change since last frame
 		this.phi += -(this.current.movementX / window.innerWidth) * this.phiSpeed;
 		this.theta = clamp(
@@ -275,6 +305,13 @@ export class PlayerController extends THREE.EventDispatcher {
 		this.updateMoveStores();
 		this.current.movementX = 0;
 		this.current.movementY = 0;
+	}
+
+	resetFreeRotation() {
+		const currentRotation = new THREE.Euler();
+		currentRotation.setFromQuaternion(this.object.quaternion);
+		this.theta = currentRotation.x
+		this.phi = currentRotation.y;
 	}
 
 	onMouseMove = (event) => {
@@ -350,13 +387,16 @@ export class PlayerController extends THREE.EventDispatcher {
 		lockTargetMesh = getLockMesh();
 		if (!lockTargetMesh) return;
 		isLocked.set(true);
+		isScanning.set(true);
 		console.log('locking');
 	};
 
 	lockOff = () => {
 		if (!$isLocked) return;
 		isLocked.set(false);
+		isScanning.set(false);
 		releaseLockMesh();
+		this.resetFreeRotation();
 		console.log('unlocking');
 	};
 

@@ -6,18 +6,10 @@
 </script>
 
 <div id='altimeters'>
-    <div class='altimeter left'>
-        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
-        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
-        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
-        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
-    </div>
-    <div class='altimeter right'>
-        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
-        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
-        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
-        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
-    </div>
+
+        <div class="altimeter left" style="background-position-y: {altHeight / 2}%;" />
+
+        <div class="altimeter right" style="background-position-y: {altHeight / 2}%;" />
 </div>
 
 
@@ -33,45 +25,20 @@
 
     .altimeter {
         position: absolute;
-        top: 34%;
         width: 1.2%;
         height: 27.8%;
+        top: 34%;
+        background-image: url('Combat Altimeter 1x.png');
+        background-size: contain;
     }
 
-    .altimeter.left {
+    .left {
         left: 6.4%;
         clip-path: polygon(0% 0%, 100% 5%, 100% 100%, 0% 95%);
     }
-    .altimeter.right {
+    .right {
         right: 6.4%;
         clip-path: polygon(0% 5%, 100% 0%, 100% 95%, 0% 100%);
     }
 
-    .lines {
-		position: absolute;
-		height: 100%;
-        left: 50%;
-        translate: -50% 0%;
-	}
-
-    .lines.a {
-		width: 100%;
-		background: linear-gradient(to top, var(--altim-bright) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
-	}
-	.lines.b {
-		width: 60%;
-		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
-	}
-	.lines.c {
-		width: 40%;
-		background: linear-gradient(to top, var(--altim-med) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
-	}
-	.lines.d {
-		width: 100%;
-		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
-	}
 </style>

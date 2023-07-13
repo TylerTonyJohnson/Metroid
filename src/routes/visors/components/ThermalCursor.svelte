@@ -2,8 +2,8 @@
 	import { fade } from 'svelte/transition';
 	import { lookMovement } from '../../../lib/stores';
 
-    const maxTranslateX = 2; // Degrees
-	const maxTranslateY = 2; // Degrees
+    const maxTranslateX = 5; // Degrees
+	const maxTranslateY = 5; // Degrees
 
 	$: translateX = maxTranslateX * $lookMovement.x;
 	$: translateY = maxTranslateY * $lookMovement.y;

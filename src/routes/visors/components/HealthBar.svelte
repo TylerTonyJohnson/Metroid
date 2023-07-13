@@ -13,8 +13,8 @@
 	<img id="background" src="Health Display 1x.png" alt="Healthbar" />
 	<!-- HEALTH NUMBERS -->
 	<svg id="health-num-container" viewBox="0 0 65 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<text id="health-num" x="30%" y="50%">{remainderTens}</text>
-		<text id="health-num" x="72%" y="50%">{remainderOnes}</text>
+		<text id="health-num" x="30%" y="62%">{remainderTens}</text>
+		<text id="health-num" x="72%" y="62%">{remainderOnes}</text>
 	</svg>
 	<!-- HEALTH BOXES -->
 	<div id="health-box-container">
@@ -75,7 +75,7 @@
 		stroke: hsl(200, 80%, 30%, 60%);
 		stroke-width: 4;
 		paint-order: stroke;
-		font-size: 200%;
+		font-size: 240%;
 		dominant-baseline: central;
 		text-anchor: middle;
 	}

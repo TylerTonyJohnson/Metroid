@@ -31,8 +31,8 @@
 
 	.altimeter {
 		position: absolute;
-		height: calc(494% / 1080 * 100);
 		width: calc(170% / 1920 * 100);
+		height: calc(494% / 1080 * 100);
 		top: 50%;
 		translate: 0% -50%;
 		transform-origin: center;

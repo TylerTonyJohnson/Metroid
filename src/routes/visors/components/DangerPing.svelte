@@ -14,27 +14,42 @@
 		audioLoader.load('Danger Ping.wav', function (buffer) {
 			warnSound.setBuffer(buffer);
 			warnSound.setVolume(0.5);
-			warnSound.setDetune(-1600);
-			warnSound.setPlaybackRate(10);
+			warnSound.setDetune(-1200);
+			warnSound.setPlaybackRate(0.25);
 		});
 		audioLoader.load('Danger Ping.wav', function (buffer) {
 			damageSound.setBuffer(buffer);
-			damageSound.setVolume(0.5);
+			damageSound.setVolume(0.25);
 		});
 
 		currentDanger.subscribe((value) => {
-			if (value === $capDanger && !hasDamaged) {
-				damageSound.play();
-				hasDamaged = true;
-			} else if (value >= $thresholdDanger && !hasWarned) {		
-				warnSound.play();
-				hasWarned = true;
-				hasDamaged = false;
-			} else if (value < $thresholdDanger) {
-				hasWarned = false;
-				hasDamaged = false;
+
+			switch (true) {
+				case value >= $capDanger:
+					if (!hasDamaged) {
+						damageSound.setLoop(true);
+						damageSound.play();
+						hasDamaged = true;
+					}
+					break;
+				case value > $thresholdDanger:
+					if (!hasWarned) {
+						warnSound.play();
+						hasWarned = true;
+					}
+					if (damageSound.isPlaying) damageSound.setLoop(false);
+					console.log(damageSound.duration);
+					hasDamaged = false;
+					break;
+				case value < $thresholdDanger:
+					if (damageSound.isPlaying) damageSound.setLoop(false);
+					hasWarned = false;
+					hasDamaged = false;
+					break;
 			}
 		});
 	});
+
+
 </script>
 

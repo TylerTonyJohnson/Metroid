@@ -1,6 +1,19 @@
 <script>
 	import { closestSeekerPosition } from '../../../lib/stores';
 
+	// Test section
+	// let transcomp;
+	// $: transitionComplete = transcomp;
+
+	// $: {
+	// 	if (!isSeeking) {
+	// 		setTimeout(() => {
+	// 			console.log('dood');
+	// 			transcomp = isSeeking;
+	// 		}, 220);
+	// 	}
+	// }
+
 	$: aspect = window.innerWidth / window.innerHeight;
 
 	// Calculate target's distance from center of screen
@@ -14,7 +27,6 @@
 	// Calculate where the seeker should be based on whether the target is in the threshold
 	$: x = isSeeking ? (100 * ($closestSeekerPosition.x + 1)) / 2 : 50;
 	$: y = isSeeking ? 100 * (1 - ($closestSeekerPosition.y + 1) / 2) : 50;
-
 </script>
 
 <img
@@ -26,6 +38,7 @@
 	class:seeking={isSeeking}
 	alt="Combat Seeker"
 />
+
 
 <style>
 	.cursor {

@@ -4,7 +4,7 @@
 </script>
 
 {#if $isLocked}
-		<img id='lock-cursor' src="Thermal Lock 1x.png" transition:scale alt="Thermal Lock" />
+		<img id='lock-cursor' src="Thermal Lock 1x.png" transition:scale={{start: 4}} alt="Thermal Lock" />
 {/if}
 
 <style>

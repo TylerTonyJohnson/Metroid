@@ -1,11 +1,25 @@
-<div id='cursor'>
-    <div class='buffer'/>
-    <img id="focus" src="Scan Cursor.svg" alt="decoration" />
-    <div class='buffer' />
+<script>
+	import { isRendering } from '../../../lib/stores';
+</script>
+
+<div id="cursor">
+	<div class="buffer" />
+	<img id="focus" src="Scan Cursor.svg" alt="decoration" />
+	<div class="buffer" />
 </div>
-<img id='aim-cursor' src='Scan Cursor Static 1x.png' alt='static'/>
-<img class='spinner inner' src='Scan Cursor Spin Inner 1x.png' />
-<img class='spinner outer' src='Scan Cursor Spin Outer 1x.png' />
+<img id="aim-cursor" src="Scan Cursor Static 1x.png" alt="static" />
+<img
+	class="spinner inner"
+	class:paused={!$isRendering}
+	src="Scan Cursor Spin Inner 1x.png"
+	alt="inner"
+/>
+<img
+	class="spinner outer"
+	src="Scan Cursor Spin Outer 1x.png"
+	class:paused={!$isRendering}
+	alt="outer"
+/>
 
 <style>
 	#cursor {
@@ -23,14 +37,14 @@
 	}
 
 	.buffer {
-		background-color: rgba(0,0,0,0.5);
+		background-color: rgba(0, 0, 0, 0.5);
 		width: 100%;
 		height: 100%;
 	}
 
 	#aim-cursor {
 		position: absolute;
-		height: calc(142%/1080*100);
+		height: calc(142% / 1080 * 100);
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
@@ -38,18 +52,18 @@
 
 	.spinner {
 		position: absolute;
-		left:50%;
+		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
 	}
 
 	.inner {
-		height: calc(648%/1080*100);
+		height: calc(648% / 1080 * 100);
 		animation: rotate 10s linear infinite;
 	}
 
 	.outer {
-		height: calc(708%/1080*100);
+		height: calc(708% / 1080 * 100);
 		animation: rotate 10s linear infinite reverse;
 	}
 
@@ -60,5 +74,9 @@
 		to {
 			rotate: 360deg;
 		}
+	}
+
+	.paused {
+		animation-play-state: paused;
 	}
 </style>

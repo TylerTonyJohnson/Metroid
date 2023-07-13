@@ -2,14 +2,19 @@
 	import { fade } from 'svelte/transition';
 	import ScanDecor from './components/ScanDecor.svelte';
 	import ScanAltimeters from './components/ScanAltimeters.svelte';
-
+	import ScanProgress from './components/ScanProgress.svelte';
+	import { isScanning } from '../../lib/stores';
 </script>
 
-<div id='visor' transition:fade>
+<div id="visor" transition:fade>
 	<!-- DECORATION -->
-    <ScanDecor />
+	<ScanDecor />
 	<!-- ALTIMETERS -->
 	<ScanAltimeters />
+
+	{#if $isScanning}
+		<ScanProgress />
+	{/if}
 </div>
 
 <style>

@@ -5,15 +5,26 @@
 
 {#if $isLocked}
 	<div id="cursor" transition:fade>
-		<img src="Combat Lock Inner 1x.png" transition:scale alt="Combat Lock" />
-		<img src="Combat Lock Outer 1x.png" alt="Combat Lock" />
+		<img class='inner' src="Combat Lock Inner 1x.png" transition:scale={{start: 0}} alt="Combat Lock" />
+		<img class='outer' src="Combat Lock Outer 1x.png" transition:scale={{start: 4}} alt="Combat Lock" />
 		<img class="spin" src="Combat Lock Lines 1x.png" alt="Combat Lock" />
 	</div>
 {/if}
 
 <style>
-	#cursor, #cursor > * {
+	#cursor {
 		position: absolute;
+		height: calc(558%/1080*100);
+		aspect-ratio: 1;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+	}
+
+	.inner, .outer, .spin {
+		position: absolute;
+		height: 100%;
+		width: 100%;
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;

@@ -18,6 +18,7 @@
 	import DangerPing from './visors/components/DangerPing.svelte';
 	import ScanVisor from './visors/ScanVisor.svelte';
 	import ScanMarker from './visors/components/ScanMarker.svelte';
+	import VisorSounds from './visors/components/VisorSounds.svelte';
 
 	const maxRotateX = 1; // Degrees
 	const maxRotateY = 1; // Degrees
@@ -106,7 +107,10 @@
 		<HealthBar />
 		<Selector selectorType={SelectorType.Beam} />
 		<Selector selectorType={SelectorType.Visor} />
+
+		<!-- SOUNDS LAYER -->
 		<DangerPing />
+		<VisorSounds />
 
 		<!-- HELMET -->
 		<img src="Helmet 1x.png" id="helmet" alt="helmet" />
@@ -167,4 +171,10 @@
 		top: 50%;
 		translate: -50% -50%;
 	}
+
+	/* .paused * {
+		animation: none !important;
+		transition: none !important;
+		animation-play-state: paused !important;
+	} */
 </style>

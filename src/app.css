@@ -1,0 +1,13 @@
+/* FONT */
+
+@font-face {
+    font-family: 'Metroid';
+    font-style: normal;
+    font-weight: 500;
+    src: url('/Metroid-Prime-Font.ttf') format('truetype');
+}
+
+/* GLOBAL PAUSE */
+.paused * {
+    animation-play-state: paused;
+}
