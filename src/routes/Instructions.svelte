@@ -20,6 +20,7 @@
         <li>Make a "controls" display</li>
         <li>Make a disclaimer</li>
         <li>Make the seeker list only grab what's targetable (distance, scan)</li>
+        <li>Combat ammo words</li>
         <li class='done'>Add words and details to the danger markers</li>
         <li class='done'>Get visor sounds working</li>
         <li class='done'>Combat Seeker should turn red</li>
