@@ -19,6 +19,8 @@
 	import ScanVisor from './visors/ScanVisor.svelte';
 	import ScanMarker from './visors/components/ScanMarker.svelte';
 	import VisorSounds from './visors/components/VisorSounds.svelte';
+	import ThermalSeeker from './visors/components/ThermalSeeker.svelte';
+	import XraySeeker from './visors/components/XraySeeker.svelte';
 
 	const maxRotateX = 1; // Degrees
 	const maxRotateY = 1; // Degrees
@@ -57,9 +59,9 @@
 			<ScanSeeker />
 			<ScanMarker />
 		{:else if $currentVisor === VisorType.Thermal}
-			<CombatSeeker />
+			<ThermalSeeker />
 		{:else if $currentVisor === VisorType.Xray}
-			<CombatSeeker />
+			<XraySeeker />
 		{:else}
 			<div>No Cursor Available</div>
 		{/if}
@@ -127,6 +129,7 @@
 		top: 50%;
 		translate: -50% -50%;
 		perspective: 100vh;
+		pointer-events: none;
 	}
 
 	#visor > * {

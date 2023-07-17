@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { currentVisor } from '../../../lib/stores';
+	import { currentVisor, isRendering } from '../../../lib/stores';
 	import * as THREE from 'three';
 	import { listener } from '../../../lib/scene';
 	import { VisorType } from '../../../lib/enums';
@@ -50,6 +50,21 @@
 					scanSound.stop();
 					thermalSound.stop();
 					xraySound.play();
+					break;
+			}
+		});
+
+		isRendering.subscribe((value) => {
+			switch (value) {
+				case true:
+					scanSound.setVolume(0.25);
+					thermalSound.setVolume(0.25);
+					xraySound.setVolume(0.25);
+					break;
+				case false:
+					scanSound.setVolume(0);
+					thermalSound.setVolume(0);
+					xraySound.setVolume(0);
 					break;
 			}
 		});

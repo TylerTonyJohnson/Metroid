@@ -1,3 +1,4 @@
+<!-- LOGIC -->
 <script>
 	import { currentDanger, thresholdDanger } from '../../../lib/stores';
 	import { DangerState } from '../../../lib/enums';
@@ -25,86 +26,97 @@
 				break;
 		}
 	}
+
+	const dangerBarDegrees = 64;
+
+	$: dangerRotation = ($currentDanger / 100 - 1 / 2) * dangerBarDegrees;
 </script>
 
 <div id="frame">
 	<div id="danger-counter">
-		<!-- BAR -->
-		<svg id="bar" viewBox="0 0 12 326" xmlns="http://www.w3.org/2000/svg">
-			<rect width="12" height="326" rx="2" fill="url(#combat-danger-gradient)" />
-			<linearGradient id="combat-danger-gradient" x1="0" x2="0" y1="100%" y2="0%">
+		<!-- Bar -->
+		<svg id="bar" viewBox="0 0 88 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M10.0049 225C10.0049 303.751 32.4119 380.876 74.6088 447.368L83.0533 442.009C41.8734 377.12 20.0064 301.853 20.0064 225C20.0064 148.147 41.8734 72.8799 83.0534 7.99066L74.6088 2.63159C32.4119 69.1233 10.0049 146.249 10.0049 225Z"
+				fill="url(#danger-gradient)"
+			/>
+			<linearGradient id="danger-gradient" x1="0%" x2="0%" y1="100%" y2="0%">
 				<stop offset="{$currentDanger}%" stop-color="#A3E7F5" />
 				<stop offset="0%" stop-color="#5999A680" />
 			</linearGradient>
 		</svg>
-
+		<!-- Exclamation -->
+		<svg id="exclamation" viewBox="0 0 44 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<!-- Buffers -->
+			<path
+				class="buffer base-fill"
+				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
+				class:damage-fill={status === DangerState.Damage}
+				d="M28.0049 3.99951V-0.000488281L40.0049 7.99951V43.9995L28.0049 51.9995V47.9995L37.0049 41.9995V9.99951L28.0049 3.99951Z"
+			/>
+			<path
+				class="buffer base-fill"
+				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
+				class:damage-fill={status === DangerState.Damage}
+				d="M16.0049 3.99951V-0.000488281L4.00488 7.99951V43.9995L16.0049 51.9995V47.9995L7.00488 41.9995V9.99951L16.0049 3.99951Z"
+			/>
+			<!-- Framers -->
+			<path
+				class="framer base-stroke"
+				class:damage-stroke={status === DangerState.Damage}
+				d="M35.0049 0.999512L43.0049 5.99951V14.9995M9.00488 0.999512L1.00488 5.99951V14.9995M35.0049 50.9995L43.0049 45.9995V36.9995M9.00488 50.9995L1.00488 45.9995V36.9995"
+			/>
+			<!-- Exclamation -->
+			<text
+				class="exclamation-text base-fill"
+				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
+				class:damage-fill={status === DangerState.Damage}
+				x="50%"
+				y="62%">!</text
+			>
+		</svg>
 		<!-- Slider -->
 		<svg
-			class="slider"
-			style="bottom: {$currentDanger}%;"
-			viewBox="0 0 252 86"
+			id="slider"
+			viewBox="0 0 1080 1080"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
+			style="rotate: {dangerRotation}deg"
 		>
 			<!-- Arrow -->
 			<path
 				class="arrow base-fill"
 				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
 				class:damage-fill={status === DangerState.Damage}
-				d="M12.5 33V36.843L4.81 43L12.5 49.156V53L0 43L12.5 33Z"
+				d="M90 520V527.686L105.38 540L90 552.312V560L115 540L90 520Z"
 			/>
 			<path
 				class="arrow base-fill"
 				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
 				class:damage-fill={status === DangerState.Damage}
-				d="M12.5 40.686L9.61 43L12.5 45.314V40.686Z"
+				d="M90 535.372L95.78 540L90 544.628V535.372Z"
 			/>
-			<!-- Buffers -->
-			<path
-				class="buffer base-fill"
-				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
-				class:damage-fill={status === DangerState.Damage}
-				d="M62 20V16L74 24V60L62 68V64L71 58V26L62 20Z"
-			/>
-			<path
-				class="buffer base-fill"
-				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
-				class:damage-fill={status === DangerState.Damage}
-				d="M50 20V16L38 24V60L50 68V64L41 58V26L50 20Z"
-			/>
-			<!-- Box -->
-			<path
-				class="box base-stroke"
-				class:damage-stroke={status === DangerState.Damage}
-				d="M21 78L28 85H84L91 78M21 8L28 1H84L91 8M93.5 77C93.5 77.8284 92.8284 78.5 92 78.5C91.1716 78.5 90.5 77.8284 90.5 77C90.5 76.1716 91.1716 75.5 92 75.5C92.8284 75.5 93.5 76.1716 93.5 77ZM93.5 9C93.5 9.82843 92.8284 10.5 92 10.5C91.1716 10.5 90.5 9.82843 90.5 9C90.5 8.17157 91.1716 7.5 92 7.5C92.8284 7.5 93.5 8.17157 93.5 9ZM21.5 77C21.5 77.8284 20.8284 78.5 20 78.5C19.1716 78.5 18.5 77.8284 18.5 77C18.5 76.1716 19.1716 75.5 20 75.5C20.8284 75.5 21.5 76.1716 21.5 77ZM21.5 9C21.5 9.82843 20.8284 10.5 20 10.5C19.1716 10.5 18.5 9.82843 18.5 9C18.5 8.17157 19.1716 7.5 20 7.5C20.8284 7.5 21.5 8.17157 21.5 9Z"
-			/>
-			<!-- Framers -->
-			<path
-				class="framer base-stroke"
-				class:damage-stroke={status === DangerState.Damage}
-				d="M69 17L77 22V31M43 17L35 22V31M69 67L77 62V53M43 67L35 62V53"
-			/>
-			<!-- Exclamation -->
-			<text
-				class="exclamation base-fill"
-				class:sensing={status === DangerState.Sensing || status === DangerState.Warning}
-				class:damage-fill={status === DangerState.Damage}
-				x="56"
-				y="48">!</text
-			>
+
 			<!-- Message -->
-			<text
-				class="message"
-				class:warning-text={status === DangerState.Warning}
-				class:damage-text={status === DangerState.Damage}
-				x="165"
-				y="45"
-				fill="white">{message}</text
-			>
+			<defs>
+				<path id="text-path-danger" d="M155.448,720.956C128.811,664.35 115,602.561 115,540" />
+			</defs>
+			<text>
+				<textPath
+					id="message"
+					class:warning-text={status === DangerState.Warning}
+					class:damage-text={status === DangerState.Damage}
+					href="#text-path-danger"
+					startOffset="80%">
+					{message}
+				</textPath
+				>
+			</text>
 		</svg>
 	</div>
 </div>
 
+<!-- STYLE -->
 <style>
 	#frame {
 		position: absolute;
@@ -117,45 +129,46 @@
 
 	#danger-counter {
 		position: absolute;
-		width: calc(12% / 1920 * 100);
-		height: calc(326% / 1080 * 100);
-		left: calc(207% / 1920 * 100);
-		top: calc(380% / 1080 * 100);
-		perspective: 50vh;
+		width: calc(1080% / 1920 * 100);
+		height: 100%;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
 	}
 
 	#bar {
 		position: absolute;
-		height: 100%;
-		left: 0;
-		top: 0;
+		height: calc(450% / 1080 * 100);
+		left: calc(115% / 1080 * 100);
+		top: calc(315% / 1080 * 100);
 	}
 
-	.slider {
+	#exclamation {
 		position: absolute;
-		height: calc(84% / 326 * 100);
-		left: 200%;
-		translate: 0 50%;
-		transform: rotateY(15deg);
-		transform-origin: left;
-		scale: 1.1 1;
+		height: calc(52% / 1080 * 100);
+		left: calc(31% / 1080 * 100);
+		top: 50%;
+		translate: 0 -50%;
+	}
+
+	#slider {
+		position: absolute;
+		height: 100%;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
 	}
 
 	.arrow,
-	.buffer,
-	.exclamation {
+	.buffer {
 		fill-opacity: 90%;
-	}
-
-	.box {
-		fill-opacity: 60%;
 	}
 
 	.framer {
 		stroke-opacity: 30%;
 	}
 
-	.exclamation {
+	.exclamation-text {
 		font-family: 'Metroid';
 		stroke-width: 4;
 		font-size: 280%;
@@ -163,14 +176,13 @@
 		text-anchor: middle;
 	}
 
-	.message {
+	#message {
 		font-family: 'Metroid';
-		fill: #a3e7f5;
 		stroke-width: 4;
 		paint-order: stroke;
 		font-size: 200%;
-		dominant-baseline: central;
-		text-anchor: middle;
+		/* dominant-baseline: central; */
+		text-anchor: end;
 	}
 
 	.base-stroke {

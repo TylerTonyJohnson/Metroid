@@ -25,7 +25,7 @@ import {
 	capHealth
 } from './stores';
 import { clamp, randomInt } from './math';
-import { shoot, getLockMesh as getLockMesh, releaseLockMesh } from './scene';
+import { shootBeam, shootMissile, getLockMesh as getLockMesh, releaseLockMesh } from './scene';
 
 let $unlockedVisors;
 let $unlockedBeams;
@@ -34,9 +34,12 @@ let $isLocked;
 let $isScanning;
 let mouseTimer;
 
+const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
 const moveMaxX = 5;
 const moveMaxY = 5;
-const lockRotSpeed = 5;
+const lookSpeedX = 5;
+const lookSpeedY = 8;
+const lockRotSpeed = 10;
 
 const targetMatrix = new THREE.Matrix4();
 const targetQuaternion = new THREE.Quaternion();
@@ -45,6 +48,8 @@ let lockTargetMesh = new THREE.Vector3(0, 0, 0);
 export class PlayerController extends THREE.EventDispatcher {
 	constructor(camera, cannonBody) {
 		super();
+		this.minPolarAngle = 0;
+		this.maxPolarAngle = Math.PI;
 		this.object = new THREE.Group();
 		this.enabled = false; // Set this control as disabled until it's ready
 
@@ -52,9 +57,6 @@ export class PlayerController extends THREE.EventDispatcher {
 		camera.rotation.y = Math.PI;
 		this.object.add(this.camera);
 		this.cannonBody = cannonBody; // Link the physics body to the controller
-
-		// this.rotation = new THREE.Quaternion();
-		// this.position = new THREE.Vector3();
 
 		this.strafeSpeed = 10; // Unused right now
 		this.jumpSpeed = 20;
@@ -83,10 +85,6 @@ export class PlayerController extends THREE.EventDispatcher {
 		this.walkSpeed = 20;
 		this.sprintSpeed = this.walkSpeed * 2;
 		this.moveSpeed = this.walkSpeed;
-		this.phi = 0; // X-rotation
-		this.phiSpeed = 8; // Units?
-		this.theta = 0;
-		this.thetaSpeed = 5; // Units?
 
 		this.current = {
 			isLeftMouse: false,
@@ -234,95 +232,40 @@ export class PlayerController extends THREE.EventDispatcher {
 	}
 
 	updateRotation(timeElapsed) {
+
+		// Calculate target quaternion
 		if ($isLocked) {
-			this.updateLockedRotation(timeElapsed);
+			targetMatrix.lookAt(lockTargetMesh, this.object.position, this.object.up);
+			targetQuaternion.setFromRotationMatrix(targetMatrix);
+			_euler.setFromQuaternion( this.object.quaternion );
 		} else {
-			this.updateFreeRotation(timeElapsed);
+			_euler.setFromQuaternion( this.object.quaternion );
+
+			_euler.y -= this.current.movementX * 0.0003 * lookSpeedX;
+			_euler.x += this.current.movementY * 0.0003 * lookSpeedY;
+			_euler.x = Math.max( Math.PI / 2 - this.maxPolarAngle, Math.min( Math.PI / 2 - this.minPolarAngle, _euler.x ) );
+			_euler.z = 0;
+			targetQuaternion.setFromEuler( _euler );
 		}
-	}
 
-	updateLockedRotation(timeElapsed) {
-		// console.log('updating rotation');
-
-		// Create target quaternion
-		targetMatrix.lookAt(lockTargetMesh, this.object.position, this.object.up);
-		targetQuaternion.setFromRotationMatrix(targetMatrix);
-
-		// Lerp toward target quaternion
+		// Rotate toward target quaternion
 		const step = lockRotSpeed * timeElapsed;
 		this.object.quaternion.rotateTowards(targetQuaternion, step);
-		
-		this.current.movementX = 0;
-		this.current.movementY = 0;
-		this.updateMoveStores();
 
-		console.log(new THREE.Euler().setFromQuaternion(this.object.quaternion));
-	}
-
-	updateFreeRotation(timeElapsed) {
-
-		// // Calcluate look movement speed
-		// const lookMoveX = this.current.movementX * timeElapsed * lookSpeedX;
-		// const lookMoveY = this.current.movementY * timeElapsed * lookSpeedY;
-		// console.log(lookMoveX, lookMoveY);
-
-		// // Calculate the change quaternion
-		// const quatX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), lookMoveX);
-		// const quatY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), lookMoveY);
-		// const quatZ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0);
-		// const quatDelta = new THREE.Quaternion().multiply(quatX).multiply(quatY);
-		
-		// // Calculate the target quaternion
-		// const targetQuaternion = this.object.quaternion.clone().multiply(quatDelta);
-
-		// // Interpolate to target quaternion
-		// const t = 1.0 - Math.pow(0.01, 5 * timeElapsed);
-		// this.object.quaternion.slerp(targetQuaternion, t);
-
-
-		// Calculate angle change since last frame
-		this.phi += -(this.current.movementX / window.innerWidth) * this.phiSpeed;
-		this.theta = clamp(
-			this.theta + (this.current.movementY / window.innerHeight) * this.thetaSpeed,
-			-Math.PI / 2,
-			Math.PI / 2
-		);
-
-		// Calculate new target quaternion
-		const qx = new THREE.Quaternion();
-		qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi);
-		const qz = new THREE.Quaternion();
-		qz.setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.theta);
-		const q = new THREE.Quaternion();
-		q.multiply(qx);
-		q.multiply(qz);
-
-		// Interpolate to target quaternion
-		const t = 1.0 - Math.pow(0.01, 5 * timeElapsed);
-		this.object.quaternion.slerp(q, t);
-
-		// Reset movement to zero for next loop
+		// Update stores, reset movement
 		this.updateMoveStores();
 		this.current.movementX = 0;
 		this.current.movementY = 0;
-	}
 
-	resetFreeRotation() {
-		const currentRotation = new THREE.Euler();
-		currentRotation.setFromQuaternion(this.object.quaternion);
-		this.theta = currentRotation.x
-		this.phi = currentRotation.y;
 	}
 
 	onMouseMove = (event) => {
-		if (!this.enabled) return;
+		if (!this.enabled) return;	// If controls are disabled, don't update movement
 		if ($isLocked) return; // If we're locked on a target, don't allow mouse move
 
-		this.current.movementX = event.movementX;
-		this.current.movementY = event.movementY;
-
-		// Update Store Values
-		this.updateMoveStores();
+		// Keep track of how far the mouse has moved
+		this.current.movementX = event.movementX || 0;
+		this.current.movementY = event.movementY || 0;
 	};
 
 	updateMoveStores() {
@@ -331,40 +274,24 @@ export class PlayerController extends THREE.EventDispatcher {
 		const percentY = -Math.max(Math.min(this.current.movementY / moveMaxY, 1), -1);
 
 		// TODO
-		const yawPercent = this.phi / (2 * Math.PI);
-		const pitchPercent = this.theta / Math.PI;
+		const yawPercent = _euler.y / (2 * Math.PI);
+		const pitchPercent = _euler.x / -Math.PI;
 
 		// Set store values
 		lookMovement.set({ x: percentX, y: percentY });
 		lookPosition.set({ x: yawPercent, y: pitchPercent });
-		// vertLook.set(pitchPercent);
-		// horzLook.set(yawPercent);
 	}
-
-	// onMouseStop = () => {
-	// 	this.current.movementX = 0;
-	// 	this.current.movementY = 0;
-
-	// 	lookMovement.update((value) => {
-	// 		value.x = 0;
-	// 		return value;
-	// 	});
-
-	// 	lookMovement.update((value) => {
-	// 		value.y = 0;
-	// 		return value;
-	// 	});
-	// };
 
 	onMouseDown = (event) => {
 		switch (event.which) {
 			case 1:
-				shoot(event);
+				shootBeam(event);
 				break;
 			case 2:
+				shootMissile(event);
+				this.decreaseCurrentAmmo();
 				break;
 			case 3:
-				// zoom(2);
 				this.lockOn();
 				break;
 		}
@@ -378,7 +305,6 @@ export class PlayerController extends THREE.EventDispatcher {
 				break;
 			case 3:
 				this.lockOff();
-				// zoom(1);
 				break;
 		}
 	};
@@ -396,7 +322,6 @@ export class PlayerController extends THREE.EventDispatcher {
 		isLocked.set(false);
 		isScanning.set(false);
 		releaseLockMesh();
-		this.resetFreeRotation();
 		console.log('unlocking');
 	};
 
@@ -503,18 +428,6 @@ export class PlayerController extends THREE.EventDispatcher {
 				readoutShow.set(false);
 				$controls.unlock;
 				break;
-			// case 'Comma':
-			// 	isLocked.set(true);
-			// 	break;
-			// case 'Period':
-			// 	isLocked.set(false);
-			// 	break;
-			// case 'Semicolon':
-			// 	isLockable.set(true);
-			// 	break;
-			// case 'Quote':
-			// 	isLockable.set(false);
-			// 	break;
 			case 'KeyP':
 				const currentMode = get(isDebugMode);
 				isDebugMode.set(!currentMode);
@@ -573,12 +486,6 @@ export class PlayerController extends THREE.EventDispatcher {
 	getObject() {
 		return this.object;
 	}
-
-	// getDirection() {
-	// 	const vector = new CANNON.Vec3(0, 0, -1);
-	// 	vector.applyQuaternion(this.quaternion);
-	// 	return vector;
-	// }
 
 	increaseCurrentHealth() {
 		currentHealth.update((n) => Math.min(n + randomInt(10, 35), get(maxHealth)));

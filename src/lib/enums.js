@@ -18,9 +18,16 @@ export class BeamType {
     static Plasma = new BeamType('plasma');
 }
 
-export class DangerType {
-    static None = new DangerType('none');
-    static Sensing = new DangerType('sensing');
-    static Warning = new DangerType('warning');
-    static Damage = new DangerType('damage');
+export class DangerState {
+    static None = new DangerState('none');
+    static Sensing = new DangerState('sensing');
+    static Warning = new DangerState('warning');
+    static Damage = new DangerState('damage');
+}
+
+export class AmmoState {
+    static Empty = new AmmoState('empty');
+    static Low = new AmmoState('low');
+    static High = new AmmoState('high');
+    static Full = new AmmoState('full');
 }

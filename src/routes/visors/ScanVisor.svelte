@@ -6,7 +6,7 @@
 	import { isScanning } from '../../lib/stores';
 </script>
 
-<div id="visor" transition:fade>
+<div id="visor" transition:fade={{duration: '200'}}>
 	<!-- DECORATION -->
 	<ScanDecor />
 	<!-- ALTIMETERS -->

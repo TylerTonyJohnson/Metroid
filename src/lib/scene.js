@@ -39,7 +39,9 @@ let lastCallTime = performance.now();
 let sphereShape, sphereBody;
 let physicsMaterial;
 const boxes = [];
+const fliers = [];
 const boxMeshes = [];
+const missileMeshes = [];
 const balls = [];
 const ballMeshes = [];
 const sceneMeshes = [];
@@ -49,27 +51,34 @@ let $closestSeekerPosition;
 let lockMesh;
 let dangerMesh;
 let canvas;
-let sound, ambient;
+let beamSound, missileSound;
 let $currentVisor, $currentHealth, $currentBeam, $isZoomed, $isLockable;
 let $seekerPositions;
 
 const dangerDistMin = 2;
 const dangerDistMax = 12;
 
-const shootVelocity = 100;
-const ballBody = new CANNON.Body({ type: 4 });
+const beamVelocity = 100;
+const missileVelocity = 50;
+const beamBody = new CANNON.Body({ type: 4 });
+const missileBody = new CANNON.Body({ type: 4 });
 const ballShape = new CANNON.Sphere(0.2);
 const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
+const flyGeometry = new THREE.SphereGeometry(2, 32, 32);
 const powerBeamMaterial = new THREE.MeshBasicMaterial({ color: '#FFB508' });
 const waveBeamMaterial = new THREE.MeshBasicMaterial({ color: '#9C84FE' });
-const IceBeamMaterial = new THREE.MeshBasicMaterial({ color: '#5AE7F8' });
-const PlasmaBeamMaterial = new THREE.MeshBasicMaterial({ color: '#FF4A49' });
+const iceBeamMaterial = new THREE.MeshBasicMaterial({ color: '#5AE7F8' });
+const plasmaBeamMaterial = new THREE.MeshBasicMaterial({ color: '#FF4A49' });
+const missileMaterial = new THREE.MeshBasicMaterial({ color: '#666666' });
+
+let flyAngle = 0;
+const flySpeed = 0.1;
+const flyRadius = 10;
 
 export const listener = new THREE.AudioListener();
 
 const stats = new Stats();
 document.body.appendChild(stats.dom);
-
 
 export function start(element) {
 	canvas = element;
@@ -98,37 +107,43 @@ function initSubscribe() {
 		$currentBeam = value;
 	});
 
-	seekerPositions.subscribe(value => {
+	seekerPositions.subscribe((value) => {
 		$seekerPositions = value;
-	})
+	});
 
-	closestSeekerPosition.subscribe(value => {
+	closestSeekerPosition.subscribe((value) => {
 		$closestSeekerPosition = value;
-	})
+	});
 
 	isZoomed.subscribe((value) => {
 		$isZoomed = value;
 	});
 
-	isLockable.subscribe(value => {
+	isLockable.subscribe((value) => {
 		$isLockable = value;
-	})
+	});
 }
 
 function initThree(element) {
 	// Camera
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 30000);
-	camera.up = new THREE.Vector3(0, 0, 1);	// Not sure this is necessary?
-	
+	camera.up = new THREE.Vector3(0, 0, 1); // Not sure this is necessary?
 
 	// Sound
 	camera.add(listener);
 
-	// const audioLoader = new THREE.AudioLoader();
-	// audioLoader.load('laser.wav', function (buffer) {
-	// 	sound.setBuffer(buffer);
-	// 	sound.setVolume(0.5);
-	// });
+	beamSound = new THREE.Audio(listener);
+	const audioLoader = new THREE.AudioLoader();
+	audioLoader.load('Power Beam Sound.wav', function (buffer) {
+		beamSound.setBuffer(buffer);
+		beamSound.setVolume(0.25);
+	});
+
+	missileSound = new THREE.Audio(listener);
+	audioLoader.load('Missile Sound.wav', function (buffer) {
+		missileSound.setBuffer(buffer);
+		missileSound.setVolume(0.25);
+	});
 
 	// ambient = new THREE.Audio(listener);
 	// audioLoader.load('ambient.mp3', function (buffer) {
@@ -165,7 +180,7 @@ function initThree(element) {
 
 	// Floor
 	const floorGeometry = new THREE.PlaneGeometry(300, 300, 100, 100);
-	floorGeometry.rotateX(-Math.PI / 2); 
+	floorGeometry.rotateX(-Math.PI / 2);
 	const floor = new THREE.Mesh(floorGeometry, material);
 	floor.receiveShadow = true;
 	// scene.add(floor);
@@ -223,7 +238,6 @@ function initThree(element) {
 
 	// Cleanup
 	window.addEventListener('resize', onWindowResize);
-
 }
 
 function initCannon() {
@@ -303,6 +317,39 @@ function initCannon() {
 		scene.add(boxMesh);
 		boxes.push(boxBody);
 		sceneMeshes.push(boxMesh);
+	}
+
+	for (let i = 0; i < 1; i++) {
+		// const flyBody = new CANNON.Body({ mass: 5 });
+		// flyBody.addShape(ballShape);
+		const flyMesh = new THREE.Mesh(
+			flyGeometry,
+			new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff })
+		);
+
+		flyMesh.onBeforeRender = () => {
+			if (!visibleMeshes.includes(flyMesh)) visibleMeshes.push(flyMesh);
+		};
+
+		flyMesh.name = i;
+		// const x = (Math.random() - 0.5) * 20;
+		// const y = (Math.random() - 0.5) * 1 + 1;
+		// const z = (Math.random() - 0.5) * 20;
+		const x = flyRadius * Math.cos(flyAngle);
+		const y = 20;
+		const z = flyRadius * Math.sin(flyAngle);
+
+		// flyBody.position.set(x, y, z);
+		// flyMesh.position.copy(flyBody.position);
+		flyMesh.position.set(x, y, z);
+
+		flyMesh.castShadow = true;
+		flyMesh.receiveShadow = true;
+
+		// physicsWorld.addBody(flyBody);
+		scene.add(flyMesh);
+		fliers.push(flyMesh);
+		// sceneMeshes.push(flyMesh);
 	}
 
 	// dangerMesh = sceneMeshes[0];
@@ -433,33 +480,27 @@ function initCannon() {
 	// });
 }
 
-function buildWorld() {
+function buildWorld() {}
 
-}
-
-export function shoot(event) {
+export function shootBeam(event) {
 	if (!controls.enabled) {
 		return;
 	}
-	ballBody.addShape(ballShape);
+	beamBody.addShape(ballShape);
 	let beamMaterial;
 
 	switch ($currentBeam) {
 		case BeamType.Power:
 			beamMaterial = powerBeamMaterial;
-			// sound.detune = 0;
 			break;
 		case BeamType.Wave:
 			beamMaterial = waveBeamMaterial;
-			// sound.detune = -1200;
 			break;
 		case BeamType.Ice:
-			beamMaterial = IceBeamMaterial;
-			// sound.detune = 1200;
+			beamMaterial = iceBeamMaterial;
 			break;
 		case BeamType.Plasma:
-			beamMaterial = PlasmaBeamMaterial;
-			// sound.detune = 600;
+			beamMaterial = plasmaBeamMaterial;
 			break;
 	}
 
@@ -467,16 +508,16 @@ export function shoot(event) {
 
 	// ballMesh.castShadow = true;
 	// ballMesh.receiveShadow = true;
-	physicsWorld.addBody(ballBody);
+	physicsWorld.addBody(beamBody);
 	scene.add(ballMesh);
-	balls.push(ballBody);
+	balls.push(beamBody);
 	ballMeshes.push(ballMesh);
 
 	const shootDirection = getShotDirection();
-	ballBody.velocity.set(
-		shootDirection.x * shootVelocity,
-		shootDirection.y * shootVelocity,
-		shootDirection.z * shootVelocity
+	beamBody.velocity.set(
+		shootDirection.x * beamVelocity,
+		shootDirection.y * beamVelocity,
+		shootDirection.z * beamVelocity
 	);
 
 	const x =
@@ -485,10 +526,42 @@ export function shoot(event) {
 		sphereBody.position.y + shootDirection.y * (sphereShape.radius * 1.02 + ballShape.radius);
 	const z =
 		sphereBody.position.z + shootDirection.z * (sphereShape.radius * 1.02 + ballShape.radius);
-	ballBody.position.set(x, y, z);
-	ballMesh.position.copy(ballBody.position);
-	// sound.stop();
-	// sound.play();
+	beamBody.position.set(x, y, z);
+	ballMesh.position.copy(beamBody.position);
+	if (beamSound.isPlaying) beamSound.stop();
+	beamSound.play();
+}
+
+export function shootMissile() {
+	if (!controls.enabled) {
+		return;
+	}
+	missileBody.addShape(ballShape);
+
+	const ballMesh = new THREE.Mesh(ballGeometry, missileMaterial);
+
+	physicsWorld.addBody(missileBody);
+	scene.add(ballMesh);
+	balls.push(missileBody);
+	ballMeshes.push(ballMesh);
+
+	const shootDirection = getShotDirection();
+	missileBody.velocity.set(
+		shootDirection.x * missileVelocity,
+		shootDirection.y * missileVelocity,
+		shootDirection.z * missileVelocity
+	);
+
+	const x =
+		sphereBody.position.x + shootDirection.x * (sphereShape.radius * 1.02 + ballShape.radius);
+	const y =
+		sphereBody.position.y + shootDirection.y * (sphereShape.radius * 1.02 + ballShape.radius);
+	const z =
+		sphereBody.position.z + shootDirection.z * (sphereShape.radius * 1.02 + ballShape.radius);
+	missileBody.position.set(x, y, z);
+	ballMesh.position.copy(missileBody.position);
+	if (missileSound.isPlaying) missileSound.stop();
+	missileSound.play();
 }
 
 function getShotDirection() {
@@ -572,11 +645,6 @@ function animate() {
 			lookDistance.set(Infinity);
 		}
 
-		// Lock on
-		// if (get(isLocked)) {
-		// 	updateLockedView();
-		// }
-
 		// Update positions
 		for (let i = 0; i < boxes.length; i++) {
 			sceneMeshes[i].position.copy(boxes[i].position);
@@ -587,6 +655,19 @@ function animate() {
 			ballMeshes[i].position.copy(balls[i].position);
 			ballMeshes[i].quaternion.copy(balls[i].quaternion);
 		}
+
+		flyAngle += 0.01;
+		fliers.forEach((flier) => {
+			
+			const x = flyRadius * Math.cos(flyAngle);
+			const z = flyRadius * Math.sin(flyAngle);
+
+			flier.position.x = x;
+			flier.position.y = 20;
+			flier.position.z = z;
+		});
+
+
 
 		// Render
 		if (get(isDebugMode)) {
@@ -615,15 +696,16 @@ export function releaseLockMesh() {
 }
 
 function updateSeekerPosition(timeElapsed) {
-
 	// Set visible meshes
-	seekerPositions.set(visibleMeshes.map(
-		object => object.position.project(camera)
-		).sort((a, b) => {
-			const aDist = Math.sqrt(Math.pow(a.x, 2) + Math.pow(a.y, 2));
-			const bDist = Math.sqrt(Math.pow(b.x, 2) + Math.pow(b.y, 2));
-			return aDist - bDist;
-		}));
+	seekerPositions.set(
+		visibleMeshes
+			.map((object) => object.position.project(camera))
+			.sort((a, b) => {
+				const aDist = Math.sqrt(Math.pow(a.x, 2) + Math.pow(a.y, 2));
+				const bDist = Math.sqrt(Math.pow(b.x, 2) + Math.pow(b.y, 2));
+				return aDist - bDist;
+			})
+	);
 	// console.log($seekerPositions);
 	visibleMeshes = [];
 
@@ -645,13 +727,12 @@ function updateSeekerPosition(timeElapsed) {
 
 	// seekerPositionX.set($seekerPositions[0].x);
 	// seekerPositionY.set($seekerPositions[0].y);
-
 }
 
 function updateDanger() {
 	const distance = controls.object.position.distanceTo(new THREE.Vector3());
 	const clampedDist = clamp(distance, dangerDistMin, dangerDistMax);
-	const flippedDist =  dangerDistMax - clampedDist;
+	const flippedDist = dangerDistMax - clampedDist;
 	const scaledDist = mapRange(flippedDist, 0, 10, 0, 100);
 	currentDanger.set(scaledDist);
 }

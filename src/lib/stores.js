@@ -1,8 +1,10 @@
 import { derived, readable, writable } from 'svelte/store';
 import { tweened } from 'svelte/motion';
 import { cubicOut } from 'svelte/easing';
-
 import { VisorType, BeamType } from './enums';
+
+// Gateway variables
+export const hasDisclaimed = writable(true);
 
 // Runtime variables
 export const isDebugMode = writable(false);

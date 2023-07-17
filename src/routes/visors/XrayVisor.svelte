@@ -1,12 +1,12 @@
 <script>
 	import { fade } from 'svelte/transition';
 	import XrayAltimeter from './components/XrayAltimeter.svelte';
-	import XrayDecoration from './components/XrayDecoration.svelte';
 	import XrayDecor from './components/XrayDecor.svelte';
-	import XrayCursor from './components/XrayCursor.svelte';
+	import XrayDanger from './components/XrayDanger.svelte';
+	import XrayAmmo from './components/XrayAmmo.svelte';
 </script>
 
-<div id="visor" transition:fade>
+<div id="visor" transition:fade={{duration: '200'}}>
 
 	<!-- BACKDROP -->
 	<!-- <div id='backdrop'></div> -->
@@ -15,6 +15,8 @@
 	<!-- BARS -->
 	<XrayAltimeter />
 	<!-- CURSOR -->
+	<XrayDanger />
+	<XrayAmmo />
 </div>
 
 <style>

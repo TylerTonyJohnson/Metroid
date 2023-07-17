@@ -13,11 +13,18 @@
 	$: y = 100 * (1 - ($closestSeekerPosition.y + 1) / 2);
 	$: {
 		switch (true) {
+			case $isLocked:
+				opacity = 0;
+				break;
 			case x < matchMin:
 				opacity = mapRange(x, 0, matchMin, 0, 1);
 				break;
 			case x > matchMax:
 				opacity = mapRange(x, matchMax, 100, 1, 0);
+				break;
+			default:
+				opacity = 1;
+				break;
 		}
 	}
 </script>
@@ -28,7 +35,6 @@
 		style="left: {x}%;
             top: {y}%;
 			opacity: {opacity};"
-		class:locked={$isLocked}
 		class:paused={!$isRendering}
 		viewBox="0 0 540 540"
 		fill="none"
@@ -65,28 +71,11 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
-		transition-property: rotate;
-		transition-duration: 0.25s;
-		transition-timing-function: ease-out;
-		rotate: 90deg;
+		transition: opacity 0.2s linear;
 	}
 
 	.rotate {
 		animation: spin 5s linear infinite;
-	}
-
-	.locked {
-		/* animation-play-state: paused; */
-		animation: none;
-		rotate: 0deg;
-	}
-
-	.locked .arrow {
-		stroke: hsl(0, 80%, 50%);
-	}
-
-	.locked .box {
-		fill: hsl(0, 80%, 50%);
 	}
 
 	@keyframes spin {

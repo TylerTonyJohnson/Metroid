@@ -6,7 +6,7 @@
 	import CombatAmmo from './components/CombatAmmo.svelte';
 </script>
 
-<div id='visor' transition:fade>
+<div id='visor' transition:fade={{duration: '200'}}>
 	<!-- DECORATION -->
 	<CombatDecor />
 	<!-- ALTIMETERS -->

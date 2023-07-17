@@ -1,18 +1,47 @@
 <script>
+	import { fade } from 'svelte/transition';
 	import { BeamType, VisorType, SelectorType } from '../../../lib/enums';
 	import { unlockedBeams, unlockedVisors, currentBeam, currentVisor } from '../../../lib/stores';
 
 	export let selectorType;
 
+	let message;
 	let unlockedItems;
-	switch (selectorType) {
+
+	$: switch (selectorType) {
 		case SelectorType.Visor:
 			unlockedItems = $unlockedVisors;
+			switch ($currentVisor) {
+				case VisorType.Combat:
+					message = 'Combat Visor';
+					break;
+				case VisorType.Scan:
+					message = 'Scan Visor';
+					break;
+				case VisorType.Thermal:
+					message = 'Thermal Visor';
+					break;
+				case VisorType.Xray:
+					message = 'X-ray Visor';
+					break;
+			}
 			break;
 		case SelectorType.Beam:
 			unlockedItems = $unlockedBeams;
-			break;
-		default:
+			switch ($currentBeam) {
+				case BeamType.Power:
+					message = 'Power Beam';
+					break;
+				case BeamType.Wave:
+					message = 'Wave Beam';
+					break;
+				case BeamType.Ice:
+					message = 'Ice Beam';
+					break;
+				case BeamType.Plasma:
+					message = 'Plasma Beam';
+					break;
+			}
 			break;
 	}
 </script>
@@ -65,6 +94,18 @@
 				{/if}
 			</div>
 		{/each}
+
+		{#key message}
+			<div
+				id="message"
+				class:left-screen={selectorType === SelectorType.Visor}
+				class:right-screen={selectorType === SelectorType.Beam}
+			>
+				{#each message.split('') as letter, i}
+					<span in:fade={{ delay: i * 75 }}>{letter}</span>
+				{/each}
+			</div>
+		{/key}
 	</div>
 </div>
 
@@ -81,19 +122,19 @@
 
 	#selector {
 		position: absolute;
-		height: 22.22%;
+		height: calc(240% / 1080 * 100);
 		aspect-ratio: 1;
 	}
 
-	.left-screen {
-		left: 5.5%;
+	#selector.left-screen {
+		left: calc(110% / 1920 * 100);
 		bottom: 0%;
 		transform: rotateY(35deg);
 		transform-origin: left;
 	}
 
-	.right-screen {
-		right: 5.5%;
+	#selector.right-screen {
+		right: calc(110% / 1920 * 100);
 		bottom: 0%;
 		transform: rotateY(-35deg);
 		transform-origin: right;
@@ -119,6 +160,7 @@
 		left: 50%;
 		top: 50%;
 		transition-delay: 0.1s;
+		animation: activate 0.15s;
 	}
 
 	.tile:not(.active) {
@@ -126,22 +168,22 @@
 		filter: brightness(0.5);
 	}
 
-	.left:not(.active) {
+	.tile.left:not(.active) {
 		left: 17.5%;
 	}
-	.center:not(.active) {
+	.tile.center:not(.active) {
 		left: 50%;
 	}
-	.right:not(.active) {
+	.tile.right:not(.active) {
 		left: 82.5%;
 	}
-	.top:not(.active) {
+	.tile.top:not(.active) {
 		top: 17.5%;
 	}
-	.middle:not(.active) {
+	.tile.middle:not(.active) {
 		top: 50%;
 	}
-	.bot:not(.active) {
+	.tile.bot:not(.active) {
 		top: 82.5%;
 	}
 
@@ -151,5 +193,53 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
+	}
+
+	@keyframes activate {
+		0% {
+			filter: brightness(0.5);
+		}
+		33% {
+			filter: brightness(1.25);
+		}
+		66% {
+			filter: brightness(0.5);
+		}
+		100% {
+			filter: brightness(1.25);
+		}
+	}
+
+	#message {
+		position: absolute;
+		height: calc(110% / 240 * 100);
+		width: calc(250% / 240 * 100);
+		top: 53%;
+		translate: 0 -50%;
+		font-family: 'Metroid';
+		font-size: 300%;
+		color: #ccffff;
+		-webkit-text-stroke: 2px hsl(200, 80%, 30%, 60%);
+		animation: text-fade 3s forwards;
+		animation-delay: 1s;
+	}
+
+	#message.left-screen {
+		left: 100%;
+		text-align: start;
+	}
+
+	#message.right-screen {
+		right: 100%;
+		text-align: end;
+	}
+
+	@keyframes text-fade {
+		from {
+			opacity: 1;
+		}
+		to {
+			opacity: 0;
+		}
 	}
 </style>

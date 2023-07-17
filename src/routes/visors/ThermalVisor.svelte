@@ -7,7 +7,7 @@
 
 </script>
 
-<div id="visor" transition:fade>
+<div id="visor" transition:fade={{duration: '200'}}>
 
 	<!-- BACKDROP -->
 	<svg id='backdrop'></svg>
