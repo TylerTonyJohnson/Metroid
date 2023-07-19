@@ -6,12 +6,9 @@
 </script>
 
 <div id='altimeters'>
-
         <div class="altimeter left" style="background-position-y: {altHeight / 2}%;" />
-
         <div class="altimeter right" style="background-position-y: {altHeight / 2}%;" />
 </div>
-
 
 <style>
     #altimeters {
@@ -31,7 +28,6 @@
         background-image: url('Combat Altimeter 1x.png');
         background-size: contain;
     }
-
     .left {
         left: 6.4%;
         clip-path: polygon(0% 0%, 100% 5%, 100% 100%, 0% 95%);
@@ -40,5 +36,4 @@
         right: 6.4%;
         clip-path: polygon(0% 5%, 100% 0%, 100% 95%, 0% 100%);
     }
-
 </style>

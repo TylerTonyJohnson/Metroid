@@ -1,79 +1,50 @@
-
 <script>
 	import { lookPosition } from '../../../lib/stores';
 
-    const maxOffset = 300;      // Height percent
-    $: altHeight = $lookPosition.y * maxOffset;
+	const maxOffset = 300; // Height percent
+	$: altHeight = ($lookPosition.x + $lookPosition.y) * maxOffset;
 </script>
 
-<div id='altimeters'>
-    <div class='altimeter left'>
-        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
-        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
-        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
-        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
-    </div>
-    <div class='altimeter right'>
-        <div class="lines a" style="background-position-y: calc({altHeight}% + 0px);" />
-        <div class="lines b" style="background-position-y: calc({altHeight}% + 8px);" />
-        <div class="lines c" style="background-position-y: calc({altHeight}% + 16px);" />
-        <div class="lines d" style="background-position-y: calc({altHeight}% + 24px);" />
-    </div>
+<div id="frame">
+	<div id='mask'>
+		<div class="altimeter" style="rotate: {altHeight / 2}deg;" />
+	</div>
 </div>
 
-
 <style>
-    #altimeters {
-        position: absolute;
-        height: 100%;
-        aspect-ratio: 1920/1080;
-        left: 50%;
-        top: 50%;
-        translate: -50% -50%;
-    }
-
-    .altimeter {
-        position: absolute;
-        top: 34%;
-        width: 1.2%;
-        height: 27.8%;
-    }
-
-    .altimeter.left {
-        left: 6.4%;
-        clip-path: polygon(0% 0%, 100% 5%, 100% 100%, 0% 95%);
-    }
-    .altimeter.right {
-        right: 6.4%;
-        clip-path: polygon(0% 5%, 100% 0%, 100% 95%, 0% 100%);
-    }
-
-    .lines {
+	#frame {
 		position: absolute;
 		height: 100%;
-        left: 50%;
-        translate: -50% 0%;
-        /* transition: all 0.1s linear; */
+		aspect-ratio: 1920/1080;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+		/* background-color: red; */
+		clip-path: url(#myPath);
+
+		/* clip-path: url(#svgPath); */
 	}
 
-    .lines.a {
-		width: 100%;
-		background: linear-gradient(to top, var(--altim-bright) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
+	#mask {
+		position: absolute;
+		width: calc(1720% / 1920 * 100);
+		height: calc(540% / 1080 * 100);
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+        clip-path: polygon(0% 3%, 100% 3%, 100% 97%, 0% 97%);
+		
 	}
-	.lines.b {
-		width: 60%;
-		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
-	}
-	.lines.c {
-		width: 40%;
-		background: linear-gradient(to top, var(--altim-med) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
-	}
-	.lines.d {
-		width: 100%;
-		background: linear-gradient(to top, var(--altim-light) 2px, transparent 0);
-		background-size: auto var(--altim-spacing);
+
+	.altimeter {
+		position: absolute;
+		width: calc(1674% / 1720 * 100);
+		height: calc(1674% / 540 * 100);
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+		background-image: url('Xray Altimeter Lines 1x.png');
+		background-size: contain;
+		/* clip-path: url(#xray-altimeter-clip); */
 	}
 </style>

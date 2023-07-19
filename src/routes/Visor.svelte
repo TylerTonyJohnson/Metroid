@@ -1,6 +1,6 @@
 <!-- LOGIC -->
 <script>
-	import { currentVisor, lookMovement } from '../lib/stores';
+	import { currentVisor, lookMovement, isScanning } from '../lib/stores';
 	import { VisorType, SelectorType } from '../lib/enums';
 	import CombatVisor from './visors/CombatVisor.svelte';
 	import ThermalVisor from './visors/ThermalVisor.svelte';
@@ -107,9 +107,10 @@
 
 		<!-- CONTROLS LAYER -->
 		<HealthBar />
-		<Selector selectorType={SelectorType.Beam} />
-		<Selector selectorType={SelectorType.Visor} />
-
+		{#if !$isScanning}
+			<Selector selectorType={SelectorType.Beam} />
+			<Selector selectorType={SelectorType.Visor} />
+		{/if}
 		<!-- SOUNDS LAYER -->
 		<DangerPing />
 		<VisorSounds />

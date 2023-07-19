@@ -31,3 +31,9 @@ export class AmmoState {
     static High = new AmmoState('high');
     static Full = new AmmoState('full');
 }
+
+export class ScanningState {
+    static None = new ScanningState('none');
+    static Scanning = new ScanningState('scanning');
+    static Complete = new ScanningState('complete');
+}

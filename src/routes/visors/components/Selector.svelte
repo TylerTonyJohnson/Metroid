@@ -46,7 +46,7 @@
 	}
 </script>
 
-<div id="frame">
+<div id="frame" transition:fade >
 	<div
 		id="selector"
 		class:left-screen={selectorType === SelectorType.Visor}

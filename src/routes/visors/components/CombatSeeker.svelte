@@ -76,7 +76,6 @@
 	}
 
 	.locked {
-		/* animation-play-state: paused; */
 		animation: none;
 		rotate: 0deg;
 	}

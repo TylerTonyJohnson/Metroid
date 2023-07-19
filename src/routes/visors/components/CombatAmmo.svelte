@@ -1,5 +1,5 @@
 <script>
-	import { currentAmmo, maxAmmo } from '../../../lib/stores';
+	import { currentAmmo, maxAmmo, isRendering } from '../../../lib/stores';
 	import { AmmoState } from '../../../lib/enums';
 
 	$: ammoPercent = ($currentAmmo / $maxAmmo) * 100;
@@ -61,12 +61,12 @@
 				class:some-stroke={status !== AmmoState.Empty}
 				d="M135 86L221 86"
 			/>
+			<!-- Numbers -->
 			<g
 				class="numbers"
 				class:empty-fill={status === AmmoState.Empty}
 				class:some-fill={status !== AmmoState.Empty}
 			>
-				<!-- Numbers -->
 				<text x="148" y="65">{currentAmmoHundreds}</text>
 				<text x="177" y="65">{currentAmmoTens}</text>
 				<text x="206" y="65">{currentAmmoOnes}</text>
@@ -171,6 +171,7 @@
 
 	.empty-stroke {
 		stroke: hsl(190, 30%, 50%);
+		stroke-opacity: 50%;
 	}
 
 	.some-fill {

@@ -56,7 +56,10 @@ export const lookDistMax = readable(50);
 
 // Scanning
 export const isScanning = writable(false);
-export const scanProgress = writable(0);
+export const scanProgress = tweened(0, {duration: 2000});
+export const isScanned = derived(scanProgress, ($scanProgress) => 
+	$scanProgress === 100
+)
 
 // Look variables
 export const isZoomed = writable(false);
@@ -69,7 +72,6 @@ export const lookPosition = writable({ x: 0, y: 0 });
 export const vertLook = writable(50);	// Gonna get rid of these
 export const horzLook = writable(50);	// Gonna get rid of these
 
-export const controls = writable();
 
 export const readoutShow = writable(false);
 export const readoutMessage = writable('TESTY');

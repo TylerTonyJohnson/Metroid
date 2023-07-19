@@ -2,15 +2,9 @@
     <h1 class='title'>THINGS TO DO</h1>
     <ul id='words'>
         <!-- Visuals -->
-        <li class='must'>Scan visor results</li>
-        <li class='must'>Complete Xray altimeter</li>
-        <li class='must'>Complete Xray ammo and danger</li>
-        <li class='must'>Pause animations and sounds when not rendering</li>
-        <li class='nice'>Missiles fill up on visor swap</li>
-        <li class='nice'>Clean up scaled elements in all visors</li>
-        <li class='nice'>Finalize Thermal Ammo</li>
         <!-- Three-Dee -->
         <li class='must'>Make the seeker list only grab what's targetable (distance, scan)</li>
+        <li class='must'>I really need to have some pickups that adjust health, ammo, danger</li>
         <li class='nice'>Shaders</li>
         <li class='nice'>Make sounds fade out as they stop playing - Tween Library?</li>
         <!-- After Finish -->
@@ -23,6 +17,13 @@
         <li class='nice'>Go through static folder and clean things up</li>
         <li class='nice'>Clean up on Firefox (transforms not working?)</li>
         <!-- Finished -->
+        <li class='nah'>Clean up scaled elements in all visors</li>
+        <li class='nah'>Missiles fill up on visor swap</li>
+        <li class='done'>Scan visor results</li>
+        <li class='done'>Pause animations and sounds when not rendering</li>
+        <li class='done'>Finalize Thermal Ammo</li>
+        <li class='done'>Complete Xray altimeter</li>
+        <li class='done'>Complete Xray ammo and danger</li>
         <li class='done'>Finalize Thermal Danger</li>
         <li class='done'>Make seekers disappear on thermal and xray visors</li>
         <li class='done'>Seekers fade at edge of screen</li>

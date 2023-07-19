@@ -123,7 +123,6 @@
 		height: calc(336% / 1080 * 100);
 		left: calc(651% / 1920 * 100);
 		top: calc(293% / 1080 * 100);
-		perspective: 50vh;
 	}
 
 	#bar {

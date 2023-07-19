@@ -1,19 +1,26 @@
 <script>
-	import { fade } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
 	import ScanDecor from './components/ScanDecor.svelte';
 	import ScanAltimeters from './components/ScanAltimeters.svelte';
-	import ScanProgress from './components/ScanProgress.svelte';
-	import { isScanning } from '../../lib/stores';
+	import ScanWindow from './components/ScanWindow.svelte';
+	import { scanProgress } from '../../lib/stores';
+	import ScanMessage from './components/ScanMessage.svelte';
 </script>
 
-<div id="visor" transition:fade={{duration: '200'}}>
+<div id="visor" transition:fade={{ duration: '200' }}>
 	<!-- DECORATION -->
 	<ScanDecor />
 	<!-- ALTIMETERS -->
 	<ScanAltimeters />
-
-	{#if $isScanning}
-		<ScanProgress />
+	<!-- RESULTS -->
+	{#if $scanProgress > 25}
+		<ScanWindow side="left" />
+	{/if}
+	{#if $scanProgress > 50}
+		<ScanWindow side="right" />
+	{/if}
+	{#if $scanProgress > 75}
+		<ScanMessage />
 	{/if}
 </div>
 

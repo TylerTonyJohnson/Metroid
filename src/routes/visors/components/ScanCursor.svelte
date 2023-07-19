@@ -1,39 +1,92 @@
 <script>
-	import { isRendering } from '../../../lib/stores';
+	import { isRendering, isScanning, scanProgress, isScanned } from '../../../lib/stores';
 </script>
 
-<div id="cursor">
-	<div class="buffer" />
-	<img id="focus" src="Scan Cursor.svg" alt="decoration" />
-	<div class="buffer" />
+<div id="frame">
+	<!-- Cursor -->
+	<div id="cursor">
+		<div class="buffer" />
+		<svg id="focus" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				class="focus-path"
+				class:scanning={$isScanning}
+				fill-rule="evenodd"
+				clip-rule="evenodd"
+				d="M1080 0H0V1080H1080V0ZM769.106 769.101C895.635 642.571 895.635 437.425 769.106 310.895C642.576 184.366 437.43 184.366 310.9 310.895C184.371 437.425 184.371 642.571 310.9 769.101C437.43 895.63 642.576 895.63 769.106 769.101Z"
+			/>
+		</svg>
+		<div class="buffer" />
+	</div>
+	<img id="aim-cursor" src="Scan Cursor Static 1x.png" alt="static" />
+	<!-- Spinners -->
+	<img
+		class="spinner inner"
+		class:paused={!$isRendering}
+		class:hide={$isScanning}
+		src="Scan Cursor Spin Inner 1x.png"
+		alt="inner"
+	/>
+	<img
+		class="spinner outer"
+		class:paused={!$isRendering}
+		class:hide={$isScanning}
+		src="Scan Cursor Spin Outer 1x.png"
+		alt="outer"
+	/>
+	<!-- Results box decoration -->
+	<img
+		id="result-box-decor"
+		class:hide={!$isScanning}
+		src="Scan Results Box 1x.png"
+		alt="result-box-decor"
+	/>
+	<svg
+		id="scan-progress"
+		class:hide={!$isScanning}
+		viewBox="0 0 520 388"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<path d="M72 370H448L460 382H60L72 370Z" fill="url(#scan-progress-gradient)" />
+		<linearGradient id="scan-progress-gradient" x1="0" x2="100%" y1="0%" y2="0%">
+			<stop offset="{$scanProgress}%" stop-color="#A3E7F5" />
+			<stop offset="0%" stop-color="#5999A680" />
+		</linearGradient>
+	</svg>
 </div>
-<img id="aim-cursor" src="Scan Cursor Static 1x.png" alt="static" />
-<img
-	class="spinner inner"
-	class:paused={!$isRendering}
-	src="Scan Cursor Spin Inner 1x.png"
-	alt="inner"
-/>
-<img
-	class="spinner outer"
-	src="Scan Cursor Spin Outer 1x.png"
-	class:paused={!$isRendering}
-	alt="outer"
-/>
 
 <style>
+
+	#frame {
+		position: absolute;
+		height: 100%;
+		aspect-ratio: 1920 / 1080;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+	}
+
 	#cursor {
 		position: absolute;
+		width: 100vw;
+		height: 100vh;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
 		justify-content: center;
 		align-items: center;
-		height: 100vh;
-		width: 100vw;
 	}
 
 	#focus {
 		height: 100vh;
+	}
+
+	.focus-path {
+		fill: black;
+		fill-opacity: 0.5;
+		transition: d 0.25s ease-out;
 	}
 
 	.buffer {
@@ -55,6 +108,7 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
+		transition: all 0.25s ease-out;
 	}
 
 	.inner {
@@ -78,5 +132,34 @@
 
 	.paused {
 		animation-play-state: paused;
+	}
+
+	.hide {
+		opacity: 0;
+		scale: 0 0;
+	}
+
+	.scanning {
+		d: path(
+			'M 1080 0 H 0 V 1080 H 1080 V 0 Z	M 800 734	C 800 734 800 346 800 346 	C 800 346 280 346 280 346 	C 280 346 280 734 280 734 	C 280 734 800 734 800 734 Z'
+		);
+	}
+
+	#result-box-decor {
+		position: absolute;
+		height: calc(388% / 1080 * 100);
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+		transition: all 0.15s ease-out;
+	}
+
+	#scan-progress {
+		position: absolute;
+		height: calc(388% / 1080 * 100);
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+		transition: all 0.15s ease-out;
 	}
 </style>

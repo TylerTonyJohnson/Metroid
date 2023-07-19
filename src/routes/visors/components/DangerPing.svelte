@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { currentDanger, thresholdDanger, capDanger } from '../../../lib/stores';
+	import { currentDanger, thresholdDanger, capDanger, isRendering } from '../../../lib/stores';
 	import * as THREE from 'three';
 	import { listener } from '../../../lib/scene';
 	let hasWarned = false;
@@ -23,7 +23,6 @@
 		});
 
 		currentDanger.subscribe((value) => {
-
 			switch (true) {
 				case value >= $capDanger:
 					if (!hasDamaged) {
@@ -48,8 +47,18 @@
 					break;
 			}
 		});
+
+		isRendering.subscribe((value) => {
+			switch (value) {
+				case true:
+					warnSound.setVolume(0.25);
+					damageSound.setVolume(0.25);
+					break;
+				case false:
+					warnSound.setVolume(0);
+					damageSound.setVolume(0);
+					break;
+			}
+		});
 	});
-
-
 </script>
-

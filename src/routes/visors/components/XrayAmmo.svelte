@@ -235,6 +235,7 @@
 
 	.empty-stroke {
 		stroke: hsl(190, 30%, 50%);
+		stroke-opacity: 50%;
 	}
 
 	.some-stroke {

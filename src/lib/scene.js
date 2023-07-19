@@ -20,7 +20,9 @@ import {
 	isLockable,
 	isDebugMode,
 	isLocked,
-	currentDanger
+	currentDanger,
+	isRendering,
+	isScanned
 } from './stores';
 import { BeamType, VisorType } from './enums';
 import { clamp, mapRange } from './math';
@@ -52,7 +54,7 @@ let lockMesh;
 let dangerMesh;
 let canvas;
 let beamSound, missileSound;
-let $currentVisor, $currentHealth, $currentBeam, $isZoomed, $isLockable;
+let $currentVisor, $currentHealth, $currentBeam, $isZoomed, $isLockable, $isRendering, $isScanned;
 let $seekerPositions;
 
 const dangerDistMin = 2;
@@ -122,6 +124,14 @@ function initSubscribe() {
 	isLockable.subscribe((value) => {
 		$isLockable = value;
 	});
+
+	isRendering.subscribe((value) => {
+		$isRendering = value;
+	})
+
+	isScanned.subscribe((value) => {
+		$isScanned = value;
+	})
 }
 
 function initThree(element) {
@@ -602,6 +612,7 @@ function initPointerLock(element) {
 }
 
 function animate() {
+
 	requestAnimationFrame(animate);
 
 	// Manage time
@@ -610,7 +621,7 @@ function animate() {
 	lastCallTime = time;
 
 	// Controls
-	if (controls.enabled) {
+	if (controls.enabled && !$isScanned) {
 		physicsWorld.step(timeStep, timeElapsed);
 
 		// Raycaster update

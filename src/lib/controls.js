@@ -13,12 +13,12 @@ import {
 	isLockable,
 	isLocked,
 	isScanning,
+	scanProgress,
 	currentDanger,
 	currentAmmo,
 	maxAmmo,
 	capAmmo,
 	readoutShow,
-	controls as $controls,
 	isDebugMode,
 	currentHealth,
 	maxHealth,
@@ -27,6 +27,7 @@ import {
 import { clamp, randomInt } from './math';
 import { shootBeam, shootMissile, getLockMesh as getLockMesh, releaseLockMesh } from './scene';
 
+let $currentVisor;
 let $unlockedVisors;
 let $unlockedBeams;
 let $lookMovement;
@@ -114,7 +115,11 @@ export class PlayerController extends THREE.EventDispatcher {
 
 		isScanning.subscribe((value) => {
 			$isScanning = value;
-		})
+		});
+
+		currentVisor.subscribe((value) => {
+			$currentVisor = value;
+		});
 	}
 
 	setupCannonBody() {
@@ -232,20 +237,22 @@ export class PlayerController extends THREE.EventDispatcher {
 	}
 
 	updateRotation(timeElapsed) {
-
 		// Calculate target quaternion
 		if ($isLocked) {
 			targetMatrix.lookAt(lockTargetMesh, this.object.position, this.object.up);
 			targetQuaternion.setFromRotationMatrix(targetMatrix);
-			_euler.setFromQuaternion( this.object.quaternion );
+			_euler.setFromQuaternion(this.object.quaternion);
 		} else {
-			_euler.setFromQuaternion( this.object.quaternion );
+			_euler.setFromQuaternion(this.object.quaternion);
 
 			_euler.y -= this.current.movementX * 0.0003 * lookSpeedX;
 			_euler.x += this.current.movementY * 0.0003 * lookSpeedY;
-			_euler.x = Math.max( Math.PI / 2 - this.maxPolarAngle, Math.min( Math.PI / 2 - this.minPolarAngle, _euler.x ) );
+			_euler.x = Math.max(
+				Math.PI / 2 - this.maxPolarAngle,
+				Math.min(Math.PI / 2 - this.minPolarAngle, _euler.x)
+			);
 			_euler.z = 0;
-			targetQuaternion.setFromEuler( _euler );
+			targetQuaternion.setFromEuler(_euler);
 		}
 
 		// Rotate toward target quaternion
@@ -256,11 +263,10 @@ export class PlayerController extends THREE.EventDispatcher {
 		this.updateMoveStores();
 		this.current.movementX = 0;
 		this.current.movementY = 0;
-
 	}
 
 	onMouseMove = (event) => {
-		if (!this.enabled) return;	// If controls are disabled, don't update movement
+		if (!this.enabled) return; // If controls are disabled, don't update movement
 		if ($isLocked) return; // If we're locked on a target, don't allow mouse move
 
 		// Keep track of how far the mouse has moved
@@ -312,8 +318,11 @@ export class PlayerController extends THREE.EventDispatcher {
 	lockOn = () => {
 		lockTargetMesh = getLockMesh();
 		if (!lockTargetMesh) return;
+		if ($currentVisor === VisorType.Scan) {
+			isScanning.set(true);
+			scanProgress.set(100);
+		}
 		isLocked.set(true);
-		isScanning.set(true);
 		console.log('locking');
 	};
 
@@ -321,6 +330,7 @@ export class PlayerController extends THREE.EventDispatcher {
 		if (!$isLocked) return;
 		isLocked.set(false);
 		isScanning.set(false);
+		scanProgress.set(0, { duration: 0 });
 		releaseLockMesh();
 		console.log('unlocking');
 	};

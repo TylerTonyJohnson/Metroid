@@ -1,37 +1,43 @@
 <script>
-	import { onMount } from 'svelte';
-	import { currentVisor, isRendering } from '../../../lib/stores';
+	import { currentVisor, isRendering, isScanning, isScanned } from '../../../lib/stores';
 	import * as THREE from 'three';
 	import { listener } from '../../../lib/scene';
 	import { VisorType } from '../../../lib/enums';
 
-	onMount(() => {
-		const scanSound = new THREE.Audio(listener);
-		const thermalSound = new THREE.Audio(listener);
-		const xraySound = new THREE.Audio(listener);
+	const scanSound = new THREE.Audio(listener);
+	const scanningSound = new THREE.Audio(listener);
+	const thermalSound = new THREE.Audio(listener);
+	const xraySound = new THREE.Audio(listener);
 
-		const audioLoader = new THREE.AudioLoader();
-		audioLoader.load('Scan Visor Sound.wav', function (buffer) {
-			scanSound.setBuffer(buffer);
-			scanSound.setVolume(0.25);
-			scanSound.setLoop(true);
-		});
+	const audioLoader = new THREE.AudioLoader();
+	audioLoader.load('Scan Visor Sound.wav', function (buffer) {
+		scanSound.setBuffer(buffer);
+		scanSound.setVolume(0.25);
+		scanSound.setLoop(true);
+	});
 
-		audioLoader.load('Thermal Visor Sound.wav', function (buffer) {
-			thermalSound.setBuffer(buffer);
-			thermalSound.setVolume(0.25);
-			thermalSound.setLoop(true);
-		});
+	audioLoader.load('Scanning Sound.wav', function (buffer) {
+		scanningSound.setBuffer(buffer);
+		scanningSound.setVolume(0.25);
+		scanningSound.setLoop(true);
+	});
 
-		audioLoader.load('Xray Visor Sound.wav', function (buffer) {
-			xraySound.setBuffer(buffer);
-			xraySound.setVolume(0.25);
-			xraySound.setLoop(true);
-		});
+	audioLoader.load('Thermal Visor Sound.wav', function (buffer) {
+		thermalSound.setBuffer(buffer);
+		thermalSound.setVolume(0.25);
+		thermalSound.setLoop(true);
+	});
 
-		currentVisor.subscribe((value) => {
-			switch (value) {
-                case VisorType.Combat:
+	audioLoader.load('Xray Visor Sound.wav', function (buffer) {
+		xraySound.setBuffer(buffer);
+		xraySound.setVolume(0.25);
+		xraySound.setLoop(true);
+	});
+
+	// Choose sound by active visor
+	$: {
+		switch ($currentVisor) {
+				case VisorType.Combat:
 					scanSound.stop();
 					thermalSound.stop();
 					xraySound.stop();
@@ -52,21 +58,29 @@
 					xraySound.play();
 					break;
 			}
-		});
+	}
 
-		isRendering.subscribe((value) => {
-			switch (value) {
-				case true:
-					scanSound.setVolume(0.25);
-					thermalSound.setVolume(0.25);
-					xraySound.setVolume(0.25);
-					break;
-				case false:
-					scanSound.setVolume(0);
-					thermalSound.setVolume(0);
-					xraySound.setVolume(0);
-					break;
-			}
-		});
-	});
+	// Pausing sounds
+	$: {
+		if ($isRendering) {
+			scanSound.setVolume(0.25);
+			scanningSound.setVolume(0.25);
+			thermalSound.setVolume(0.25);
+			xraySound.setVolume(0.25);
+		} else {
+			scanSound.setVolume(0);
+			scanningSound.setVolume(0);
+			thermalSound.setVolume(0);
+			xraySound.setVolume(0);
+		}
+	}
+
+	// Scanning Sound
+	$: {
+		if ($isScanning && !$isScanned) {
+			scanningSound.play();
+		} else {
+			scanningSound.stop();
+		}
+	}
 </script>
