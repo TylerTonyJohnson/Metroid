@@ -1,7 +1,7 @@
 <script>
 	import { fly, fade } from 'svelte/transition';
 
-	let message = 'Air lock repressurization successful.';
+	let message = 'Hi Matt, how is it going today, ready to play some League!';
 </script>
 
 <div id="frame" transition:fly={{ y: 200 }}>
