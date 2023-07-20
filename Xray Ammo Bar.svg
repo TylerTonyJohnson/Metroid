@@ -1,0 +1,9 @@
+<svg id='bar' viewBox="0 0 87 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+        d="M76.9996 225C76.9996 303.751 54.5926 380.876 12.3958 447.368L3.95121 442.009C45.1312 377.12 66.9982 301.853 66.9981 225C66.9981 148.147 45.1311 72.8801 3.95117 7.99091L12.3957 2.63184C54.5926 69.1235 76.9996 146.249 76.9996 225Z"
+        fill="url(#ammo-gradient)" />
+    <linearGradient id="ammo-gradient" x1="0%" x2="0%" y1="100%" y2="0%">
+        <stop offset="{$currentDanger}%" stop-color="#A3E7F5" />
+        <stop offset="0%" stop-color="#5999A680" />
+    </linearGradient>
+</svg>

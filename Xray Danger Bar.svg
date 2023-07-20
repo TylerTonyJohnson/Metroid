@@ -1,0 +1,11 @@
+<svg width="88" height="450" viewBox="0 0 88 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+        d="M10.0049 225C10.0049 303.751 32.4119 380.876 74.6088 447.368L83.0533 442.009C41.8734 377.12 20.0064 301.853 20.0064 225C20.0064 148.147 41.8734 72.8799 83.0534 7.99066L74.6088 2.63159C32.4119 69.1233 10.0049 146.249 10.0049 225Z"
+        fill="url(#danger-gradient)" />
+    <defs>
+        <linearGradient id="danger-gradient" x1="0" x2="0" y1="100%" y2="0%">
+            <stop offset="50%" stop-color="#A3E7F5" />
+            <stop offset="0%" stop-color="#5999A680" />
+        </linearGradient>
+    </defs>
+</svg>
