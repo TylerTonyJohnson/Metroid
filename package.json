@@ -8,7 +8,7 @@
 		"preview": "vite preview",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
-		"gh-pages": "npm run build && npx gh-pages -d build"
+		"gh-pages": "npm run build && npx gh-pages -d docs"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",
