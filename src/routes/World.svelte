@@ -2,6 +2,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { start } from '../lib/scene.js';
+	import WorldSounds from './visors/components/WorldSounds.svelte';
 
 	let element;
 
@@ -12,3 +13,4 @@
 
 <!-- STRUCTURE -->
 <canvas bind:this={element} />
+<WorldSounds />

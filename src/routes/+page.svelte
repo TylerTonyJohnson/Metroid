@@ -2,19 +2,43 @@
 	import World from './World.svelte';
 	import Hud from './HUD.svelte';
 	import Disclaimer from './Disclaimer.svelte';
-	import { hasDisclaimed, isRendering } from '../lib/stores';
+	import ReadoutCenter from './readouts/ReadoutCenter.svelte';
+	import {
+		isLoaded,
+		hasDisclaimed,
+		isRendering,
+		readoutShow,
+		readoutMessage,
+		navigationState
+	} from '../lib/stores';
 	import Instructions from './Instructions.svelte';
+	import PageLoader from './PageLoader.svelte';
+	import PageBlocker from './PageBlocker.svelte';
+	import { onMount } from 'svelte';
+	import { navigating } from '$app/stores';
+
+	$: loadStatus = document.readyState;
+
 </script>
 
 <div id="body">
 	<World />
 	<Hud />
-	{#if !$isRendering}
+	{#if loadStatus !== 'complete'}
+		<PageBlocker />
+	{/if}
+	<!-- {#if !$isRendering}
 		<Instructions />
-	{/if}
-	{#if !$hasDisclaimed}
+	{/if} -->
+	<!-- {#if !$hasDisclaimed}
 		<Disclaimer />
-	{/if}
+	{/if} -->
+	<!-- {#if $readoutShow}
+		<ReadoutCenter>{$readoutMessage}</ReadoutCenter>
+	{/if} -->
+	<!-- {#if $navigationState === 'loading'}
+		<PageLoader />
+	{/if} -->
 </div>
 
 <style>

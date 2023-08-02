@@ -37,7 +37,6 @@
 						hasWarned = true;
 					}
 					if (damageSound.isPlaying) damageSound.setLoop(false);
-					console.log(damageSound.duration);
 					hasDamaged = false;
 					break;
 				case value < $thresholdDanger:

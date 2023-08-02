@@ -8,10 +8,10 @@
 	<div class="window-container">
 		<div class="window-fuzz" />
 		<img class="window-frame-image" src="Scan Result Message 1x.png" alt="window" />
-		<div x="5%" y="25%" class="message">
+		<div x="5%" y="25%" class="message" >
 			{#key message}
 				{#each message.split('') as letter, i}
-					<span in:fade={{ delay: i * 50 }}>{letter}</span>
+					<span in:fade={{ delay: 1000 + i * 50, duration: 100 }}>{letter}</span>
 				{/each}
 			{/key}
 		</div>

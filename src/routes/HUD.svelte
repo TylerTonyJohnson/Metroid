@@ -7,9 +7,6 @@
 
 <div id='HUD'>
     <Visor />
-    {#if $readoutShow}
-        <ReadoutCenter>{$readoutMessage}</ReadoutCenter>
-    {/if}
 </div>
 
 <style>

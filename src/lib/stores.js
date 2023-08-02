@@ -4,7 +4,9 @@ import { cubicOut } from 'svelte/easing';
 import { VisorType, BeamType } from './enums';
 
 // Gateway variables
+export const isLoaded = writable(false);
 export const hasDisclaimed = writable(true);
+export const navigationState = writable("none");
 
 // Runtime variables
 export const isDebugMode = writable(false);

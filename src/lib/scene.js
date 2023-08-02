@@ -26,6 +26,8 @@ import {
 } from './stores';
 import { BeamType, VisorType } from './enums';
 import { clamp, mapRange } from './math';
+import { Floater, Metroid } from './worldObjects';
+import { GUI } from 'dat.gui';
 
 // THREE variables
 let camera, frustum, scene, renderer, raycaster;
@@ -50,10 +52,12 @@ const sceneMeshes = [];
 let visibleMeshes = [];
 let $closestSeekerPosition;
 
+const metroids = [];
+
 let lockMesh;
 let dangerMesh;
 let canvas;
-let beamSound, missileSound;
+let beamSound, missileSound, ambientSound;
 let $currentVisor, $currentHealth, $currentBeam, $isZoomed, $isLockable, $isRendering, $isScanned;
 let $seekerPositions;
 
@@ -62,8 +66,7 @@ const dangerDistMax = 12;
 
 const beamVelocity = 100;
 const missileVelocity = 50;
-const beamBody = new CANNON.Body({ type: 4 });
-const missileBody = new CANNON.Body({ type: 4 });
+
 const ballShape = new CANNON.Sphere(0.2);
 const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
 const flyGeometry = new THREE.SphereGeometry(2, 32, 32);
@@ -127,11 +130,11 @@ function initSubscribe() {
 
 	isRendering.subscribe((value) => {
 		$isRendering = value;
-	})
+	});
 
 	isScanned.subscribe((value) => {
 		$isScanned = value;
-	})
+	});
 }
 
 function initThree(element) {
@@ -155,12 +158,11 @@ function initThree(element) {
 		missileSound.setVolume(0.25);
 	});
 
-	// ambient = new THREE.Audio(listener);
-	// audioLoader.load('ambient.mp3', function (buffer) {
+	// ambientSound = new THREE.Audio(listener);
+	// audioLoader.load('Ambience.wav', function (buffer) {
 	// 	ambient.setBuffer(buffer);
 	// 	ambient.setLoop(true);
-	// 	ambient.setVolume(0.5);
-	// 	// ambient.play();
+	// 	ambient.setVolume(0.25);
 	// });
 
 	// Scene
@@ -171,6 +173,7 @@ function initThree(element) {
 	// Renderer
 	renderer = new THREE.WebGLRenderer({ antialias: true, canvas: element });
 	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 	// renderer.setClearColor(scene.fog.color);
 
 	renderer.shadowMap.enabled = true;
@@ -279,7 +282,7 @@ function initCannon() {
 	sphereShape = new CANNON.Sphere(radius);
 	sphereBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
 	sphereBody.addShape(sphereShape);
-	sphereBody.position.set(0, 5, -20);
+	sphereBody.position.set(0, 5, -5);
 	sphereBody.linearDamping = 0.9;
 	sphereBody.fixedRotation = true;
 	physicsWorld.addBody(sphereBody);
@@ -361,6 +364,123 @@ function initCannon() {
 		fliers.push(flyMesh);
 		// sceneMeshes.push(flyMesh);
 	}
+
+	// ADDING FUN STUFF
+
+	// Glass tube
+	const envmap = new THREE.CubeTextureLoader().load([
+		'purple_skybox/front.png',
+		'purple_skybox/back.png',
+		'purple_skybox/top.png',
+		'purple_skybox/bottom.png',
+		'purple_skybox/left.png',
+		'purple_skybox/right.png'
+	]);
+
+	// const glassShape = new CANNON.Cylinder(24, 24, 40, 60);
+	// const glassBody = new CANNON.Body({
+	// 	type: CANNON.Body.STATIC,
+	// 	shape: glassShape
+	// });
+	// glassBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
+	// glassBody.position.set(0, 10, 0);
+
+	// physicsWorld.add(glassBody);
+
+	// const glassGeo = new THREE.CylinderGeometry(24, 24, 40, 60);
+	// const glassMat = new THREE.MeshPhysicalMaterial({
+	// 	color: 'gray',
+	// 	side: THREE.DoubleSide,
+	// 	envMap: envmap,
+	// 	transparent: true,
+	// 	opacity: 1,
+	// 	transmission: 1,
+	// 	roughness: 0,
+	// 	ior: 1.5,
+	// 	thickness: 2
+	// });
+
+	// const glassMesh = new THREE.Mesh(glassGeo, glassMat);
+	// glassMesh.position.copy(glassBody.position);
+	// scene.add(glassMesh);
+
+	// Walking platforms
+	// const pillarShapeTwo = new CANNON.Cylinder(32.6, 32.6, 40, 60);
+	// const pillarBodyTwo = new CANNON.Body({
+	// 	type: CANNON.Body.STATIC,
+	// 	shape: pillarShapeTwo
+	// });
+	// pillarBodyTwo.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
+	// pillarBodyTwo.position.set(0, -18.75, 0);
+
+	// physicsWorld.add(pillarBodyTwo);
+
+	// const pillarShapeThree = new CANNON.Cylinder(40, 40, 40, 60);
+	// const pillarBodyThree = new CANNON.Body({
+	// 	type: CANNON.Body.STATIC,
+	// 	shape: pillarShapeThree
+	// });
+	// pillarBodyThree.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
+	// pillarBodyThree.position.set(0, -22, 0);
+
+	// physicsWorld.add(pillarBodyThree);
+
+	// Outer glass window
+	// const windowShape = new CANNON.Box(new CANNON.Vec3(40, 40, 1));
+	// const windowBody = new CANNON.Body({
+	// 	type: CANNON.Body.STATIC,
+	// 	shape: windowShape
+	// });
+	// windowBody.position.set(0, 0, -76);
+	// physicsWorld.add(windowBody);
+
+	// const windowGeo = new THREE.BoxGeometry(80, 80, 2);
+
+	// const windowMesh = new THREE.Mesh(windowGeo, glassMat);
+	// windowMesh.position.copy(windowBody.position);
+	// scene.add(windowMesh);
+
+	// Center laser
+
+	// const laserMat = new THREE.MeshBasicMaterial({
+
+	//     blending: THREE.AdditiveBlending,
+	//     color: 0xffffff,
+	// });
+	// const laserGeo = new THREE.CylinderGeometry(0.1, 0.1, 40, 8);
+	// const laserMesh = new THREE.Mesh(laserGeo, laserMat)
+	// scene.add(laserMesh);
+
+	// Lights
+	const newLight = new THREE.PointLight(0xff9900, 3);
+	newLight.position.set(0, 10, 0);
+	scene.add(newLight);
+
+	const botLight = new THREE.SpotLight(0xff0000,2,100,Math.PI / 2);
+	botLight.rotateY(Math.PI);
+	botLight.position.set(0, -20, 0);
+	scene.add(botLight);
+
+	const topLight = new THREE.SpotLight(0xffffff,2,100,Math.PI / 2);
+	topLight.position.set(0, 50, 0);
+	scene.add(topLight);
+
+
+	// Metroids 
+	// for (let i = 0; i < 30; i++) {
+	// 	new Metroid(scene, metroids);
+	// }
+
+	// console.log(metroids);
+
+	// const floater = new Floater();
+	// floater.setPosition(2, 3, 2);
+	// addMatter(floater);
+
+	// function addMatter(matter) {
+	// 	physicsWorld.add(matter.body);
+	// 	scene.add(matter.mesh);
+	// }
 
 	// dangerMesh = sceneMeshes[0];
 	// dangerMesh.material = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0xffffff });
@@ -448,9 +568,17 @@ function initCannon() {
 	// // sphereBody.linearDamping = 0.9;
 	// world.addBody(testBody);
 
-	// Girl
+	/* 
+		GLTF STUFF
+	*/
+	// const loader = new GLTFLoader();
 
-	const loader = new GLTFLoader();
+	// loader.load(`sci_fi_hangar.glb`, (glb) => {
+	// 	const content = glb.scene;
+	// 	content.position.set(0, 10.75, 0);
+	// 	content.scale.set(16, 16, 16);
+	// 	scene.add(content);
+	// });
 
 	// loader.load(`level_blockout.glb`, (glb) => {
 	// 	const content = glb.scene;
@@ -496,6 +624,7 @@ export function shootBeam(event) {
 	if (!controls.enabled) {
 		return;
 	}
+	const beamBody = new CANNON.Body({ type: CANNON.Body.KINEMATIC });
 	beamBody.addShape(ballShape);
 	let beamMaterial;
 
@@ -546,6 +675,7 @@ export function shootMissile() {
 	if (!controls.enabled) {
 		return;
 	}
+	const missileBody = new CANNON.Body({ type: CANNON.Body.KINEMATIC });
 	missileBody.addShape(ballShape);
 
 	const ballMesh = new THREE.Mesh(ballGeometry, missileMaterial);
@@ -612,7 +742,6 @@ function initPointerLock(element) {
 }
 
 function animate() {
-
 	requestAnimationFrame(animate);
 
 	// Manage time
@@ -630,26 +759,26 @@ function animate() {
 		if (intersects.length > 0) {
 			lookDistance.set(intersects[0].distance);
 
-			switch ($currentVisor) {
-				case VisorType.Combat:
-					lookObject = null;
-					break;
-				case VisorType.Scan:
-					// if (lookObject != intersects[0].object) {
-					// 	if (lookObject) lookObject.material.emissive.setHex(lookObject.currentHex);
+			// switch ($currentVisor) {
+			// 	case VisorType.Combat:
+			// 		lookObject = null;
+			// 		break;
+			// 	case VisorType.Scan:
+			// 		// if (lookObject != intersects[0].object) {
+			// 		// 	if (lookObject) lookObject.material.emissive.setHex(lookObject.currentHex);
 
-					// 	lookObject = intersects[0].object;
-					// 	lookObject.currentHex = lookObject.material.emissive.getHex();
-					// 	lookObject.material.emissive.setHex(0xff0000);
-					// }
-					break;
-				case VisorType.Thermal:
-					lookObject = null;
-					break;
-				case VisorType.Xray:
-					lookObject = null;
-					break;
-			}
+			// 		// 	lookObject = intersects[0].object;
+			// 		// 	lookObject.currentHex = lookObject.material.emissive.getHex();
+			// 		// 	lookObject.material.emissive.setHex(0xff0000);
+			// 		// }
+			// 		break;
+			// 	case VisorType.Thermal:
+			// 		lookObject = null;
+			// 		break;
+			// 	case VisorType.Xray:
+			// 		lookObject = null;
+			// 		break;
+			// }
 		} else {
 			// if (lookObject) lookObject.material.emissive.setHex(lookObject.currentHex);
 			lookObject = null;
@@ -669,7 +798,6 @@ function animate() {
 
 		flyAngle += 0.01;
 		fliers.forEach((flier) => {
-			
 			const x = flyRadius * Math.cos(flyAngle);
 			const z = flyRadius * Math.sin(flyAngle);
 
@@ -678,7 +806,11 @@ function animate() {
 			flier.position.z = z;
 		});
 
-
+		// if (metroids.length > 0) {
+		// 	metroids.forEach((metroid) => {
+		// 		metroid.update(timeElapsed);
+		// 	});
+		// }
 
 		// Render
 		if (get(isDebugMode)) {
@@ -770,4 +902,6 @@ function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	renderer.render(scene, camera);
 }
