@@ -2,6 +2,13 @@
     <h1 class='title'>THINGS TO DO</h1>
     <ul id='words'>
         <!-- Visuals -->
+        <li class='must'>Plan out world</li>
+        <li class='must'>Maybe use draco loader?</li>
+        <li class='must'>Restructure objects as classes</li>
+        <li class='must'>Research shaders</li>
+        <li class='must'>Use svelte tweens for sliding objects?</li>
+        <li class='must'>Research shadows</li>
+        <li class='must'>Rework physics to use Physijs</li>
         <!-- Three-Dee -->
         <li class='must'>Make the seeker list only grab what's targetable (distance, scan)</li>
         <li class='must'>I really need to have some pickups that adjust health, ammo, danger</li>
