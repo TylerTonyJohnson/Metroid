@@ -3,6 +3,10 @@ import * as CANNON from 'cannon';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { wrap, randomFloat } from './math';
 
+/* 
+	Floater
+*/
+
 export class Floater {
 	constructor(x, y, z) {
 		const shape = new CANNON.Sphere(0.5);
@@ -31,7 +35,9 @@ export class Floater {
 	}
 }
 
-// ---------- METROID ----------
+/* 
+	Metroid
+*/
 let metroidMesh;
 const loader = new GLTFLoader();
 loader.load(`Metroid.glb`, (glb) => {

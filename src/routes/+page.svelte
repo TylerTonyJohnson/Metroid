@@ -23,7 +23,7 @@
 
 <div id="body">
 	<World />
-	<Hud />
+	<!-- <Hud /> -->
 	{#if loadStatus !== 'complete'}
 		<PageBlocker />
 	{/if}

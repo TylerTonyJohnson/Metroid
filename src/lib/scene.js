@@ -1,9 +1,9 @@
 // Declarations
 
 import * as THREE from 'three';
-import * as CANNON from 'cannon';
-import CannonUtils from 'cannon-utils';
+import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
+import CannonUtils from 'cannon-utils';
 import { PlayerController } from './controls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -58,7 +58,14 @@ let lockMesh;
 let dangerMesh;
 let canvas;
 let beamSound, missileSound, ambientSound;
-let $currentVisor, $currentHealth, $currentBeam, $isZoomed, $isLockable, $isRendering, $isScanned;
+let $isDebugMode,
+	$currentVisor,
+	$currentHealth,
+	$currentBeam,
+	$isZoomed,
+	$isLockable,
+	$isRendering,
+	$isScanned;
 let $seekerPositions;
 
 const dangerDistMin = 2;
@@ -85,21 +92,25 @@ export const listener = new THREE.AudioListener();
 const stats = new Stats();
 document.body.appendChild(stats.dom);
 
+/* 
+	Start the simulation
+*/
+
 export function start(element) {
 	canvas = element;
-	init(canvas);
-	buildWorld();
-	animate();
-}
-
-function init(canvas) {
 	initSubscribe();
 	initThree(canvas);
 	initCannon();
 	initPointerLock(canvas);
+	buildWorld();
+	animate();
 }
 
 function initSubscribe() {
+	isDebugMode.subscribe((value) => {
+		$isDebugMode = value;
+	});
+
 	currentVisor.subscribe((value) => {
 		$currentVisor = value;
 	});
@@ -140,13 +151,53 @@ function initSubscribe() {
 function initThree(element) {
 	// Camera
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 30000);
-	camera.up = new THREE.Vector3(0, 0, 1); // Not sure this is necessary?
+	// camera.up = new THREE.Vector3(0, 0, 1); // Not sure this is necessary?
 
 	// Sound
 	camera.add(listener);
 
+	// Scene
+	scene = new THREE.Scene();
+	// scene.fog = new THREE.Fog(0x000000, 0, 500);	// Sets background to black
+
+	// Renderer
+	renderer = new THREE.WebGLRenderer({ antialias: true, canvas: element });
+	renderer.useLegacyLights = false;
+	renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+	renderer.toneMapping = THREE.CineonToneMapping;
+	renderer.toneMappingExposure = 1.75;
+	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	renderer.setClearColor('#211d20');
+
+
+	// Raycaster
+	raycaster = new THREE.Raycaster();
+
+	// Helpers
+	const axesHelper = new THREE.AxesHelper();
+	scene.add(axesHelper);
+
+	// Cleanup
+	window.addEventListener('resize', onWindowResize);
+}
+
+/* 
+	---------- LOAD ASSETS ----------
+*/
+
+function buildWorld() {
+	const loadingManager = new THREE.LoadingManager();
+
+	/* 
+		Audio
+	*/
+
+	const audioLoader = new THREE.AudioLoader(loadingManager);
+
 	beamSound = new THREE.Audio(listener);
-	const audioLoader = new THREE.AudioLoader();
 	audioLoader.load('Power Beam Sound.wav', function (buffer) {
 		beamSound.setBuffer(buffer);
 		beamSound.setVolume(0.25);
@@ -158,58 +209,47 @@ function initThree(element) {
 		missileSound.setVolume(0.25);
 	});
 
-	// ambientSound = new THREE.Audio(listener);
-	// audioLoader.load('Ambience.wav', function (buffer) {
-	// 	ambient.setBuffer(buffer);
-	// 	ambient.setLoop(true);
-	// 	ambient.setVolume(0.25);
-	// });
+	/* 
+		Textures
+	*/
 
-	// Scene
-	scene = new THREE.Scene();
-	// scene.fog = new THREE.Fog(0x000000, 0, 500);	// Sets background to black
-	// scene.background = new THREE.Color(0x111111); // Overwritten by the skybox
+	const skyboxUrls = [
+		'purple_skybox/front.png',
+		'purple_skybox/back.png',
+		'purple_skybox/top.png',
+		'purple_skybox/bottom.png',
+		'purple_skybox/left.png',
+		'purple_skybox/right.png'
+	];
 
-	// Renderer
-	renderer = new THREE.WebGLRenderer({ antialias: true, canvas: element });
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-	// renderer.setClearColor(scene.fog.color);
+	const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
+	const cubeTexture = cubeTextureLoader.load(skyboxUrls);
+	scene.background = cubeTexture;
 
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	/* 
+	GLTF Models
+*/
+	const gltfLoader = new GLTFLoader(loadingManager);
 
-	// Raycaster
-	raycaster = new THREE.Raycaster();
-
-	// Generic material
-	material = new THREE.MeshStandardMaterial({
-		color: 0x00ff00,
-		metalness: 0.13
+	gltfLoader.load(`sci_fi_hangar.glb`, (glb) => {
+		const content = glb.scene;
+		content.position.set(0, 10.75, 0);
+		content.scale.set(16, 16, 16);
+		scene.add(content);
 	});
 
-	const axesHelper = new THREE.AxesHelper();
-	scene.add(axesHelper);
-
-	// Floor
-	const floorGeometry = new THREE.PlaneGeometry(300, 300, 100, 100);
-	floorGeometry.rotateX(-Math.PI / 2);
-	const floor = new THREE.Mesh(floorGeometry, material);
-	floor.receiveShadow = true;
-	// scene.add(floor);
-	// sceneMeshes.push(floor);
-
 	// Lighting
-	const directionalLight = new THREE.DirectionalLight(0x9090aa);
+	const directionalLight = new THREE.DirectionalLight(0x9090aa, 10);
 	directionalLight.position.set(-10, 10, -10).normalize();
 	// scene.add(directionalLight);
 
-	const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+	const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 10);
 	hemisphereLight.position.set(1, 1, 1);
-	// scene.add(hemisphereLight);
+	scene.add(hemisphereLight);
 
-	const spotlight = new THREE.SpotLight(0xffffff, 0.9, 0, Math.PI / 4, 1);
-	spotlight.position.set(10, 30, 20);
+	const spotlight = new THREE.SpotLight(0xffffff, 10, 100, Math.PI / 8, 1, 1);
+	const spotlightHelper = new THREE.SpotLightHelper(spotlight);
+	spotlight.position.set(0, 20, 0);
 	spotlight.target.position.set(0, 0, 0);
 
 	spotlight.castShadow = true;
@@ -223,38 +263,15 @@ function initThree(element) {
 	spotlight.shadow.mapSize.height = 2048;
 
 	scene.add(spotlight);
-
-	const light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
-	scene.add(light);
-
-	// SKY
-	let materialArray = [];
-	let texture_ft = new THREE.TextureLoader().load('purple_skybox/front.png');
-	let texture_bk = new THREE.TextureLoader().load('purple_skybox/back.png');
-	let texture_up = new THREE.TextureLoader().load('purple_skybox/top.png');
-	let texture_dn = new THREE.TextureLoader().load('purple_skybox/bottom.png');
-	let texture_rt = new THREE.TextureLoader().load('purple_skybox/left.png');
-	let texture_lf = new THREE.TextureLoader().load('purple_skybox/right.png');
-
-	materialArray.push(new THREE.MeshBasicMaterial({ map: texture_ft }));
-	materialArray.push(new THREE.MeshBasicMaterial({ map: texture_bk }));
-	materialArray.push(new THREE.MeshBasicMaterial({ map: texture_up }));
-	materialArray.push(new THREE.MeshBasicMaterial({ map: texture_dn }));
-	materialArray.push(new THREE.MeshBasicMaterial({ map: texture_rt }));
-	materialArray.push(new THREE.MeshBasicMaterial({ map: texture_lf }));
-
-	for (let i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
-
-	let skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
-	let skybox = new THREE.Mesh(skyboxGeo, materialArray);
-	scene.add(skybox);
-
-	// Cleanup
-	window.addEventListener('resize', onWindowResize);
+	scene.add(spotlight.target);
+	scene.add(spotlightHelper);
 }
 
 function initCannon() {
 	physicsWorld = new CANNON.World();
+	physicsWorld.broadphase = new CANNON.SAPBroadphase(physicsWorld);
+	physicsWorld.allowSleep = true;
+
 	cannonDebugger = new CannonDebugger(scene, physicsWorld);
 
 	physicsWorld.defaultContactMaterial.contactEquationStiffness = 1e9;
@@ -264,7 +281,6 @@ function initCannon() {
 	solver.iterations = 7;
 	solver.tolerance = 0.1;
 	physicsWorld.solver = new CANNON.SplitSolver(solver);
-
 	physicsWorld.gravity.set(0, -32.2, 0);
 
 	// Create slippery material
@@ -368,14 +384,14 @@ function initCannon() {
 	// ADDING FUN STUFF
 
 	// Glass tube
-	const envmap = new THREE.CubeTextureLoader().load([
-		'purple_skybox/front.png',
-		'purple_skybox/back.png',
-		'purple_skybox/top.png',
-		'purple_skybox/bottom.png',
-		'purple_skybox/left.png',
-		'purple_skybox/right.png'
-	]);
+	// const envmap = new THREE.CubeTextureLoader().load([
+	// 	'purple_skybox/front.png',
+	// 	'purple_skybox/back.png',
+	// 	'purple_skybox/top.png',
+	// 	'purple_skybox/bottom.png',
+	// 	'purple_skybox/left.png',
+	// 	'purple_skybox/right.png'
+	// ]);
 
 	// const glassShape = new CANNON.Cylinder(24, 24, 40, 60);
 	// const glassBody = new CANNON.Body({
@@ -452,21 +468,21 @@ function initCannon() {
 	// scene.add(laserMesh);
 
 	// Lights
-	const newLight = new THREE.PointLight(0xff9900, 3);
-	newLight.position.set(0, 10, 0);
+	const newLight = new THREE.PointLight(0xff9900, 10);
+	newLight.position.set(0, 100, 0);
 	scene.add(newLight);
+	console.log(newLight);
 
-	const botLight = new THREE.SpotLight(0xff0000,2,100,Math.PI / 2);
+	const botLight = new THREE.SpotLight(0xff0000, 2, 100, Math.PI / 2);
 	botLight.rotateY(Math.PI);
 	botLight.position.set(0, -20, 0);
 	scene.add(botLight);
 
-	const topLight = new THREE.SpotLight(0xffffff,2,100,Math.PI / 2);
+	const topLight = new THREE.SpotLight(0xffffff, 2, 100, Math.PI / 2);
 	topLight.position.set(0, 50, 0);
 	scene.add(topLight);
 
-
-	// Metroids 
+	// Metroids
 	// for (let i = 0; i < 30; i++) {
 	// 	new Metroid(scene, metroids);
 	// }
@@ -571,14 +587,6 @@ function initCannon() {
 	/* 
 		GLTF STUFF
 	*/
-	// const loader = new GLTFLoader();
-
-	// loader.load(`sci_fi_hangar.glb`, (glb) => {
-	// 	const content = glb.scene;
-	// 	content.position.set(0, 10.75, 0);
-	// 	content.scale.set(16, 16, 16);
-	// 	scene.add(content);
-	// });
 
 	// loader.load(`level_blockout.glb`, (glb) => {
 	// 	const content = glb.scene;
@@ -617,8 +625,6 @@ function initCannon() {
 	// 	// gltf.quaternion.copy(camera.quaternion);
 	// });
 }
-
-function buildWorld() {}
 
 export function shootBeam(event) {
 	if (!controls.enabled) {
@@ -751,7 +757,7 @@ function animate() {
 
 	// Controls
 	if (controls.enabled && !$isScanned) {
-		physicsWorld.step(timeStep, timeElapsed);
+		physicsWorld.step(timeStep, timeElapsed, 3);
 
 		// Raycaster update
 		raycaster.setFromCamera(new THREE.Vector2(), camera);
@@ -813,7 +819,7 @@ function animate() {
 		// }
 
 		// Render
-		if (get(isDebugMode)) {
+		if ($isDebugMode) {
 			cannonDebugger.update();
 		} else {
 			cannonDebugger.enabled = false;

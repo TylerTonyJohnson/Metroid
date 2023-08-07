@@ -4,18 +4,23 @@
     import { isRendering } from '../../../lib/stores';
 
 
+
+	// I want to move this I think.
 	const ambientSound = new THREE.Audio(listener);
+
+	let isLoaded = false;
 
 	const audioLoader = new THREE.AudioLoader();
 	audioLoader.load('Ambience.wav', function (buffer) {
 		ambientSound.setBuffer(buffer);
 		ambientSound.setVolume(0.25);
 		ambientSound.setLoop(true);
+		isLoaded = true;
 	});
 
 	// Pausing sounds
 	$: {
-		if (!$isRendering) {
+		if (!$isRendering && isLoaded) {
             ambientSound.pause();
 		} else {
             ambientSound.play();
