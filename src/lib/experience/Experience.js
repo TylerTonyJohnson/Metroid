@@ -6,6 +6,7 @@ import Renderer from './Renderer';
 import World from './world/World';
 import Resources from './utils/Resources';
 import sources from './sources';
+import Debug from './utils/Debug';
 
 export default class Experience {
 	constructor(canvas) {
@@ -16,6 +17,7 @@ export default class Experience {
 		this.canvas = canvas;
 
 		// Setup
+        this.debug = new Debug();
 		this.sizes = new Sizes();
         this.time = new Time();
         this.scene = new THREE.Scene();
@@ -46,6 +48,7 @@ export default class Experience {
     update() {
         // console.log('tick update in experience')
         this.samus.update();
+        this.world.update();
         this.renderer.update();
     }
 }

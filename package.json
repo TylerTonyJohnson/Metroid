@@ -36,6 +36,7 @@
 		"dat.gui": "^0.7.9",
 		"firebase-admin": "^11.9.0",
 		"image-js": "^0.35.4",
+		"lil-gui": "^0.18.2",
 		"three": "^0.150.1",
 		"threex": "^1.0.0"
 	}

@@ -8,9 +8,10 @@ export default class Environment {
 		this.resources = this.experience.resources;
 
 		// Setup
-		// this.setDirectionalLight();
+		this.setDirectionalLight();
 		// this.setAmbientLight()
 		this.setEnvironmentMap();
+		// this.setFog();
 	}
 
 	setDirectionalLight() {
@@ -30,16 +31,17 @@ export default class Environment {
 
 	setEnvironmentMap() {
 		this.environmentMap = {};
-		this.environmentMap.intensity = 3;
-		this.environmentMap.texture = this.resources.items.environmentMapTexture;
+		this.environmentMap.intensity = 5;
+		this.environmentMap.texture = this.resources.items.spaceEnvironmentExr;
 		this.environmentMap.texture.colorSpace = THREE.SRGBColorSpace;
 		this.environmentMap.texture.mapping = THREE.EquirectangularReflectionMapping;
+		// this.environmentMap.texture.rotation = Math.PI / 2;
 
 		this.scene.environment = this.environmentMap.texture;
 		this.scene.background = this.environmentMap.texture;
 		this.scene.backgroundIntensity = 3;
 
-		this.setEnvironmentMap.updateMaterial = () => {
+		this.environmentMap.updateMaterial = () => {
 			this.scene.traverse((child) => {
                 if (child.isMesh && child.material.isMeshStandardMaterial) {
                     child.material.envMap = this.environmentMap.texture;
@@ -49,6 +51,11 @@ export default class Environment {
 			});
 		};
 
-		this.setEnvironmentMap.updateMaterial();
+		this.environmentMap.updateMaterial();
+	}
+
+	setFog() {
+		this.fog = new THREE.Fog( 0xffffff, 10, 200);
+		this.scene.fog = this.fog;
 	}
 }
