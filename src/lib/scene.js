@@ -830,7 +830,7 @@ function animate() {
 		updateSeekerPosition(timeElapsed);
 		updateDanger();
 
-		// Stats
+		//   
 		stats.update();
 	}
 }

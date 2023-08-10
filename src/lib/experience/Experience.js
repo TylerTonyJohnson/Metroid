@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import Sizes from './utils/Sizes';
 import Time from './utils/Time';
-import Samus from './Samus';
 import Renderer from './Renderer';
 import World from './world/World';
 import Resources from './utils/Resources';
 import sources from './sources';
 import Debug from './utils/Debug';
+import DebugCamera from './DebugCamera';
 
 export default class Experience {
 	constructor(canvas) {
@@ -20,13 +20,12 @@ export default class Experience {
         this.debug = new Debug();
 		this.sizes = new Sizes();
         this.time = new Time();
-        this.scene = new THREE.Scene();
         this.resources = new Resources(sources);
-        this.samus = new Samus(this);
-        this.camera = this.samus.camera;
-
-        this.renderer = new Renderer(this);
         this.world = new World(this);
+        this.scene = this.world.scene;
+        this.debugCamera = new DebugCamera(this);
+        
+        this.renderer = new Renderer(this);
 
         // Resize event
 		this.sizes.addEventListener('resize', (event) => {
@@ -36,18 +35,23 @@ export default class Experience {
         // Tick event
         this.time.addEventListener('tick', (event) => {
             this.update();
-        })
+        });
+
+        this.resources.addEventListener('loaded', (event) => {
+            this.time.startTick();
+        });
 	}
 
 	resize() {
 		// console.log('experience resize');
-        this.samus.resizeCamera();
+        this.debugCamera.resize();
         this.renderer.resize();
 	}
 
     update() {
         // console.log('tick update in experience')
-        this.samus.update();
+        if (this.debug.isActive) this.debug.update();
+        this.debugCamera.update();
         this.world.update();
         this.renderer.update();
     }

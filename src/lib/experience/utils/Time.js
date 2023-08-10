@@ -9,24 +9,25 @@ export default class Time extends THREE.EventDispatcher {
 		this.current = this.start;
 		this.elapsed = 0;
 		this.delta = 0;
-
-		// Start
-		window.requestAnimationFrame(() => {
-			this.tick();
-		});
 	}
 
 	tick() {
-        // Calculate time values
+		// Calculate time values
 		const currentTime = Date.now();
 		this.delta = currentTime - this.current;
 		this.current = currentTime;
 		this.elapsed = this.current - this.start;
 
-        // Send updated time values for other functions
-        this.dispatchEvent({ type: 'tick' });
+		// Send updated time values for other functions
+		this.dispatchEvent({ type: 'tick' });
 
-        // Setup for next frame
+		// Setup for next frame
+		window.requestAnimationFrame(() => {
+			this.tick();
+		});
+	}
+
+	startTick() {
 		window.requestAnimationFrame(() => {
 			this.tick();
 		});

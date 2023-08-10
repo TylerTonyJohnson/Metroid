@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import * as CANNON from 'cannon';
+import * as CANNON from 'cannon-es';
 import { VisorType, BeamType } from './enums';
 import { get } from 'svelte/store';
 import {
