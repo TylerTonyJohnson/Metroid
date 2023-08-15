@@ -1,10 +1,15 @@
 import { derived, readable, writable } from 'svelte/store';
 import { tweened } from 'svelte/motion';
 import { cubicOut } from 'svelte/easing';
-import { VisorType, BeamType } from './enums';
+import { AppState, VisorType, BeamType } from './enums';
 
 // Gateway variables
-export const isLoaded = writable(false);
+export const loadPercent = writable(0);
+export const appState = writable(AppState.None);
+export const isLoaded = derived(loadPercent, $loadPercent => 
+	$loadPercent > 0
+);
+
 export const hasDisclaimed = writable(true);
 export const navigationState = writable("none");
 

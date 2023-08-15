@@ -30,26 +30,30 @@ export default class World {
 		this.resources = this.experience.resources;
 		this.resources.addEventListener('loaded', () => {
 			// Test mesh
-			const testMesh = new THREE.Mesh(
-				new THREE.BoxGeometry(1, 1, 1),
-				new THREE.MeshPhysicalMaterial({
-					// color: 'gray',
-					transparent: true,
-					roughnessMap: this.resources.items.dirtyGlassRoughness,
-					opacity: 1,
-					ior: 1.5,
-					thickness: 1,
-					transmission: 1
-				})
-			);
-			this.scene.add(testMesh);
+			// const testMesh = new THREE.Mesh(
+			// 	new THREE.BoxGeometry(1, 1, 1),
+			// 	new THREE.MeshPhysicalMaterial({
+			// 		// color: 'gray',
+			// 		transparent: true,
+			// 		roughnessMap: this.resources.items.dirtyGlassRoughness,
+			// 		opacity: 1,
+			// 		ior: 1.5,
+			// 		thickness: 1,
+			// 		transmission: 1
+			// 	})
+			// );
+			// this.scene.add(testMesh);
 
 			// Setup
 			this.samus = new Samus(this.experience);
-			this.hangar = new Hangar(this.experience);
-			this.floatCreature = new FloatCreature(this.experience);
+			// this.floatCreature = new FloatCreature(this.experience);
+			this.metroids = [];
+			for (let i = 0; i < 20; i++) {
+				const metroid = new Metroid(this.experience);
+				this.metroids.push(metroid);
+			}
 			this.betaMetroid = new BetaMetroid(this.experience);
-			this.metroid = new Metroid(this.experience);
+			this.hangar = new Hangar(this.experience);
 			this.environment = new Environment(this.experience);
 		});
 	}
@@ -63,28 +67,31 @@ export default class World {
 		solver.iterations = 5;
 		solver.tolerance = 0.1;
 		this.physicsWorld.solver = new CANNON.SplitSolver(solver);
-		this.physicsWorld.gravity.set(0, -9.81, 0);
+		this.physicsWorld.gravity.set(0, -6, 0);
 
 		const defaultPhysicsMaterial = new CANNON.Material('default');
 		this.defaultContactMaterial = new CANNON.ContactMaterial(
 			defaultPhysicsMaterial, 
 			defaultPhysicsMaterial, {
-				friction: 0.1,
-				restitution: 0.7,
+				friction: 0,
+				restitution: 0,
 			}
 		)
 		this.physicsWorld.defaultContactMaterial = this.defaultContactMaterial;
 
 		// Floor Plane
-		const planeShape = new CANNON.Plane();
-		this.floorBody = new CANNON.Body({ mass: 0 });
-		this.floorBody.addShape(planeShape);
-		this.floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-		this.physicsWorld.addBody(this.floorBody);
+		// const planeShape = new CANNON.Plane();
+		// this.floorBody = new CANNON.Body({ mass: 0 });
+		// this.floorBody.addShape(planeShape);
+		// this.floorBody.position.set(0, -9, 0);
+		// this.floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+		// this.physicsWorld.addBody(this.floorBody);
 	}
 
 	setDebug() {
 		this.debug.cannonDebugger = new CannonDebugger(this.scene, this.physicsWorld);
+		// this.debugFolder = this.debug.gui.addFolder('Floor');
+		// this.debugFolder.add(this.floorBody.position, 'y').min(-50).max(0).step(0.001);
 	}
 
 	update() {
@@ -93,5 +100,8 @@ export default class World {
 		if (this.samus) this.samus.update();
 		if (this.floatCreature) this.floatCreature.update();
 		if (this.betaMetroid) this.betaMetroid.update();
+		for (const metroid of this.metroids) {
+			metroid.update();
+		}
 	}
 }

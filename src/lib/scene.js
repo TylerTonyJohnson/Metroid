@@ -6,7 +6,7 @@ import CannonDebugger from 'cannon-es-debugger';
 import CannonUtils from 'cannon-utils';
 import { PlayerController } from './controls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import Stats from 'three/examples/jsm/libs/stats.module';
+// import Stats from 'three/examples/jsm/libs/stats.module';
 import { get } from 'svelte/store';
 import {
 	currentVisor,
@@ -89,8 +89,8 @@ const flyRadius = 10;
 
 export const listener = new THREE.AudioListener();
 
-const stats = new Stats();
-document.body.appendChild(stats.dom);
+// const stats = new Stats();
+// document.body.appendChild(stats.dom);
 
 /* 
 	Start the simulation
@@ -831,7 +831,7 @@ function animate() {
 		updateDanger();
 
 		//   
-		stats.update();
+		// stats.update();
 	}
 }
 

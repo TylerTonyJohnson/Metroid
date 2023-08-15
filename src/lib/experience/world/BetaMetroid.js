@@ -5,14 +5,12 @@ export default class BetaMetroid {
 		this.scene = this.experience.scene;
 		this.resources = this.experience.resources;
 		this.time = this.experience.time;
-        this.debug = this.experience.debug;
+		this.debug = this.experience.debug;
 
 		// Setup
 		this.resource = this.resources.items.betaMetroidGLB;
-
 		this.setModel();
-
-        this.setMovement();
+		this.setMovement();
 
 		// Debug
 		if (this.debug.isActive) {
@@ -21,30 +19,50 @@ export default class BetaMetroid {
 	}
 
 	setModel() {
+		// Set internal variables
+		this.position = new THREE.Vector3(0, 0, 0);
+		this.scale = new THREE.Vector3(6, 6, 6);
+
+		// Set model
 		this.model = this.resource.scene;
-		this.model.scale.set(8, 8, 8);
+		this.model.position.copy(this.position);
+		this.model.scale.copy(this.scale);
 		this.model.rotation.y = -Math.PI / 2;
 
-		this.scene.add(this.model);
-
+		// Configure model
 		this.model.traverse((child) => {
 			if (child.isMesh) {
-				child.castShadow = true;
-				child.receiveShadow = true;
+				// child.castShadow = true;
+				// child.receiveShadow = true;
+				child.material.transparent = false;
+				child.material.transmission = 0;
+				child.material.depthWrite = false;
+				child.material.needsUpdate = true;
 			}
 		});
+		this.model.renderOrder = 1;
+		this.scene.add(this.model);
 	}
 
-    setMovement() {
-        this.position = new THREE.Vector3(0, 0, 0);
-        this.model.position.copy(this.position);
-        this.amplitude = 1;
-        this.speed = 1;
-    }
+	setMovement() {
+		this.bobAmplitude = 0.5;
+		this.bobSpeed = 1;
 
-    update() {
-        this.model.position.y = this.position.y + this.amplitude * Math.sin(this.speed * this.time.elapsed / 1000);
-    }
+		this.squishAmplitude = 0.2;
+		this.squishSpeed = 2;
+	}
+
+	update() {
+		// Update internal time
+		this.model.position.y =
+			this.position.y + this.bobAmplitude * Math.sin((this.bobSpeed * this.time.run) / 1000);
+		this.model.scale.x =
+			this.scale.x + this.squishAmplitude * Math.cos((this.squishSpeed * this.time.run) / 1000);
+		this.model.scale.y =
+			this.scale.y + this.squishAmplitude * Math.sin((this.squishSpeed * this.time.run) / 1000);
+		this.model.scale.z =
+			this.scale.z + this.squishAmplitude * Math.sin((this.squishSpeed * this.time.run) / 1000);
+	}
 
 	setDebug() {
 		this.debugFolder = this.debug.gui.addFolder('Beta Metroid');

@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader';
+import { appState, loadPercent } from '../../stores';
+import { AppState } from '../../enums';
 
 export default class Resources extends THREE.EventDispatcher {
 	constructor(sources) {
@@ -14,12 +16,28 @@ export default class Resources extends THREE.EventDispatcher {
         this.toLoad = this.sources.length;
         this.loaded = 0;
 
+        // Stores
+        appState.subscribe((value) => {
+            this.$appState = value;
+        });
+
         this.setLoaders();
         this.startLoading();
 	}
 
     setLoaders() {
-        this.loadingManager = new THREE.LoadingManager();
+        this.loadingManager = new THREE.LoadingManager(
+            () => {
+                
+            },
+            (itemUrl, itemsLoaded, itemsTotal) => {
+                if (this.$appState !== AppState.Loading) appState.set(AppState.Loading);
+                loadPercent.set(itemsLoaded / itemsTotal * 80);
+            },
+            () => {
+                console.log('error');
+            }
+        );
         this.loaders = {};
         this.loaders.gltfLoader = new GLTFLoader(this.loadingManager);
         this.loaders.textureLoader = new THREE.TextureLoader(this.loadingManager);

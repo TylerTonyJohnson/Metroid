@@ -7,6 +7,9 @@ import Resources from './utils/Resources';
 import sources from './sources';
 import Debug from './utils/Debug';
 import DebugCamera from './DebugCamera';
+import FirstPersonCamera from './FirstPersonCamera';
+import { appState } from '../stores';
+import { AppState } from '../enums';
 
 export default class Experience {
 	constructor(canvas) {
@@ -17,42 +20,53 @@ export default class Experience {
 		this.canvas = canvas;
 
 		// Setup
-        this.debug = new Debug();
+		this.debug = new Debug();
 		this.sizes = new Sizes();
-        this.time = new Time();
-        this.resources = new Resources(sources);
-        this.world = new World(this);
-        this.scene = this.world.scene;
-        this.debugCamera = new DebugCamera(this);
-        
-        this.renderer = new Renderer(this);
+		this.time = new Time();
+		this.resources = new Resources(sources);
+		this.world = new World(this);
+		this.scene = this.world.scene;
+		// this.camera = new DebugCamera(this);
+		this.camera = new FirstPersonCamera(this);
+		this.renderer = new Renderer(this);
 
-        // Resize event
+		appState.subscribe(value => {
+			this.$appState = value;
+		})
+
+		// Resize event
 		this.sizes.addEventListener('resize', (event) => {
 			this.resize();
 		});
 
-        // Tick event
-        this.time.addEventListener('tick', (event) => {
-            this.update();
-        });
+		// Tick event
+		this.time.addEventListener('tick', (event) => {
+			this.update();
+		});
 
-        this.resources.addEventListener('loaded', (event) => {
-            this.time.startTick();
-        });
+		this.resources.addEventListener('loaded', (event) => {
+			this.time.startTick();
+		});
 	}
 
 	resize() {
 		// console.log('experience resize');
-        this.debugCamera.resize();
-        this.renderer.resize();
+		this.camera.resize();
+		this.renderer.resize();
 	}
 
-    update() {
-        // console.log('tick update in experience')
-        if (this.debug.isActive) this.debug.update();
-        this.debugCamera.update();
-        this.world.update();
-        this.renderer.update();
-    }
+	update() {
+
+		// console.log('tick update in experience')
+		if (this.debug.isActive) {
+			this.debug.update();
+			this.debug.stats.begin();
+			// this.debugCamera.update();
+		}
+
+		this.world.update();
+		this.renderer.update();
+
+		if (this.debug.isActive) this.debug.stats.end();
+	}
 }

@@ -8,14 +8,14 @@ export default class Debug {
 
         // Setup 
         if(!this.isActive) return; 
-            this.gui = new GUI.GUI({ closeFolders: true });
+            this.gui = new GUI.GUI({ closeFolders: true, width: 300 });
             this.stats = new Stats();
             this.cannonDebugger = null;
             document.body.appendChild(this.stats.dom);
     }
 
     update() {
-        if (this.stats) this.stats.update();
+        // if (this.stats) this.stats.update();
         if (this.cannonDebugger) this.cannonDebugger.update();
     }
 }

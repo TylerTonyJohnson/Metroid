@@ -1,4 +1,4 @@
-<script>
+<!-- <script>
 	import { fade } from "svelte/transition";
     import { hasDisclaimed } from "../lib/stores";
 </script>
@@ -30,4 +30,4 @@
 		font-family: 'Metroid';
 	}
 
-</style>
+</style> -->

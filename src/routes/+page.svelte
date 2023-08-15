@@ -4,29 +4,28 @@
 	import Disclaimer from './Disclaimer.svelte';
 	import ReadoutCenter from './readouts/ReadoutCenter.svelte';
 	import {
-		isLoaded,
-		hasDisclaimed,
 		isRendering,
 		readoutShow,
 		readoutMessage,
-		navigationState
+		isLoaded,
+		appState
 	} from '../lib/stores';
 	import Instructions from './Instructions.svelte';
 	import PageLoader from './PageLoader.svelte';
-	import PageBlocker from './PageBlocker.svelte';
 	import { onMount } from 'svelte';
 	import { navigating } from '$app/stores';
-
-	$: loadStatus = document.readyState;
-
+	import { AppState } from '../lib/enums';
 </script>
 
 <div id="body">
 	<World />
-	<!-- <Hud /> -->
-	{#if loadStatus !== 'complete'}
-		<PageBlocker />
+	<Hud />
+	{#if $appState === AppState.None || $appState === AppState.Loading || $appState === AppState.Ready}
+		<PageLoader />
 	{/if}
+	<!-- {#if loadStatus !== 'complete'}
+		<PageBlocker />
+	{/if} -->
 	<!-- {#if !$isRendering}
 		<Instructions />
 	{/if} -->

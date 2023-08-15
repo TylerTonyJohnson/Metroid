@@ -6,36 +6,31 @@ export default class Environment {
 		this.experience = experience;
 		this.scene = this.experience.scene;
 		this.resources = this.experience.resources;
+		this.debug = this.experience.debug;
 
 		// Setup
-		this.setDirectionalLight();
-		// this.setAmbientLight()
+		// this.setDirectionalLight();
+		// this.setHemisphereLight();
+		this.setPointLights();
+		this.setAmbientLight();
 		this.setEnvironmentMap();
-		// this.setFog();
+		this.setSpotlights();
+		this.setFog();
 	}
-
-	setDirectionalLight() {
-		this.directionalLight = new THREE.DirectionalLight('#ffffff', 4);
-		this.directionalLight.castShadow = true;
-		this.directionalLight.shadow.camera.far = 15;
-		this.directionalLight.shadow.mapSize.set(1024, 1024);
-		this.directionalLight.shadow.normalBias = 0.05;
-		// this.directionalLight.shadow.bias = 1;
-		this.directionalLight.position.set(3, 3, 2.25);
-		this.scene.add(this.directionalLight);
-	}
-
-	// setAmbientLight() {
-
-	// }
 
 	setEnvironmentMap() {
+		// Environment map
 		this.environmentMap = {};
 		this.environmentMap.intensity = 5;
 		this.environmentMap.texture = this.resources.items.spaceEnvironmentExr;
 		this.environmentMap.texture.colorSpace = THREE.SRGBColorSpace;
 		this.environmentMap.texture.mapping = THREE.EquirectangularReflectionMapping;
-		// this.environmentMap.texture.rotation = Math.PI / 2;
+
+		// Background image
+		this.backgroundImage = {};
+		this.backgroundImage.texture = this.resources.items.spaceEnvironmentPng;
+		this.backgroundImage.texture.colorSpace = THREE.SRGBColorSpace;
+		this.backgroundImage.texture.mapping = THREE.EquirectangularReflectionMapping;
 
 		this.scene.environment = this.environmentMap.texture;
 		this.scene.background = this.environmentMap.texture;
@@ -43,10 +38,10 @@ export default class Environment {
 
 		this.environmentMap.updateMaterial = () => {
 			this.scene.traverse((child) => {
-                if (child.isMesh && child.material.isMeshStandardMaterial) {
-                    child.material.envMap = this.environmentMap.texture;
-                    child.material.envMapIntensity = this.environmentMap.intensity;
-                    child.material.needsUpdate = true;
+				if (child.isMesh && child.material.isMeshStandardMaterial) {
+					child.material.envMap = this.environmentMap.texture;
+					child.material.envMapIntensity = this.environmentMap.intensity;
+					child.material.needsUpdate = true;
 				}
 			});
 		};
@@ -54,8 +49,97 @@ export default class Environment {
 		this.environmentMap.updateMaterial();
 	}
 
+	setPointLights() {
+		this.pointLight1 = new THREE.PointLight('orange', 1500);
+		this.pointLight1.position.set(0, -10, 8);
+		this.pointLight1.distance = 50;
+		this.pointLight2 = new THREE.PointLight('orange', 1500);
+		this.pointLight2.position.set(0, -10, -8);
+		this.pointLight2.distance = 50;
+		this.pointLight3 = new THREE.PointLight('gray', 400);
+		this.pointLight3.position.set(0, 10, 12);
+		this.pointLight3.distance = 50;
+		this.pointLight4 = new THREE.PointLight('gray', 400);
+		this.pointLight4.position.set(0, 10, -12);
+		this.pointLight4.distance = 50;
+		this.pointLight5 = new THREE.PointLight('gray', 400);
+		this.pointLight5.position.set(50, 10, 8);
+		this.pointLight5.distance = 50;
+		this.pointLight6 = new THREE.PointLight('gray', 400);
+		this.pointLight6.position.set(50, 10, -8);
+		this.pointLight6.distance = 50;
+
+		this.scene.add(
+			this.pointLight1,
+			this.pointLight2,
+			this.pointLight3,
+			this.pointLight4,
+			this.pointLight5,
+			this.pointLight6
+		);
+	}
+
+	setSpotlights() {
+		// Spotlight
+		this.spotlight = new THREE.SpotLight('orange', 10000);
+		this.spotlight.position.set(2, -5, 0);
+		this.spotlight.distance = 20;
+		this.spotlight.angle = Math.PI / 4;
+		this.spotlight.penumbra = 0.1;
+		this.spotlight.decay = 2;
+		this.spotlight.castShadow = true;
+		this.scene.add(this.spotlight);
+
+		// Target
+		this.spotlight.target = this.experience.world.betaMetroid.model;
+		// console.log(this.experience.world.samus.group);
+		// this.scene.add(this.spotlight.target);
+
+		// Helper
+		if (this.debug.isActive) {
+			this.spotlightHelper = new THREE.SpotLightHelper(this.spotlight);
+			this.scene.add(this.spotlightHelper);
+			this.spotlightFolder = this.debug.gui.addFolder('Spotlight');
+			this.spotlightFolder.add(this.spotlight, 'intensity').min(0).max(1000000).step(1);
+			this.spotlightFolder
+				.add(this.spotlight.position, 'x')
+				.min(-50)
+				.max(50)
+				.step(0.001)
+				.onChange(this.spotlightHelper.update());
+			this.spotlightFolder
+				.add(this.spotlight.position, 'y')
+				.min(-50)
+				.max(50)
+				.step(0.001)
+				.onChange(this.spotlightHelper.update());
+			this.spotlightFolder
+				.add(this.spotlight.position, 'z')
+				.min(-50)
+				.max(50)
+				.step(0.001)
+				.onChange(this.spotlightHelper.update());
+		}
+	}
+
+	setDirectionalLight() {
+		this.directionalLight = new THREE.DirectionalLight('white', 3);
+		this.directionalLight.position.set(0, 1, 0);
+		this.scene.add(this.directionalLight);
+	}
+
+	setHemisphereLight() {
+		this.hemisphereLight = new THREE.HemisphereLight('white', 'yellow', 20);
+		this.scene.add(this.hemisphereLight);
+	}
+
+	setAmbientLight() {
+		this.ambientLight = new THREE.AmbientLight('gray', 5);
+		this.scene.add(this.ambientLight);
+	}
+
 	setFog() {
-		this.fog = new THREE.Fog( 0xffffff, 10, 200);
+		this.fog = new THREE.Fog('orange', 0, 260);
 		this.scene.fog = this.fog;
 	}
 }

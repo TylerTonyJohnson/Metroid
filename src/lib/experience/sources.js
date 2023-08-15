@@ -2,7 +2,7 @@ export default [
     {
         name: 'spaceEnvironmentExr',
         type: 'exrTexture',
-        path: 'Space 4k.exr'
+        path: 'Space 1k.exr'
     },
     {
         name: 'spaceEnvironmentPng',
@@ -14,6 +14,36 @@ export default [
         type: 'texture',
         path: 'dirty glass.jpg'
     },
+    {
+        name: 'frostedGlassColor',
+        type: 'texture',
+        path: 'frosted-glass/baseColor.jpg'
+    },
+    {
+        name: 'frostedGlassNormal',
+        type: 'texture',
+        path: 'frosted-glass/normal.jpg'
+    },
+    {
+        name: 'frostedGlassRoughness',
+        type: 'texture',
+        path: 'frosted-glass/roughness.jpg'
+    },
+    {
+        name: 'frostedGlassHeight',
+        type: 'texture',
+        path: 'frosted-glass/height.png'
+    },
+    {
+        name: 'frostedGlassAmbientOcclusion',
+        type: 'texture',
+        path: 'frosted-glass/ambientOcclusion.jpg'
+    },
+    // {
+    //     name: 'brokenGlassNormal',
+    //     type: 'texture',
+    //     path: 'RadialCracks_N.jpg'
+    // },
     {
         name: 'metroidGLB',
         type: 'gltfModel',

@@ -1,3 +1,11 @@
+export class AppState {
+    static None = new AppState('none');
+    static Loading = new AppState('loading');
+    static Ready = new AppState('ready');
+    static Running = new AppState('running');
+    static Paused = new AppState('paused');
+}
+
 export class VisorType {
     static None = new VisorType('none');
     static Combat = new VisorType('combat');
