@@ -1,7 +1,6 @@
 <script>
 	import World from './World.svelte';
 	import Hud from './HUD.svelte';
-	import Disclaimer from './Disclaimer.svelte';
 	import ReadoutCenter from './readouts/ReadoutCenter.svelte';
 	import {
 		isRendering,
@@ -15,6 +14,7 @@
 	import { onMount } from 'svelte';
 	import { navigating } from '$app/stores';
 	import { AppState } from '../lib/enums';
+	import PauseScreen from './PauseScreen.svelte';
 </script>
 
 <div id="body">
@@ -23,21 +23,9 @@
 	{#if $appState === AppState.None || $appState === AppState.Loading || $appState === AppState.Ready}
 		<PageLoader />
 	{/if}
-	<!-- {#if loadStatus !== 'complete'}
-		<PageBlocker />
-	{/if} -->
-	<!-- {#if !$isRendering}
-		<Instructions />
-	{/if} -->
-	<!-- {#if !$hasDisclaimed}
-		<Disclaimer />
-	{/if} -->
-	<!-- {#if $readoutShow}
-		<ReadoutCenter>{$readoutMessage}</ReadoutCenter>
-	{/if} -->
-	<!-- {#if $navigationState === 'loading'}
-		<PageLoader />
-	{/if} -->
+	{#if $appState === AppState.Paused}
+		<PauseScreen />
+	{/if}
 </div>
 
 <style>

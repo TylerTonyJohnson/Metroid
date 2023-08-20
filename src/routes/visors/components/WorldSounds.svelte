@@ -1,9 +1,8 @@
 <script>
 	import * as THREE from 'three';
 	import { listener } from '../../../lib/scene';
-    import { isRendering } from '../../../lib/stores';
-
-
+    import { appState } from '../../../lib/stores';
+	import { AppState } from '../../../lib/enums';
 
 	// I want to move this I think.
 	const ambientSound = new THREE.Audio(listener);
@@ -20,10 +19,10 @@
 
 	// Pausing sounds
 	$: {
-		if (!$isRendering && isLoaded) {
-            ambientSound.pause();
-		} else {
+		if ($appState === AppState.Running) {
             ambientSound.play();
+		} else {
+            ambientSound.pause();
 		}
 	}
 </script>

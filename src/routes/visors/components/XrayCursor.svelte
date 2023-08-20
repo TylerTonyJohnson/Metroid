@@ -5,8 +5,11 @@
 	const maxTranslateX = 3; // Degrees
 	const maxTranslateY = 3; // Degrees
 
-	$: translateX = maxTranslateX * $lookMovement.x;
-	$: translateY = maxTranslateY * $lookMovement.y;
+	$: translateX = -maxTranslateX * $lookMovement.y;
+	$: translateY = maxTranslateY * $lookMovement.x;
+
+	const maxOffset = 0.5; // Height percent
+	$: rotateValue = $lookPosition.y * maxOffset;
 </script>
 
 <div
@@ -21,7 +24,7 @@
 		class='rotator'
 		src="Xray Seeker 1x.png"
 		alt="decoration"
-		style="transform: rotate({$lookPosition.x}turn);
+		style="transform: rotate({rotateValue}turn);
     "/>
 </div>
 <img

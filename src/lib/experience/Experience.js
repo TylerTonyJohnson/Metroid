@@ -28,6 +28,7 @@ export default class Experience {
 		this.scene = this.world.scene;
 		// this.camera = new DebugCamera(this);
 		this.camera = new FirstPersonCamera(this);
+		this.listener = new THREE.AudioListener();
 		this.renderer = new Renderer(this);
 
 		appState.subscribe(value => {

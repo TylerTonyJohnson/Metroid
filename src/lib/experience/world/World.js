@@ -3,7 +3,6 @@ import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
 import Environment from './Environment';
 import Hangar from './Hangar';
-import FloatCreature from './FloatCreature';
 import BetaMetroid from './BetaMetroid';
 import Metroid from './Metroid';
 import Samus from '../Samus';
@@ -13,6 +12,8 @@ export default class World {
 		this.experience = experience;
 		this.time = this.experience.time;
 		this.debug = this.experience.debug;
+		this.targetableMeshes = [];
+		this.scannableMeshes = [];
 
 		// Create render scene
 		this.scene = new THREE.Scene();
@@ -29,20 +30,6 @@ export default class World {
 		// Wait for resources to load
 		this.resources = this.experience.resources;
 		this.resources.addEventListener('loaded', () => {
-			// Test mesh
-			// const testMesh = new THREE.Mesh(
-			// 	new THREE.BoxGeometry(1, 1, 1),
-			// 	new THREE.MeshPhysicalMaterial({
-			// 		// color: 'gray',
-			// 		transparent: true,
-			// 		roughnessMap: this.resources.items.dirtyGlassRoughness,
-			// 		opacity: 1,
-			// 		ior: 1.5,
-			// 		thickness: 1,
-			// 		transmission: 1
-			// 	})
-			// );
-			// this.scene.add(testMesh);
 
 			// Setup
 			this.samus = new Samus(this.experience);
@@ -78,14 +65,6 @@ export default class World {
 			}
 		)
 		this.physicsWorld.defaultContactMaterial = this.defaultContactMaterial;
-
-		// Floor Plane
-		// const planeShape = new CANNON.Plane();
-		// this.floorBody = new CANNON.Body({ mass: 0 });
-		// this.floorBody.addShape(planeShape);
-		// this.floorBody.position.set(0, -9, 0);
-		// this.floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-		// this.physicsWorld.addBody(this.floorBody);
 	}
 
 	setDebug() {

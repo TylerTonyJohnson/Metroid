@@ -57,6 +57,8 @@ export default class Metroid {
 		this.model.rotation.y = Math.PI / 2;
 
 		this.scene.add(this.model);
+		this.world.targetableMeshes.push(this.model);
+		this.world.scannableMeshes.push(this.model);
 
 		// this.model.traverse((child) => {
 		// 	if (child.isMesh) {

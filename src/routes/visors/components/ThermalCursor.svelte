@@ -5,8 +5,8 @@
     const maxTranslateX = 3; // Degrees
 	const maxTranslateY = 3; // Degrees
 
-	$: translateX = maxTranslateX * $lookMovement.x;
-	$: translateY = maxTranslateY * $lookMovement.y;
+	$: translateX = -maxTranslateX * $lookMovement.y;
+	$: translateY = maxTranslateY * $lookMovement.x;
 
 </script>
 

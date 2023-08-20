@@ -5,8 +5,8 @@
 	const maxTranslateX = 1; // Degrees
 	const maxTranslateY = 1; // Degrees
 
-	$: translateX = maxTranslateX * $lookMovement.x;
-	$: translateY = maxTranslateY * $lookMovement.y;
+	$: translateX = -maxTranslateX * $lookMovement.y;
+	$: translateY = maxTranslateY * $lookMovement.x;
 </script>
 
 <img class="decor" src="Xray Buffers 1x.png" alt="decoration" />

@@ -42,6 +42,7 @@ export default class Resources extends THREE.EventDispatcher {
         this.loaders.gltfLoader = new GLTFLoader(this.loadingManager);
         this.loaders.textureLoader = new THREE.TextureLoader(this.loadingManager);
         this.loaders.exrLoader = new EXRLoader(this.loadingManager);
+        this.loaders.audioLoader = new THREE.AudioLoader(this.loadingManager);
     }
 
     startLoading() {
@@ -66,6 +67,14 @@ export default class Resources extends THREE.EventDispatcher {
                     break;
                 case 'exrTexture':
                     this.loaders.exrLoader.load(
+                        source.path,
+                        (file) => {
+                            this.sourceLoaded(source, file);
+                        }
+                    );
+                    break;
+                case 'audio':
+                    this.loaders.audioLoader.load(
                         source.path,
                         (file) => {
                             this.sourceLoaded(source, file);

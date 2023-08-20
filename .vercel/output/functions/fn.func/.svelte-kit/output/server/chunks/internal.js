@@ -109,7 +109,7 @@ const options = {
   root: Root,
   service_worker: false,
   templates: {
-    app: ({ head, body, assets: assets2, nonce, env }) => '<!DOCTYPE html>\r\n<html lang="en">\r\n	<head>\r\n		<meta charset="utf-8" />\r\n		<link rel="icon" href="' + assets2 + '/favicon.png" />\r\n		<meta name="viewport" content="width=device-width" />\r\n		<title>METROID</title>\r\n		<meta name="description" content="Three.js example app built with Svelte" />\r\n		' + head + '\r\n	</head>\r\n	<body data-sveltekit-preload-data="hover">\r\n		<div style="display: contents">' + body + "</div>\r\n	</body>\r\n	<script><\/script>\r\n	<style>\r\n		@font-face {\r\n			font-family: 'Metroid';\r\n			font-style: normal;\r\n			font-weight: 500;\r\n			src: url('/Metroid-Prime-Font.ttf') format('truetype');\r\n		}\r\n	</style>\r\n</html>\r\n",
+    app: ({ head, body, assets: assets2, nonce, env }) => '<!DOCTYPE html>\r\n<html lang="en">\r\n	<head>\r\n		<meta charset="utf-8" />\r\n		<link rel="icon" href="' + assets2 + '/favicon.png" />\r\n		<meta name="viewport" content="width=device-width" />\r\n		<title>METROID</title>\r\n		<meta name="description" content="Three.js example app built with Svelte" />\r\n		' + head + '\r\n	</head>\r\n	<body data-sveltekit-preload-data="hover">\r\n		<div style="display: contents">' + body + "</div>\r\n	</body>\r\n	<style>\r\n		@font-face {\r\n			font-family: 'Metroid';\r\n			font-style: normal;\r\n			font-weight: 500;\r\n			src: url('/Metroid-Prime-Font.ttf') format('truetype');\r\n		}\r\n	</style>\r\n</html>\r\n",
     error: ({ status, message }) => '<!DOCTYPE html>\n<html lang="en">\n	<head>\n		<meta charset="utf-8" />\n		<title>' + message + `</title>
 
 		<style>
@@ -171,7 +171,7 @@ const options = {
 		<div class="error">
 			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
   },
-  version_hash: "1joml18"
+  version_hash: "mlg5ml"
 };
 function get_hooks() {
   return {};

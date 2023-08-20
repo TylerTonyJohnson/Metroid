@@ -1,13 +1,13 @@
 <script>
 	import { lookPosition } from '../../../lib/stores';
 
-    const maxOffset = 300;      // Height percent
-    $: altHeight = $lookPosition.y * maxOffset;
+    const maxOffset = 100;      // Height percent
+    $: altHeight = $lookPosition.x * maxOffset;
 </script>
 
 <div id='altimeters'>
-        <div class="altimeter left" style="background-position-y: {altHeight / 2}%;" />
-        <div class="altimeter right" style="background-position-y: {altHeight / 2}%;" />
+        <div class="altimeter left" style="background-position-y: {altHeight}%;" />
+        <div class="altimeter right" style="background-position-y: {altHeight}%;" />
 </div>
 
 <style>

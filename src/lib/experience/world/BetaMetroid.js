@@ -3,6 +3,7 @@ export default class BetaMetroid {
 	constructor(experience) {
 		this.experience = experience;
 		this.scene = this.experience.scene;
+		this.world = this.experience.world;
 		this.resources = this.experience.resources;
 		this.time = this.experience.time;
 		this.debug = this.experience.debug;
@@ -42,6 +43,8 @@ export default class BetaMetroid {
 		});
 		this.model.renderOrder = 1;
 		this.scene.add(this.model);
+		this.world.targetableMeshes.push(this.model);
+		this.world.scannableMeshes.push(this.model);
 	}
 
 	setMovement() {

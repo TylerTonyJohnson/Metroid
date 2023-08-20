@@ -26,7 +26,7 @@ export default class Renderer {
 	setInstance() {
 		this.instance = new THREE.WebGLRenderer({
 			canvas: this.canvas,
-			// antialias: true
+			antialias: true
 		});
 		this.instance.useLegacyLights = false;
 		this.instance.outputColorSpace = THREE.SRGBColorSpace;
@@ -58,6 +58,7 @@ export default class Renderer {
 
         this.composer.setSize(this.sizes.width, this.sizes.height);
 		this.composer.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
+		this.update();
 	}
 
 	update() {

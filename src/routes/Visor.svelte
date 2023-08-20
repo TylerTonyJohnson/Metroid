@@ -27,11 +27,11 @@
 	const maxSlideX = 1;
 	const maxSlideY = 1;
 
-	$: visorSlideX = maxSlideX * $lookMovement.x;
-	$: visorSlideY = maxSlideY * $lookMovement.y;
+	$: visorSlideX = -maxSlideX * $lookMovement.y;
+	$: visorSlideY = maxSlideY * $lookMovement.x;
 
-	$: visorRotateX = maxRotateX * $lookMovement.x;
-	$: visorRotateY = maxRotateY * $lookMovement.y;
+	$: visorRotateX = -maxRotateX * $lookMovement.y;
+	$: visorRotateY = maxRotateY * $lookMovement.x;
 </script>
 
 <!-- STRUCTURE -->

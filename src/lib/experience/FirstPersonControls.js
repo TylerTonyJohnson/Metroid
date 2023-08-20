@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { appState } from '../stores';
-import { AppState } from '../enums';
+import { AppState, VisorType } from '../enums';
+import { appState, unlockedVisors, currentVisor, lookPosition, lookMovement } from '../stores';
 
 const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
-const moveMaxX = 5;
-const moveMaxY = 5;
+const rotationSpeedMax = { x: 1, y: 1 };
 const lookSpeedX = 5;
 const lookSpeedY = 8;
 const lockRotSpeed = 10;
@@ -28,16 +27,12 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		this.maxPolarAngle = Math.PI;
 		this.enabled = false; // Set this control as disabled until it's ready
 
-		// camera.rotation.y = Math.PI;
-
 		this.strafeSpeed = 10; // Unused right now
 		this.jumpSpeed = 20;
 		this.maxJumps = 2;
 		this.jumps = this.maxJumps;
 
-		this.lockEvent = { type: 'lock' };
-		this.unlockEvent = { type: 'unlock' };
-
+		this.setSubscribes();
 		this.setPointerLock();
 		this.setCannonBody();
 		this.setEventListeners();
@@ -51,6 +46,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		this.moveDown = false;
 		this.rotateLeft = false;
 		this.rotateRight = false;
+		this.rotationSpeed = { x: 0, y: 0 };
 
 		this.inputForce = new THREE.Vector3();
 
@@ -71,7 +67,16 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		---------- SETUP ----------
 	*/
 
+	setSubscribes() {
+		unlockedVisors.subscribe((value) => {
+			this.$unlockedVisors = value;
+		});
+	}
+
 	setPointerLock() {
+		this.lockEvent = { type: 'lock' };
+		this.unlockEvent = { type: 'unlock' };
+
 		this.canvas.addEventListener('click', () => {
 			this.lock();
 		});
@@ -168,6 +173,9 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 
 	onKeyDown = (event) => {
 		switch (event.code) {
+			/* 
+				Movement
+			*/
 			case 'KeyW':
 			case 'ArrowUp':
 				this.moveForward = true;
@@ -189,6 +197,33 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 				break;
 			case 'ShiftLeft':
 				this.moveSpeed = this.sprintSpeed;
+				break;
+			/* 
+				Visors	
+			*/
+			case 'F1':
+				event.preventDefault();
+				if (this.$unlockedVisors.includes(VisorType.Combat)) {
+					currentVisor.set(VisorType.Combat);
+				}
+				break;
+			case 'F2':
+				event.preventDefault();
+				if (this.$unlockedVisors.includes(VisorType.Scan)) {
+					currentVisor.set(VisorType.Scan);
+				}
+				break;
+			case 'F3':
+				event.preventDefault();
+				if (this.$unlockedVisors.includes(VisorType.Thermal)) {
+					currentVisor.set(VisorType.Thermal);
+				}
+				break;
+			case 'F4':
+				event.preventDefault();
+				if (this.$unlockedVisors.includes(VisorType.Xray)) {
+					currentVisor.set(VisorType.Xray);
+				}
 				break;
 		}
 	};
@@ -224,7 +259,6 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 	jump() {
 		if (this.jumps > 0) {
 			this.cannonBody.applyImpulse(new CANNON.Vec3(0, 200, 0));
-			// this.velocity.y = this.jumpSpeed;
 		}
 		this.jumps--;
 	}
@@ -238,11 +272,11 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 			return;
 		}
 
-		this.updatePosition(this.time.delta);
-		this.updateRotation(this.time.delta);
+		this.updatePosition();
+		this.updateRotation();
 	}
 
-	updatePosition(timeElapsed) {
+	updatePosition() {
 		// Calculate total direction of new velocity relative to player
 		this.inputForce.set(0, 0, 0);
 		if (this.moveForward) {
@@ -266,21 +300,30 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 
 		// Scale and rotate velocity to world coordinates
 		this.inputForce.normalize();
-		this.inputForce.multiplyScalar(this.moveSpeed * timeElapsed);
+		this.inputForce.multiplyScalar(this.moveSpeed * this.time.delta);
 		this.inputForce.applyQuaternion(this.cannonBody.quaternion);
 
-		const cannonForce = new CANNON.Vec3(this.inputForce.x, this.inputForce.y, this.inputForce.z).scale(800);
+		const cannonForce = new CANNON.Vec3(
+			this.inputForce.x,
+			this.inputForce.y,
+			this.inputForce.z
+		).scale(800);
 
-		// Add total new velocity to the physics body
-		// this.cannonBody.velocity.x += this.inputForce.x;
-		// this.cannonBody.velocity.z += this.inputForce.z;
+		// Apply force
 		this.cannonBody.applyForce(cannonForce);
 		this.object.position.copy(this.cannonBody.position);
 	}
 
-	updateRotation(timeElapsed) {
-		// Calculate target quaternion
+	updateRotation() {
+		/* 
+			Calculate rotation and speed
+		*/
 		_euler.setFromQuaternion(this.object.quaternion);
+
+		const rotationStart = {
+			x: _euler.x,
+			y: _euler.y
+		};
 
 		_euler.y -= this.currentInput.movementX * 0.0003 * lookSpeedX;
 		_euler.x += this.currentInput.movementY * 0.0003 * lookSpeedY;
@@ -292,9 +335,42 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		targetQuaternion.setFromEuler(_euler);
 
 		// Rotate toward target quaternion
-		const step = lockRotSpeed * timeElapsed;
+		const step = lockRotSpeed * this.time.delta;
 		this.object.quaternion.rotateTowards(targetQuaternion, step);
 		this.cannonBody.quaternion.setFromEuler(0, _euler.y, 0);
+
+		// Calculate rotation speed
+		this.rotationSpeed = {
+			x: (_euler.x - rotationStart.x) / (this.time.delta / 1000),
+			y: (_euler.y - rotationStart.y) / (this.time.delta / 1000)
+		};
+
+		/* 
+			Normalize rotation and speed 
+		*/
+
+		// Rotation
+		this.rotationPercent = {
+			x: (_euler.x / -Math.PI) * 2,
+			y: _euler.y / Math.PI
+		};
+
+		// Rotation speed
+		this.rotationSpeedPercent = {
+			x: -Math.max(Math.min(this.rotationSpeed.x / rotationSpeedMax.x, 1), -1),
+			y: -Math.max(Math.min(this.rotationSpeed.y / rotationSpeedMax.y, 1), -1)
+		};
+
+		// console.log(this.rotationSpeedPercent);
+		// console.log(this.time.delta);
+
+		/* 
+			STORES
+		*/
+
+		// // Set store values
+		lookPosition.set(this.rotationPercent);
+		lookMovement.set(this.rotationSpeedPercent);
 
 		// Update stores, reset movement
 		this.currentInput.movementX = 0;

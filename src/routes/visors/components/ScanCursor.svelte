@@ -1,5 +1,6 @@
 <script>
-	import { isRendering, isScanning, scanProgress, isScanned } from '../../../lib/stores';
+	import { AppState } from '../../../lib/enums';
+	import { appState, isScanning, scanProgress, isScanned } from '../../../lib/stores';
 </script>
 
 <div id="frame">
@@ -21,14 +22,14 @@
 	<!-- Spinners -->
 	<img
 		class="spinner inner"
-		class:paused={!$isRendering}
+		class:paused={$appState !== AppState.Running}
 		class:hide={$isScanning}
 		src="Scan Cursor Spin Inner 1x.png"
 		alt="inner"
 	/>
 	<img
 		class="spinner outer"
-		class:paused={!$isRendering}
+		class:paused={$appState !== AppState.Running}
 		class:hide={$isScanning}
 		src="Scan Cursor Spin Outer 1x.png"
 		alt="outer"

@@ -1,14 +1,15 @@
 <script>
 	import { lookPosition } from '../../../lib/stores';
 
-	const maxOffset = 1000;
+	const vertOffset = 500;
+	const horzOffset = 200;
 
 	$: leftOffset =
-		$lookPosition.y * maxOffset * Math.cos((30 * Math.PI) / 180) -
-		$lookPosition.x * maxOffset * Math.sin((30 * Math.PI) / 180);
+		$lookPosition.x * horzOffset * Math.cos((30 * Math.PI) / 180) -
+		$lookPosition.y * vertOffset * Math.sin((30 * Math.PI) / 180);
 	$: rightOffset =
-		$lookPosition.y * maxOffset * Math.cos((30 * Math.PI) / 180) +
-		$lookPosition.x * maxOffset * Math.sin((30 * Math.PI) / 180);
+		$lookPosition.x * horzOffset * Math.cos((30 * Math.PI) / 180) +
+		$lookPosition.y * vertOffset * Math.sin((30 * Math.PI) / 180);
 </script>
 
 <div id="frame">

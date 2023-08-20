@@ -1,8 +1,8 @@
 <script>
 	import { lookPosition } from '../../../lib/stores';
 
-	const maxOffset = 300; // Height percent
-	$: altHeight = ($lookPosition.x + $lookPosition.y) * maxOffset;
+	const maxOffset = 100; // Height percent
+	$: altHeight = ($lookPosition.y + $lookPosition.x) * maxOffset;
 </script>
 
 <div id="frame">

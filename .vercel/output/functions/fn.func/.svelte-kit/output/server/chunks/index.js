@@ -38,7 +38,7 @@ function writable(value, start = noop) {
     run(value);
     return () => {
       subscribers.delete(subscriber);
-      if (subscribers.size === 0) {
+      if (subscribers.size === 0 && stop) {
         stop();
         stop = null;
       }
@@ -51,7 +51,7 @@ function derived(stores, fn, initial_value) {
   const stores_array = single ? [stores] : stores;
   const auto = fn.length < 2;
   return readable(initial_value, (set) => {
-    let inited = false;
+    let started = false;
     const values = [];
     let pending = 0;
     let cleanup = noop;
@@ -70,17 +70,18 @@ function derived(stores, fn, initial_value) {
     const unsubscribers = stores_array.map((store, i) => subscribe(store, (value) => {
       values[i] = value;
       pending &= ~(1 << i);
-      if (inited) {
+      if (started) {
         sync();
       }
     }, () => {
       pending |= 1 << i;
     }));
-    inited = true;
+    started = true;
     sync();
     return function stop() {
       run_all(unsubscribers);
       cleanup();
+      started = false;
     };
   });
 }

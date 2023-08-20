@@ -1,8 +1,8 @@
 <script>
-	import { currentVisor, isRendering, isScanning, isScanned } from '../../../lib/stores';
+	import { appState, currentVisor, isRendering, isScanning, isScanned } from '../../../lib/stores';
 	import * as THREE from 'three';
 	import { listener } from '../../../lib/scene';
-	import { VisorType } from '../../../lib/enums';
+	import { AppState, VisorType } from '../../../lib/enums';
 
 	const scanSound = new THREE.Audio(listener);
 	const scanningSound = new THREE.Audio(listener);
@@ -62,7 +62,7 @@
 
 	// Pausing sounds
 	$: {
-		if ($isRendering) {
+		if ($appState === AppState.Running) {
 			scanSound.setVolume(0.25);
 			scanningSound.setVolume(0.25);
 			thermalSound.setVolume(0.25);
