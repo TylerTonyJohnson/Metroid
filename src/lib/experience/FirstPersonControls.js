@@ -80,6 +80,10 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		this.canvas.addEventListener('click', () => {
 			this.lock();
 		});
+		
+		this.canvas.addEventListener('pointerdown', () => {
+			this.lock();
+		});
 
 		this.addEventListener('lock', () => {
 			this.enabled = true;
