@@ -18,16 +18,16 @@
 
 <div id="cursor">
 	<div class="inner" style="height: {innerSize}%; ">
-		<img src="src\routes\visors\svgs\CombatCursorInner.svg" alt="cursor-inner" />
+		<img src="CombatCursorInner.svg" alt="cursor-inner" />
 	</div>
 	<div class="outer a" style="height: {outerSize}%;">
-		<img src="src\routes\visors\svgs\CombatCursorOuter.svg" alt="cursor-outer" />
+		<img src="CombatCursorOuter.svg" alt="cursor-outer" />
 	</div>
 	<div class="outer b" style="height: {outerSize}%;">
-		<img src="src\routes\visors\svgs\CombatCursorOuter.svg" alt="cursor-outer" />
+		<img src="CombatCursorOuter.svg" alt="cursor-outer" />
 	</div>
 	<div class="outer c" style="height: {outerSize}%;">
-		<img src="src\routes\visors\svgs\CombatCursorOuter.svg" alt="cursor-outer" />
+		<img src="CombatCursorOuter.svg" alt="cursor-outer" />
 	</div>
 </div>
 

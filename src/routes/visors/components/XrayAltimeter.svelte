@@ -6,8 +6,12 @@
 </script>
 
 <div id="frame">
-	<div id='mask'>
-		<div class="altimeter" style="rotate: {altHeight / 2}deg;" />
+	<div id="mask">
+		<div
+			class="altimeter"
+			style="rotate: {altHeight / 2}deg; 
+				background-image: url('Xray Altimeter Lines 1x.png');"
+		/>
 	</div>
 </div>
 
@@ -32,8 +36,7 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
-        clip-path: polygon(0% 3%, 100% 3%, 100% 97%, 0% 97%);
-		
+		clip-path: polygon(0% 3%, 100% 3%, 100% 97%, 0% 97%);
 	}
 
 	.altimeter {
@@ -43,7 +46,6 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
-		background-image: url('Xray Altimeter Lines 1x.png');
 		background-size: contain;
 		/* clip-path: url(#xray-altimeter-clip); */
 	}

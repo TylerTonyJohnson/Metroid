@@ -8,13 +8,29 @@
 <div id="altimeters">
 	<div class="altimeter left">
 		<img class="altimeter-image" src="Scan Altimeter 1x.png" alt="decoration" />
-		<div class="altimeter-bar-small" style="background-position-y: {altHeight / 2}%;" />
-		<div class="altimeter-bar-large" style="background-position-y: {altHeight}%;" />
+		<div
+			class="altimeter-bar-small"
+			style="background-position-y: {altHeight / 2}%; 
+				background-image: url('Scan Altimeter Small 1x.png');"
+		/>
+		<div
+			class="altimeter-bar-large"
+			style="background-position-y: {altHeight}%; 
+			background-image: url('Scan Altimeter Large 1x.png');"
+		/>
 	</div>
 	<div class="altimeter right">
 		<img class="altimeter-image" src="Scan Altimeter 1x.png" alt="decoration" />
-		<div class="altimeter-bar-small" style="background-position-y: {altHeight / 2}%;" />
-		<div class="altimeter-bar-large" style="background-position-y: {altHeight}%;" />
+		<div
+			class="altimeter-bar-small"
+			style="background-position-y: {altHeight / 2}%; 
+				background-image: url('Scan Altimeter Small 1x.png');"
+		/>
+		<div
+			class="altimeter-bar-large"
+			style="background-position-y: {altHeight}%; 
+				background-image: url('Scan Altimeter Large 1x.png');"
+		/>
 	</div>
 </div>
 
@@ -45,7 +61,7 @@
 	}
 
 	.left {
-		left: calc(336%/1920*100);
+		left: calc(336% / 1920 * 100);
 	}
 
 	.right {
@@ -60,7 +76,6 @@
 		left: 32%;
 		top: 50%;
 		translate: 0% -50%;
-		background-image: url('Scan Altimeter Small 1x.png');
 		background-size: contain;
 	}
 
@@ -71,7 +86,6 @@
 		left: 18%;
 		top: 50%;
 		translate: 0% -50%;
-		background-image: url('Scan Altimeter Large 1x.png');
-        background-size: contain;
+		background-size: contain;
 	}
 </style>

@@ -6,7 +6,7 @@
 
 <div id="frame" transition:fly={{ y: 200 }}>
 	<div class="window-container">
-		<div class="window-fuzz" />
+		<div class="window-fuzz" style="background-image: url('Scan Result Window Seed 1x.png');" />
 		<img class="window-frame-image" src="Scan Result Message 1x.png" alt="window" />
 		<div x="5%" y="25%" class="message" >
 			{#key message}
@@ -52,7 +52,6 @@
 		left: 50%;
 		top: 3%;
 		translate: -50% 0;
-		background-image: url('Scan Result Window Seed 1x.png');
 		background-size: contain;
 		border-radius: 8%;
 	}

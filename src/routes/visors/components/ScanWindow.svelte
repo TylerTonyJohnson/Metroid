@@ -9,7 +9,7 @@
 	<div class="window-container"
         class:left={side === 'left'}
         class:right={side === 'right'}>
-        <div class='window-fuzz'></div>
+        <div class='window-fuzz' style="background-image: url('Scan Result Window Seed 1x.png');"></div>
 		<img class='window-frame-image' src="Scan Result Window 1x.png" alt="window" />
 	</div>
 </div>
@@ -60,7 +60,6 @@
         left: 50%;
         top: 50%;
         translate: -50% -50%;
-        background-image: url('Scan Result Window Seed 1x.png');
         background-size: contain;
         border-radius: 8%;
     }

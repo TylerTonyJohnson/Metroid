@@ -13,10 +13,26 @@
 </script>
 
 <div id="frame">
-	<div class="altimeter bot-left" style="background-position-y: {leftOffset}%;" />
-	<div class="altimeter top-left" style="background-position-y: {leftOffset}%;" />
-	<div class="altimeter bot-right" style="background-position-y: {rightOffset}%;" />
-	<div class="altimeter top-right" style="background-position-y: {rightOffset}%;" />
+	<div
+		class="altimeter bot-left"
+		style="background-position-y: {leftOffset}%; 
+			background-image: url('Thermal Altimeter 1x.png');"
+	/>
+	<div
+		class="altimeter top-left"
+		style="background-position-y: {leftOffset}%; 
+			background-image: url('Thermal Altimeter 1x.png');"
+	/>
+	<div
+		class="altimeter bot-right"
+		style="background-position-y: {rightOffset}%; 
+			background-image: url('Thermal Altimeter 1x.png');"
+	/>
+	<div
+		class="altimeter top-right"
+		style="background-position-y: {rightOffset}%; 
+			background-image: url('Thermal Altimeter 1x.png');"
+	/>
 </div>
 
 <style>
@@ -34,7 +50,6 @@
 		width: calc(24% / 1920 * 100);
 		height: calc(200% / 1080 * 100);
 		overflow: hidden;
-		background-image: url('Thermal Altimeter 1x.png');
 		background-size: contain;
 	}
 
