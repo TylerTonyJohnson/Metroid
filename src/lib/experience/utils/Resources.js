@@ -49,10 +49,21 @@ export default class Resources extends THREE.EventDispatcher {
         // Load each source
         for (const source of this.sources) {
             switch (source.type) {
-                case 'texture':
+                case 'visibleTexture':
                     this.loaders.textureLoader.load(
                         source.path,
                         (file) => {
+                            file.colorSpace = THREE.SRGBColorSpace;
+                            // file.encoding = THREE.sRGBEncoding
+                            this.sourceLoaded(source, file);
+                        }
+                    );
+                    break;
+                case 'invisibleTexture':
+                    this.loaders.textureLoader.load(
+                        source.path,
+                        (file) => {
+                            // file.colorSpace = THREE.LinearSRGBColorSpace;
                             this.sourceLoaded(source, file);
                         }
                     );
@@ -73,7 +84,7 @@ export default class Resources extends THREE.EventDispatcher {
                         }
                     );
                     break;
-                case 'audio':
+                case 'sound':
                     this.loaders.audioLoader.load(
                         source.path,
                         (file) => {

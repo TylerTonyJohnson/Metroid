@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import FirstPersonControls from './FirstPersonControls.js';
+import FirstPersonControls from '../FirstPersonControls.js';
 import { tweened } from 'svelte/motion';
-import { lookMovement } from '../stores.js';
+import { lookMovement, lookDistance } from '../../stores.js';
+import ArmCannon from './ArmCannon.js';
 
 export default class Samus {
 	constructor(experience) {
 		// Setup
 		this.experience = experience;
+        this.world = this.experience.world;
 		this.sizes = this.experience.sizes;
 		this.scene = this.experience.scene;
 		this.canvas = this.experience.canvas;
@@ -17,7 +19,6 @@ export default class Samus {
 		// Config
 		this.height = 2;
 		this.radius = 0.5;
-		this.cannonMoveMax = Math.PI / 24;
 		this.setGroup();
 		this.setCamera();
 		this.setArmCannon();
@@ -29,11 +30,6 @@ export default class Samus {
 		lookMovement.subscribe((value) => {
 			this.$lookMovement = value;
 		});
-		this.armCannonRotation = new tweened({ x: 0, y: 0 });
-
-        this.armCannonRotation.subscribe(value => {
-            this.$armCannonRotation = value;
-        })
 
 		// Debug
 		if (this.debug.isActive) {
@@ -92,13 +88,19 @@ export default class Samus {
 	}
 
 	setCamera() {
+		// Camera details
 		this.camera = this.experience.camera.instance;
 		this.group.add(this.camera);
 		this.camera.name = 'Samus Cam';
 		this.camera.position.set(0, 0, 0);
 		this.camera.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+		// Audio details
 		this.listener = this.experience.listener;
 		this.camera.add(this.listener);
+
+		// Raycaster details
+		this.raycaster = new THREE.Raycaster();
 	}
 
 	takeOver() {
@@ -115,26 +117,28 @@ export default class Samus {
 	}
 
 	setArmCannon() {
-		this.resources = this.experience.resources;
-		this.armCannonResource = this.resources.items.armCannonGLB;
-		this.armCannon = this.armCannonResource.scene;
-		this.group.add(this.armCannon);
-
-		this.armCannon.rotation.y = 0;
-		this.armCannon.scale.set(0.25, 0.25, 0.25);
-		this.armCannon.position.set(-this.radius * 0.5, -this.height * 0.125, this.radius - 0.2);
+		this.armCannon = new ArmCannon(this);
 	}
 
 	update() {
+		// Body and Mesh
 		this.controls.update();
 		this.group.position.copy(this.body.position);
-		this.armCannonRotation.set({
-			x: -this.$lookMovement.x * this.cannonMoveMax,
-			y: -this.$lookMovement.y * this.cannonMoveMax
-		});
 
-		this.armCannon.rotation.x = this.$armCannonRotation.x;
-		this.armCannon.rotation.y = this.$armCannonRotation.y;
+		this.armCannon.update();
+		this.updateRayCaster();
+	}
+
+	updateRayCaster() {
+		// Ray caster
+		this.raycaster.setFromCamera(new THREE.Vector2(), this.camera);
+        const intersects = this.raycaster.intersectObjects(this.world.lookableMeshes, false);
+        
+        if (intersects.length > 0) {
+            lookDistance.set(intersects[0].distance);
+        } else {
+            lookDistance.set(Infinity);
+        }
 	}
 
 	setDebug() {

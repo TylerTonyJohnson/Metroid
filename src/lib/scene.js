@@ -3,11 +3,8 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
-import CannonUtils from 'cannon-utils';
 import { PlayerController } from './controls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-// import Stats from 'three/examples/jsm/libs/stats.module';
-import { get } from 'svelte/store';
 import {
 	currentVisor,
 	currentHealth,
@@ -26,8 +23,6 @@ import {
 } from './stores';
 import { BeamType, VisorType } from './enums';
 import { clamp, mapRange } from './math';
-import { Floater, Metroid } from './worldObjects';
-import { GUI } from 'dat.gui';
 
 // THREE variables
 let camera, frustum, scene, renderer, raycaster;
@@ -97,13 +92,13 @@ export const listener = new THREE.AudioListener();
 */
 
 export function start(element) {
-	canvas = element;
-	initSubscribe();
-	initThree(canvas);
-	initCannon();
-	initPointerLock(canvas);
-	buildWorld();
-	animate();
+	// canvas = element;
+	// initSubscribe();
+	// initThree(canvas);
+	// initCannon();
+	// initPointerLock(canvas);
+	// buildWorld();
+	// animate();
 }
 
 function initSubscribe() {

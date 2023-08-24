@@ -4,6 +4,7 @@ import * as CANNON from 'cannon-es';
 export default class Hangar {
 	constructor(experience) {
 		this.experience = experience;
+		this.world = this.experience.world;
 		this.scene = this.experience.scene;
 		this.resources = this.experience.resources;
 		this.debug = this.experience.debug;
@@ -24,11 +25,14 @@ export default class Hangar {
 		this.model.rotation.y = -Math.PI / 2;
 
 		this.scene.add(this.model);
+		// this.world.shootableMeshes.push(this.model);
+		// this.world.lookableMeshes.push(this.model);
 
 		// this.model.traverse((child) => {
 		// 	if (child.isMesh) {
-		// 		child.castShadow = true;
-		//         child.receiveShadow = true;
+		// 		this.world.lookableMeshes.push(child);
+		// 		// child.castShadow = true;
+		//         // child.receiveShadow = true;
 		// 	}
 		// });
 
@@ -53,6 +57,8 @@ export default class Hangar {
 		tubeMesh.rotation.y = Math.PI / 12;
 		// tubeMesh.renderOrder = 1;
 		this.scene.add(tubeMesh);
+		this.world.lookableMeshes.push(tubeMesh);
+		this.world.shootableMeshes.push(tubeMesh);
 
 		// Window
 		const windowGeo = new THREE.BoxGeometry(1, 26, 50);
@@ -74,7 +80,8 @@ export default class Hangar {
 		const windowMesh = new THREE.Mesh(windowGeo, windowMat);
 		windowMesh.position.set(58, 3, 0);
 		this.scene.add(windowMesh);
-
+		this.world.lookableMeshes.push(windowMesh);
+		this.world.shootableMeshes.push(windowMesh);
 	}
 
 	setBodies() {

@@ -1,7 +1,15 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { AppState, VisorType } from '../enums';
-import { appState, unlockedVisors, currentVisor, lookPosition, lookMovement } from '../stores';
+import { AppState, BeamType, VisorType } from '../enums';
+import {
+	appState,
+	unlockedBeams,
+	currentBeam,
+	unlockedVisors,
+	currentVisor,
+	lookPosition,
+	lookMovement
+} from '../stores';
 
 const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
 const rotationSpeedMax = { x: 1, y: 1 };
@@ -21,6 +29,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		this.camera = this.target.camera;
 		this.cannonBody = this.target.body;
 		this.time = this.experience.time;
+		this.armCannon = this.target.armCannon;
 
 		// Setup
 		this.minPolarAngle = 0;
@@ -32,7 +41,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		this.maxJumps = 2;
 		this.jumps = this.maxJumps;
 
-		this.setSubscribes();
+		this.setStores();
 		this.setPointerLock();
 		this.setCannonBody();
 		this.setEventListeners();
@@ -67,9 +76,17 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		---------- SETUP ----------
 	*/
 
-	setSubscribes() {
+	setStores() {
+		unlockedBeams.subscribe((value) => {
+			this.$unlockedBeams = value;
+		});
+
 		unlockedVisors.subscribe((value) => {
 			this.$unlockedVisors = value;
+		});
+
+		appState.subscribe((value) => {
+			this.$appState = value;
 		});
 	}
 
@@ -80,7 +97,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		this.canvas.addEventListener('click', () => {
 			this.lock();
 		});
-		
+
 		this.canvas.addEventListener('pointerdown', () => {
 			this.lock();
 		});
@@ -121,6 +138,8 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 	}
 
 	setEventListeners() {
+		document.addEventListener('mousedown', this.onMouseDown);
+		document.addEventListener('mouseup', this.onMouseUp);
 		document.addEventListener('mousemove', this.onMouseMove);
 		document.addEventListener('pointerlockchange', this.onPointerlockChange);
 		document.addEventListener('pointerlockerror', this.onPointerlockError);
@@ -133,6 +152,8 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 	}
 
 	removeEventListeners() {
+		document.removeEventListener('mousedown', this.onMouseDown);
+		document.removeEventListener('mouseup', this.onMouseUp);
 		document.removeEventListener('mousemove', this.onMouseMove);
 		document.removeEventListener('pointerlockchange', this.onPointerlockChange);
 		document.removeEventListener('pointerlockerror', this.onPointerlockError);
@@ -167,6 +188,35 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 	/* 
 		---------- CONTROLS INPUT ----------
 	*/
+
+	onMouseDown = (event) => {
+		if (!this.enabled) return;
+		if (this.$appState !== AppState.Running) return;
+		switch (event.which) {
+			case 1:
+				this.armCannon.shootBeam();
+				break;
+			case 2:
+				break;
+			case 3:
+				this.lockOn();
+				break;
+		}
+	};
+
+	onMouseUp = (event) => {
+		if (!this.enabled) return;
+		if (this.$appState !== AppState.Running) return;
+		switch (event.which) {
+			case 1:
+				break;
+			case 2:
+				break;
+			case 3:
+				this.lockOff();
+				break;
+		}
+	};
 
 	onMouseMove = (event) => {
 		if (!this.enabled) return; // If controls are disabled, don't update movement
@@ -203,31 +253,38 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 				this.moveSpeed = this.sprintSpeed;
 				break;
 			/* 
+				Beams
+			*/
+			case 'Digit1':
+				this.changeBeam(BeamType.Power);
+				break;
+			case 'Digit2':
+				this.changeBeam(BeamType.Wave);
+				break;
+			case 'Digit3':
+				this.changeBeam(BeamType.Ice);
+				break;
+			case 'Digit4':
+				this.changeBeam(BeamType.Plasma);
+				break;
+			/* 
 				Visors	
 			*/
 			case 'F1':
 				event.preventDefault();
-				if (this.$unlockedVisors.includes(VisorType.Combat)) {
-					currentVisor.set(VisorType.Combat);
-				}
+				this.changeVisor(VisorType.Combat);
 				break;
 			case 'F2':
 				event.preventDefault();
-				if (this.$unlockedVisors.includes(VisorType.Scan)) {
-					currentVisor.set(VisorType.Scan);
-				}
+				this.changeVisor(VisorType.Scan);
 				break;
 			case 'F3':
 				event.preventDefault();
-				if (this.$unlockedVisors.includes(VisorType.Thermal)) {
-					currentVisor.set(VisorType.Thermal);
-				}
+				this.changeVisor(VisorType.Thermal);
 				break;
 			case 'F4':
 				event.preventDefault();
-				if (this.$unlockedVisors.includes(VisorType.Xray)) {
-					currentVisor.set(VisorType.Xray);
-				}
+				this.changeVisor(VisorType.Xray);
 				break;
 		}
 	};
@@ -266,6 +323,26 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		}
 		this.jumps--;
 	}
+
+	lockOn() {
+		console.log('locking on');
+	}
+
+	lockOff() {
+		console.log('locking off');
+	}
+
+	changeBeam(beamType) {
+		if (this.$unlockedBeams.includes(beamType)) currentBeam.set(beamType);
+	}
+
+	changeVisor(visorType) {
+		if (this.$unlockedVisors.includes(visorType)) currentVisor.set(visorType);
+	}
+
+	// shootBeam() {
+	// 	console.log('shooting');
+	// }
 
 	/* 
 		---------- RUNTIME ----------
@@ -364,9 +441,6 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 			x: -Math.max(Math.min(this.rotationSpeed.x / rotationSpeedMax.x, 1), -1),
 			y: -Math.max(Math.min(this.rotationSpeed.y / rotationSpeedMax.y, 1), -1)
 		};
-
-		// console.log(this.rotationSpeedPercent);
-		// console.log(this.time.delta);
 
 		/* 
 			STORES

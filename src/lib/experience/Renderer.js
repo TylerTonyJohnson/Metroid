@@ -30,8 +30,8 @@ export default class Renderer {
 		});
 		this.instance.useLegacyLights = false;
 		this.instance.outputColorSpace = THREE.SRGBColorSpace;
-		this.instance.toneMapping = THREE.ReinhardToneMapping;
-		this.instance.toneMappingExposure = 1.75;
+		// this.instance.toneMapping = THREE.ReinhardToneMapping;
+		// this.instance.toneMappingExposure = 1.75;
 		this.instance.shadowMap.enabled = true;
 		this.instance.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.instance.setClearColor('#211d20');

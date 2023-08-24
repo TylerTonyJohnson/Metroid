@@ -6,37 +6,37 @@ export default [
 	},
 	{
 		name: 'spaceEnvironmentPng',
-		type: 'texture',
+		type: 'visibleTexture',
 		path: 'Space 4k.png'
 	},
 	{
 		name: 'dirtyGlassRoughness',
-		type: 'texture',
+		type: 'invisibleTexture',
 		path: 'dirty glass.jpg'
 	},
 	{
 		name: 'frostedGlassColor',
-		type: 'texture',
+		type: 'visibleTexture',
 		path: 'frosted-glass/baseColor.jpg'
 	},
 	{
 		name: 'frostedGlassNormal',
-		type: 'texture',
+		type: 'invisibleTexture',
 		path: 'frosted-glass/normal.jpg'
 	},
 	{
 		name: 'frostedGlassRoughness',
-		type: 'texture',
+		type: 'invisibleTexture',
 		path: 'frosted-glass/roughness.jpg'
 	},
 	{
 		name: 'frostedGlassHeight',
-		type: 'texture',
+		type: 'invisibleTexture',
 		path: 'frosted-glass/height.png'
 	},
 	{
 		name: 'frostedGlassAmbientOcclusion',
-		type: 'texture',
+		type: 'invisibleTexture',
 		path: 'frosted-glass/ambientOcclusion.jpg'
 	},
 	// {
@@ -69,9 +69,49 @@ export default [
 		type: 'gltfModel',
 		path: 'Arm Cannon.glb'
 	},
+	{
+		name: 'powerShotTexture',
+		type: 'visibleTexture',
+		path: 'Power Shot 1x.png'
+	},
+	{
+		name: 'waveShotTexture',
+		type: 'visibleTexture',
+		path: 'Wave Shot 1x.png'
+	},
+	{
+		name: 'iceShotTexture',
+		type: 'visibleTexture',
+		path: 'Ice Shot 1x.png'
+	},
+	{
+		name: 'plasmaShotTexture',
+		type: 'visibleTexture',
+		path: 'Plasma Shot 1x.png'
+	},
 	/* 
         Sounds
     */
+	{
+		name: 'powerBeamSound',
+		type: 'sound',
+		path: 'Power Beam Sound.wav'
+	},
+	{
+		name: 'waveBeamSound',
+		type: 'sound',
+		path: 'Wave Beam Sound.wav'
+	},
+	{
+		name: 'iceBeamSound',
+		type: 'sound',
+		path: 'Ice Beam Sound.wav'
+	},
+	{
+		name: 'plasmaBeamSound',
+		type: 'sound',
+		path: 'Plasma Beam Sound.wav'
+	},
 	// {
 	// 	name: 'scanVisorSound',
 	// 	type: 'sound',

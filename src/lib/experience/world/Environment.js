@@ -10,9 +10,9 @@ export default class Environment {
 
 		// Setup
 		// this.setDirectionalLight();
-		// this.setHemisphereLight();
+		this.setHemisphereLight();
 		this.setPointLights();
-		this.setAmbientLight();
+		// this.setAmbientLight();
 		this.setEnvironmentMap();
 		this.setSpotlights();
 		this.setFog();
@@ -50,22 +50,22 @@ export default class Environment {
 	}
 
 	setPointLights() {
-		this.pointLight1 = new THREE.PointLight('orange', 1500);
+		this.pointLight1 = new THREE.PointLight('orange', 1600);
 		this.pointLight1.position.set(0, -10, 8);
 		this.pointLight1.distance = 50;
-		this.pointLight2 = new THREE.PointLight('orange', 1500);
+		this.pointLight2 = new THREE.PointLight('orange', 1600);
 		this.pointLight2.position.set(0, -10, -8);
 		this.pointLight2.distance = 50;
-		this.pointLight3 = new THREE.PointLight('gray', 400);
+		this.pointLight3 = new THREE.PointLight('gray', 500);
 		this.pointLight3.position.set(0, 10, 12);
 		this.pointLight3.distance = 50;
-		this.pointLight4 = new THREE.PointLight('gray', 400);
+		this.pointLight4 = new THREE.PointLight('gray', 500);
 		this.pointLight4.position.set(0, 10, -12);
 		this.pointLight4.distance = 50;
-		this.pointLight5 = new THREE.PointLight('gray', 400);
+		this.pointLight5 = new THREE.PointLight('gray', 500);
 		this.pointLight5.position.set(50, 10, 8);
 		this.pointLight5.distance = 50;
-		this.pointLight6 = new THREE.PointLight('gray', 400);
+		this.pointLight6 = new THREE.PointLight('gray', 500);
 		this.pointLight6.position.set(50, 10, -8);
 		this.pointLight6.distance = 50;
 
@@ -81,13 +81,13 @@ export default class Environment {
 
 	setSpotlights() {
 		// Spotlight
-		this.spotlight = new THREE.SpotLight('orange', 10000);
+		this.spotlight = new THREE.SpotLight('orange', 5000);
 		this.spotlight.position.set(2, -5, 0);
 		this.spotlight.distance = 20;
 		this.spotlight.angle = Math.PI / 4;
 		this.spotlight.penumbra = 0.1;
 		this.spotlight.decay = 2;
-		this.spotlight.castShadow = true;
+		// this.spotlight.castShadow = true;
 		this.scene.add(this.spotlight);
 
 		// Target
@@ -129,17 +129,17 @@ export default class Environment {
 	}
 
 	setHemisphereLight() {
-		this.hemisphereLight = new THREE.HemisphereLight('white', 'yellow', 20);
+		this.hemisphereLight = new THREE.HemisphereLight('gray', 'orange', 5);
 		this.scene.add(this.hemisphereLight);
 	}
 
 	setAmbientLight() {
-		this.ambientLight = new THREE.AmbientLight('gray', 5);
+		this.ambientLight = new THREE.AmbientLight('orange', 5);
 		this.scene.add(this.ambientLight);
 	}
 
 	setFog() {
-		this.fog = new THREE.Fog('orange', 0, 260);
+		this.fog = new THREE.Fog('orange', 0, 200);
 		this.scene.fog = this.fog;
 	}
 }

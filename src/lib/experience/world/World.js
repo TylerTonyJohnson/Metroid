@@ -5,13 +5,17 @@ import Environment from './Environment';
 import Hangar from './Hangar';
 import BetaMetroid from './BetaMetroid';
 import Metroid from './Metroid';
-import Samus from '../Samus';
+import Samus from './Samus';
 
 export default class World {
 	constructor(experience) {
 		this.experience = experience;
 		this.time = this.experience.time;
 		this.debug = this.experience.debug;
+
+		// Mesh Arrays
+		this.lookableMeshes = [];
+		this.shootableMeshes = [];
 		this.targetableMeshes = [];
 		this.scannableMeshes = [];
 
