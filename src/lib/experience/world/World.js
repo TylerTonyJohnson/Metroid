@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
+import { currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 import Environment from './Environment';
 import Hangar from './Hangar';
 import BetaMetroid from './BetaMetroid';
@@ -13,11 +15,9 @@ export default class World {
 		this.time = this.experience.time;
 		this.debug = this.experience.debug;
 
-		// Mesh Arrays
-		this.lookableMeshes = [];
-		this.shootableMeshes = [];
-		this.targetableMeshes = [];
-		this.scannableMeshes = [];
+		// Set data
+		this.setMeshArrays();
+		// this.setStores();
 
 		// Create render scene
 		this.scene = new THREE.Scene();
@@ -34,7 +34,6 @@ export default class World {
 		// Wait for resources to load
 		this.resources = this.experience.resources;
 		this.resources.addEventListener('loaded', () => {
-
 			// Setup
 			this.samus = new Samus(this.experience);
 			// this.floatCreature = new FloatCreature(this.experience);
@@ -45,14 +44,43 @@ export default class World {
 			}
 			this.betaMetroid = new BetaMetroid(this.experience);
 			this.hangar = new Hangar(this.experience);
+
+			this.setMaterials();
 			this.environment = new Environment(this.experience);
 		});
 	}
 
+	/* 
+		Setup Functions
+	*/
+	setMeshArrays() {
+		this.lookableMeshes = [];
+		this.shootableMeshes = [];
+		this.targetableMeshes = [];
+		this.scannableMeshes = [];
+	}
+
+	// setStores() {
+	// 	currentVisor.subscribe((value) => {
+	// 		switch (value) {
+	// 			case VisorType.Combat:
+	// 			case VisorType.Scan:
+	// 				console.log('Kaka');
+	// 				break;
+	// 			case VisorType.Thermal:
+	// 				console.log('doodie');
+	// 				this.changeMaterials();
+	// 				break;
+	// 			case VisorType.Xray:
+	// 				console.log('poopie');
+	// 				break;
+	// 		}
+	// 	});
+	// }
+
 	setPhysicsWorld() {
 		this.physicsWorld = new CANNON.World();
 		this.physicsWorld.broadphase = new CANNON.SAPBroadphase(this.physicsWorld);
-		// this.physicsWorld.allowSleep = true;
 
 		const solver = new CANNON.GSSolver();
 		solver.iterations = 5;
@@ -62,13 +90,62 @@ export default class World {
 
 		const defaultPhysicsMaterial = new CANNON.Material('default');
 		this.defaultContactMaterial = new CANNON.ContactMaterial(
-			defaultPhysicsMaterial, 
-			defaultPhysicsMaterial, {
+			defaultPhysicsMaterial,
+			defaultPhysicsMaterial,
+			{
 				friction: 0,
-				restitution: 0,
+				restitution: 0
 			}
-		)
+		);
 		this.physicsWorld.defaultContactMaterial = this.defaultContactMaterial;
+	}
+
+	setMaterials() {
+		/* 
+			Combat Materials
+		*/
+
+		// Arm Cannon
+		this.armCannonCombatMaterials = [];
+		this.resources.items.armCannonGLB.scene.traverse((child) => {
+			if (child.isMesh) this.armCannonCombatMaterials.push(child.material);
+		});
+
+		// Metroid
+		this.metroidCombatMaterials = [];
+		this.resources.items.metroidGLB.scene.traverse((child) => {
+			if (child.isMesh) this.metroidCombatMaterials.push(child.material);
+		});
+
+		// Beta Metroid
+		this.betaMetroidCombatMaterials = [];
+		this.resources.items.betaMetroidGLB.scene.traverse((child) => {
+			if (child.isMesh) this.betaMetroidCombatMaterials.push(child.material);
+		});
+
+		// Hangar
+		this.hangarCombatMaterials = [];
+		this.resources.items.hangarGLB.scene.traverse((child) => {
+			if (child.isMesh) this.hangarCombatMaterials.push(child.material);
+		});
+		// Glass tube
+
+		// Glass window
+
+		/* 
+			Thermal Materials
+		*/
+		this.thermalHotMaterial = new THREE.MeshMatcapMaterial({
+			matcap: this.resources.items.powerShotTexture,
+			// transparent: false,
+			// depthWrite: false,
+			// depthTest: false,
+
+		});
+		this.thermalColdMaterial = new THREE.MeshMatcapMaterial({
+			matcap: this.resources.items.thermalColdTexture,
+			
+		});
 	}
 
 	setDebug() {
@@ -77,6 +154,24 @@ export default class World {
 		// this.debugFolder.add(this.floorBody.position, 'y').min(-50).max(0).step(0.001);
 	}
 
+	/* 
+	Actions
+*/
+
+	// changeMaterials() {
+	// 	const resource = this.resources.items.powerShotTexture;
+	// 	const material = new THREE.MeshMatcapMaterial({ matcap: resource });
+
+	// 	this.scene.traverse(child => {
+	// 		if (child.isMesh) {
+	// 			child.material = material;
+	// 		}
+	// 	})
+	// }
+
+	/* 
+		Update
+	*/
 	update() {
 		this.physicsWorld.step(this.timestep, this.time.delta, 3);
 

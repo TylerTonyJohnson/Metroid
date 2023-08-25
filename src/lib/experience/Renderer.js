@@ -2,25 +2,47 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
-import { AppState } from '../enums';
-import { appState, loadPercent } from '../stores';
+import { AppState, VisorType } from '../enums';
+import { appState, loadPercent, currentVisor } from '../stores';
 
 export default class Renderer {
 	constructor(experience) {
-		//  Setup
+		//  References
 		this.experience = experience;
 		this.canvas = this.experience.canvas;
 		this.sizes = this.experience.sizes;
 		this.scene = this.experience.scene;
 		this.camera = this.experience.camera.instance;
 
-		// Stores
+		// Setup
+		this.setInstance();
+        this.setComposer();
+		this.setStores();
+	}
+
+	/* 
+		Setup
+	*/
+	setStores() {
 		appState.subscribe((value) => {
 			this.$appState = value;
 		});
 
-		this.setInstance();
-        this.setComposer();
+		currentVisor.subscribe((value) => {
+            // Set material based on visor
+            switch (value) {
+                case VisorType.Combat:
+                case VisorType.Scan:
+					this.afterimagePass.enabled = false;
+                    break;
+                case VisorType.Thermal:
+                    this.afterimagePass.enabled = true;
+                    break;
+                case VisorType.Xray:
+                    
+                    break;
+            }
+		});
 	}
 
 	setInstance() {
@@ -48,7 +70,7 @@ export default class Renderer {
         this.composer.addPass(renderPass);
 
         this.afterimagePass = new AfterimagePass();
-        this.afterimagePass.enabled = false;
+		this.afterimagePass.uniforms['damp'] = { value: 0.8 };
         this.composer.addPass(this.afterimagePass);
     }
 

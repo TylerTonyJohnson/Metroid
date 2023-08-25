@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 
 export default class Hangar {
 	constructor(experience) {
@@ -10,14 +12,37 @@ export default class Hangar {
 		this.debug = this.experience.debug;
 
 		// Setup
-		this.resource = this.resources.items.hangarGLB;
-
+		this.setStores();
 		this.setModel();
 		this.setBodies();
+	}
 
+	/* 
+		Setup
+	*/
+
+	setStores() {
+		currentVisor.subscribe((value) => {
+            if (!this.model) return;
+
+            // Set material based on visor
+            switch (value) {
+                case VisorType.Combat:
+                case VisorType.Scan:
+                    this.setMaterials(this.world.hangarCombatMaterials);
+                    break;
+                case VisorType.Thermal:
+                    this.setMaterial(this.world.thermalColdMaterial);
+                    break;
+                case VisorType.Xray:
+                    // materials = this.world.armCannonCombatMaterials;
+                    break;
+            }
+		});
 	}
 
 	setModel() {
+		this.resource = this.resources.items.hangarGLB;
 		this.model = this.resource.scene;
 
 		// Config
@@ -137,4 +162,25 @@ export default class Hangar {
 		if (rotation) quaternion.setFromEuler(rotation.x, rotation.y, rotation.z);
 		this.body.addShape(newShape, position, quaternion);
 	}
+
+	/* 
+		Actions
+	*/
+	setMaterials(materials) {
+        let i = 0;
+        this.model.traverse(child => {
+            if (child.isMesh) {
+                child.material = materials[i];
+                i++;
+            }
+        })
+    }
+
+    setMaterial(material) {
+        this.model.traverse(child => {
+            if (child.isMesh) {
+                child.material = material;
+            }
+        })
+    }
 }

@@ -69,6 +69,9 @@ export default [
 		type: 'gltfModel',
 		path: 'Arm Cannon.glb'
 	},
+    /* 
+        Matcaps
+    */
 	{
 		name: 'powerShotTexture',
 		type: 'visibleTexture',
@@ -88,6 +91,11 @@ export default [
 		name: 'plasmaShotTexture',
 		type: 'visibleTexture',
 		path: 'Plasma Shot 1x.png'
+	},
+	{
+		name: 'thermalColdTexture',
+		type: 'visibleTexture',
+		path: 'Thermal Cold Matcap 1x.png'
 	},
 	/* 
         Sounds

@@ -7,11 +7,11 @@ import PowerShot from './PowerShot';
 import WaveShot from './WaveShot';
 import IceShot from './IceShot';
 import PlasmaShot from './PlasmaShot';
-import { writable } from 'svelte/store';
 
 export default class ArmCannon {
 	constructor(samus) {
 		this.samus = samus;
+        this.world = this.samus.world;
 		this.time = this.samus.experience.time;
 		this.resources = this.samus.experience.resources;
 		this.listener = this.samus.listener;
@@ -31,6 +31,27 @@ export default class ArmCannon {
 			this.$currentBeam = value;
 		});
 
+		currentVisor.subscribe((value) => {
+            if (!this.model) return;
+
+            // Set material based on visor
+            switch (value) {
+                case VisorType.Combat:
+                case VisorType.Scan:
+                    this.setMaterials(this.world.armCannonCombatMaterials);
+                    break;
+                case VisorType.Thermal:
+                    this.setMaterial(this.world.thermalHotMaterial);
+                    break;
+                case VisorType.Xray:
+                    // materials = this.world.armCannonCombatMaterials;
+                    break;
+            }
+
+            // Disable cannon while scanning
+			this.isActive = value !== VisorType.Scan;
+		});
+
 		lookMovement.subscribe((value) => {
 			this.$lookMovement = value;
 		});
@@ -41,10 +62,10 @@ export default class ArmCannon {
 			this.$rotation = value;
 		});
 
-        this.recoil = new tweened(0);
+		this.recoil = new tweened(0);
 
-		currentVisor.subscribe((value) => {
-			this.isActive = value !== VisorType.Scan;
+		this.recoil.subscribe((value) => {
+			this.$recoil = value;
 		});
 	}
 
@@ -54,11 +75,12 @@ export default class ArmCannon {
 
 		this.model.rotation.y = 0;
 		this.model.scale.set(0.25, 0.25, 0.25);
-		this.model.position.set(
+		this.position = new THREE.Vector3(
 			-this.samus.radius * 0.5,
 			-this.samus.height * 0.125,
 			this.samus.radius - 0.25
 		);
+		this.model.position.copy(this.position);
 
 		this.samus.group.add(this.model);
 	}
@@ -72,7 +94,7 @@ export default class ArmCannon {
 
 		// Wave Beam
 		const waveShotResource = this.resources.items.waveShotTexture;
-		const waveShotGeo = new THREE.SphereGeometry(0.1);
+		const waveShotGeo = new THREE.SphereGeometry(0.2);
 		const waveShotMat = new THREE.MeshMatcapMaterial({ matcap: waveShotResource });
 		this.waveShotMesh = new THREE.Mesh(waveShotGeo, waveShotMat);
 
@@ -126,24 +148,28 @@ export default class ArmCannon {
 				powerShot.shoot();
 				this.playSound(this.powerSoundResource);
 				this.coolDownTimer = this.powerBeamTimer;
+                this.recoil.set(0.1, { duration: 100 });
 				break;
 			case BeamType.Wave:
 				const waveShot = new WaveShot(this);
 				waveShot.shoot();
 				this.playSound(this.waveSoundResource);
 				this.coolDownTimer = this.waveBeamTimer;
+                this.recoil.set(0.1, { duration: 100 });
 				break;
 			case BeamType.Ice:
 				const iceShot = new IceShot(this);
 				iceShot.shoot();
 				this.playSound(this.iceSoundResource);
 				this.coolDownTimer = this.iceBeamTimer;
+                this.recoil.set(0.1, { duration: 100 });
 				break;
 			case BeamType.Plasma:
 				const plasmaShot = new PlasmaShot(this);
 				plasmaShot.shoot();
 				this.playSound(this.plasmaSoundResource);
 				this.coolDownTimer = this.plasmaBeamTimer;
+                this.recoil.set(0.25, { duration: 100 });
 				break;
 		}
 	}
@@ -155,13 +181,39 @@ export default class ArmCannon {
 		sound.play();
 	}
 
+    setMaterials(materials) {
+        let i = 0;
+        this.model.traverse(child => {
+            if (child.isMesh) {
+                child.material = materials[i];
+                i++;
+            }
+        })
+    }
+
+    setMaterial(material) {
+        this.model.traverse(child => {
+            if (child.isMesh) {
+                child.material = material;
+            }
+        })
+    }
+
+    /* 
+        Update
+    */
+
 	update() {
 		this.rotation.set({
 			x: -this.$lookMovement.x * this.movementMax,
 			y: -this.$lookMovement.y * this.movementMax
 		});
 
+        this.lastShotDelta = (this.time.run - this.lastShotTime) / 1000;
+		if (this.lastShotDelta >= this.coolDownTimer / 2) this.recoil.set(0);
+
 		// Arm cannon
+		this.model.position.z = this.position.z - this.$recoil;
 		this.model.rotation.x = this.$rotation.x;
 		this.model.rotation.y = this.$rotation.y;
 	}

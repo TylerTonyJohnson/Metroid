@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 export default class BetaMetroid {
 	constructor(experience) {
 		this.experience = experience;
@@ -9,7 +11,7 @@ export default class BetaMetroid {
 		this.debug = this.experience.debug;
 
 		// Setup
-		this.resource = this.resources.items.betaMetroidGLB;
+		this.setStores();
 		this.setModel();
 		this.setMovement();
 
@@ -19,7 +21,32 @@ export default class BetaMetroid {
 		}
 	}
 
+	/* 
+		Setup
+	*/
+
+	setStores() {
+		currentVisor.subscribe((value) => {
+            if (!this.model) return;
+
+            // Set material based on visor
+            switch (value) {
+                case VisorType.Combat:
+                case VisorType.Scan:
+                    this.setMaterials(this.world.betaMetroidCombatMaterials);
+                    break;
+                case VisorType.Thermal:
+                    this.setMaterial(this.world.thermalHotMaterial);
+                    break;
+                case VisorType.Xray:
+                    // materials = this.world.armCannonCombatMaterials;
+                    break;
+            }
+		});
+	}
+
 	setModel() {
+		this.resource = this.resources.items.betaMetroidGLB;
 		// Set internal variables
 		this.position = new THREE.Vector3(0, 0, 0);
 		this.scale = new THREE.Vector3(6, 6, 6);
@@ -54,6 +81,31 @@ export default class BetaMetroid {
 		this.squishAmplitude = 0.2;
 		this.squishSpeed = 2;
 	}
+
+/* 
+	Actions
+*/
+setMaterials(materials) {
+	let i = 0;
+	this.model.traverse(child => {
+		if (child.isMesh) {
+			child.material = materials[i];
+			i++;
+		}
+	})
+}
+
+setMaterial(material) {
+	this.model.traverse(child => {
+		if (child.isMesh) {
+			child.material = material;
+		}
+	})
+}
+
+/* 
+	Update
+*/
 
 	update() {
 		// Update internal time

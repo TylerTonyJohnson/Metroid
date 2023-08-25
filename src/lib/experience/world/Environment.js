@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 
 export default class Environment {
 	constructor(experience) {
@@ -15,7 +17,28 @@ export default class Environment {
 		// this.setAmbientLight();
 		this.setEnvironmentMap();
 		this.setSpotlights();
-		this.setFog();
+		this.setFogs();
+		this.setStores();
+	}
+
+	/* Setup */
+	setStores() {
+		currentVisor.subscribe((value) => {
+
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.setFog(this.combatFog);
+					break;
+				case VisorType.Thermal:
+					this.setFog(this.thermalFog);
+					break;
+				case VisorType.Xray:
+					// materials = this.world.armCannonCombatMaterials;
+					break;
+			}
+		});
 	}
 
 	setEnvironmentMap() {
@@ -36,17 +59,17 @@ export default class Environment {
 		this.scene.background = this.environmentMap.texture;
 		this.scene.backgroundIntensity = 3;
 
-		this.environmentMap.updateMaterial = () => {
-			this.scene.traverse((child) => {
-				if (child.isMesh && child.material.isMeshStandardMaterial) {
-					child.material.envMap = this.environmentMap.texture;
-					child.material.envMapIntensity = this.environmentMap.intensity;
-					child.material.needsUpdate = true;
-				}
-			});
-		};
+		// this.environmentMap.updateMaterial = () => {
+		// 	this.scene.traverse((child) => {
+		// 		if (child.isMesh && child.material.isMeshStandardMaterial) {
+		// 			child.material.envMap = this.environmentMap.texture;
+		// 			child.material.envMapIntensity = this.environmentMap.intensity;
+		// 			child.material.needsUpdate = true;
+		// 		}
+		// 	});
+		// };
 
-		this.environmentMap.updateMaterial();
+		// this.environmentMap.updateMaterial();
 	}
 
 	setPointLights() {
@@ -138,8 +161,17 @@ export default class Environment {
 		this.scene.add(this.ambientLight);
 	}
 
-	setFog() {
-		this.fog = new THREE.Fog('orange', 0, 200);
-		this.scene.fog = this.fog;
+	setFogs() {
+		this.combatFog = new THREE.Fog('orange', 0, 200);
+		this.thermalFog = new THREE.Fog('#120618', 0, 1000);
+		// this.scene.fog = this.fog;
+	}
+
+	/* 
+		Actions
+	*/
+	setFog(fog) {
+		console.log('setting fog');
+		this.scene.fog = fog;
 	}
 }
