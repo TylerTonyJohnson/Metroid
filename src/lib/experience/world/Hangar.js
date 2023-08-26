@@ -29,13 +29,19 @@ export default class Hangar {
             switch (value) {
                 case VisorType.Combat:
                 case VisorType.Scan:
-                    this.setMaterials(this.world.hangarCombatMaterials);
+                    this.setHangarMaterials(this.world.hangarCombatMaterials);
+					this.setTubeMaterial(this.tubeCombatMaterial);
+					this.setWindowMaterial(this.windowCombatMaterial);
                     break;
                 case VisorType.Thermal:
-                    this.setMaterial(this.world.thermalColdMaterial);
+                    this.setHangarMaterial(this.world.thermalColdMaterial);
+					this.setTubeMaterial(this.world.thermalGlassMaterial);
+					this.setWindowMaterial(this.world.thermalGlassMaterial);
                     break;
                 case VisorType.Xray:
-                    // materials = this.world.armCannonCombatMaterials;
+					this.setHangarMaterial(this.world.xraySolidMaterial);
+					this.setTubeMaterial(this.world.thermalGlassMaterial);
+					this.setWindowMaterial(this.world.thermalGlassMaterial);
                     break;
             }
 		});
@@ -63,7 +69,7 @@ export default class Hangar {
 
 		// Glass Tube
 		const tubeGeo = new THREE.CylinderGeometry(6, 6, 20, 24);
-		const tubeMat = new THREE.MeshPhysicalMaterial({
+		this.tubeCombatMaterial = new THREE.MeshPhysicalMaterial({
 			color: 'gray',
 			// side: THREE.DoubleSide,
 			transparent: true,
@@ -77,17 +83,17 @@ export default class Hangar {
 			// depthWrite: false,
 			// depthTest: false,
 		});
-		const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
-		tubeMesh.position.set(0, 0, 0);
-		tubeMesh.rotation.y = Math.PI / 12;
+		this.tubeMesh = new THREE.Mesh(tubeGeo, this.tubeCombatMaterial);
+		this.tubeMesh.position.set(0, 0, 0);
+		this.tubeMesh.rotation.y = Math.PI / 12;
 		// tubeMesh.renderOrder = 1;
-		this.scene.add(tubeMesh);
-		this.world.lookableMeshes.push(tubeMesh);
-		this.world.shootableMeshes.push(tubeMesh);
+		this.scene.add(this.tubeMesh);
+		this.world.lookableMeshes.push(this.tubeMesh);
+		this.world.shootableMeshes.push(this.tubeMesh);
 
 		// Window
 		const windowGeo = new THREE.BoxGeometry(1, 26, 50);
-		const windowMat = new THREE.MeshPhysicalMaterial({
+		this.windowCombatMaterial = new THREE.MeshPhysicalMaterial({
 			// color: 'gray',
 			map: this.resources.items.frostedGlassColor,
 			// normalMap: this.resources.items.frostedGlassNormal,
@@ -102,11 +108,11 @@ export default class Hangar {
 			ior: 1.5,
 			thickness: 0.2,
 		});
-		const windowMesh = new THREE.Mesh(windowGeo, windowMat);
-		windowMesh.position.set(58, 3, 0);
-		this.scene.add(windowMesh);
-		this.world.lookableMeshes.push(windowMesh);
-		this.world.shootableMeshes.push(windowMesh);
+		this.windowMesh = new THREE.Mesh(windowGeo, this.windowCombatMaterial);
+		this.windowMesh.position.set(58, 3, 0);
+		this.scene.add(this.windowMesh);
+		this.world.lookableMeshes.push(this.windowMesh);
+		this.world.shootableMeshes.push(this.windowMesh);
 	}
 
 	setBodies() {
@@ -166,7 +172,7 @@ export default class Hangar {
 	/* 
 		Actions
 	*/
-	setMaterials(materials) {
+	setHangarMaterials(materials) {
         let i = 0;
         this.model.traverse(child => {
             if (child.isMesh) {
@@ -176,11 +182,18 @@ export default class Hangar {
         })
     }
 
-    setMaterial(material) {
+    setHangarMaterial(material) {
         this.model.traverse(child => {
             if (child.isMesh) {
                 child.material = material;
             }
         })
     }
+
+	setTubeMaterial(material) {
+		this.tubeMesh.material = material;
+	}
+	setWindowMaterial(material) {
+		this.windowMesh.material = material;
+	}
 }

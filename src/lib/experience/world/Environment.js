@@ -30,12 +30,15 @@ export default class Environment {
 				case VisorType.Combat:
 				case VisorType.Scan:
 					this.setFog(this.combatFog);
+					this.scene.backgroundIntensity = 3;
 					break;
 				case VisorType.Thermal:
 					this.setFog(this.thermalFog);
+					this.scene.backgroundIntensity = 0;
 					break;
 				case VisorType.Xray:
-					// materials = this.world.armCannonCombatMaterials;
+					this.setFog(this.xrayFog);
+					this.scene.backgroundIntensity = 0;
 					break;
 			}
 		});
@@ -164,14 +167,13 @@ export default class Environment {
 	setFogs() {
 		this.combatFog = new THREE.Fog('orange', 0, 200);
 		this.thermalFog = new THREE.Fog('#120618', 0, 1000);
-		// this.scene.fog = this.fog;
+		this.xrayFog = new THREE.Fog('#01011B', 0, 20);
 	}
 
 	/* 
 		Actions
 	*/
 	setFog(fog) {
-		console.log('setting fog');
 		this.scene.fog = fog;
 	}
 }

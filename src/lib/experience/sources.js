@@ -97,6 +97,16 @@ export default [
 		type: 'visibleTexture',
 		path: 'Thermal Cold Matcap 1x.png'
 	},
+	{
+		name: 'thermalHotTexture',
+		type: 'visibleTexture',
+		path: 'Thermal Hot Matcap 1x.png'
+	},
+	{
+		name: 'xraySolidTexture',
+		type: 'visibleTexture',
+		path: 'Xray Solid Texture 1x.png'
+	},
 	/* 
         Sounds
     */

@@ -16,7 +16,7 @@ export default class Renderer {
 
 		// Setup
 		this.setInstance();
-        this.setComposer();
+		this.setComposer();
 		this.setStores();
 	}
 
@@ -29,19 +29,17 @@ export default class Renderer {
 		});
 
 		currentVisor.subscribe((value) => {
-            // Set material based on visor
-            switch (value) {
-                case VisorType.Combat:
-                case VisorType.Scan:
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
 					this.afterimagePass.enabled = false;
-                    break;
-                case VisorType.Thermal:
-                    this.afterimagePass.enabled = true;
-                    break;
-                case VisorType.Xray:
-                    
-                    break;
-            }
+					break;
+				case VisorType.Thermal:
+				case VisorType.Xray:
+					this.afterimagePass.enabled = true;
+					break;
+			}
 		});
 	}
 
@@ -61,24 +59,24 @@ export default class Renderer {
 		this.instance.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
 	}
 
-    setComposer() {
-        this.composer = new EffectComposer(this.instance);
-        this.composer.setSize(this.sizes.width, this.sizes.height);
+	setComposer() {
+		this.composer = new EffectComposer(this.instance);
+		this.composer.setSize(this.sizes.width, this.sizes.height);
 		this.composer.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
 
-        const renderPass = new RenderPass(this.scene, this.camera);
-        this.composer.addPass(renderPass);
+		const renderPass = new RenderPass(this.scene, this.camera);
+		this.composer.addPass(renderPass);
 
-        this.afterimagePass = new AfterimagePass();
+		this.afterimagePass = new AfterimagePass();
 		this.afterimagePass.uniforms['damp'] = { value: 0.8 };
-        this.composer.addPass(this.afterimagePass);
-    }
+		this.composer.addPass(this.afterimagePass);
+	}
 
 	resize() {
 		this.instance.setSize(this.sizes.width, this.sizes.height);
 		this.instance.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
 
-        this.composer.setSize(this.sizes.width, this.sizes.height);
+		this.composer.setSize(this.sizes.width, this.sizes.height);
 		this.composer.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
 		this.update();
 	}
@@ -87,11 +85,11 @@ export default class Renderer {
 		if (this.$appState === AppState.Loading) loadPercent.set(90);
 
 		// this.instance.render(this.scene, this.camera);
-        this.composer.render(this.scene, this.camera);
+		this.composer.render(this.scene, this.camera);
 
 		if (this.$appState === AppState.Loading) {
 			loadPercent.set(100);
-            appState.set(AppState.Ready);
+			appState.set(AppState.Ready);
 		}
 	}
 }

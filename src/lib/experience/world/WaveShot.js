@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 
 export default class WaveShot {
 	static fireVelocity = 8;
 	static radiusMin = 0.1;
 	static radiusMax = 0.3;
-    static waveSpeed = 20;
+	static waveSpeed = 20;
 
 	constructor(armCannon) {
 		// References
@@ -23,9 +25,31 @@ export default class WaveShot {
 
 		// Spawn
 		this.setMesh();
+		this.setStores();
 		this.setBody();
 		this.spawn();
 		this.setRay();
+	}
+
+	// Setup
+	setStores() {
+		currentVisor.subscribe((value) => {
+			if (!this.group) return;
+
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.meshes.forEach(mesh => mesh.material = this.armCannon.waveShotCombatMaterial);
+					break;
+				case VisorType.Thermal:
+					this.meshes.forEach(mesh => mesh.material = this.world.thermalHotMaterial);
+					break;
+				case VisorType.Xray:
+					this.meshes.forEach(mesh => mesh.material = this.world.xrayTransparentMaterial);
+					break;
+			}
+		});
 	}
 
 	setMesh() {
@@ -76,6 +100,10 @@ export default class WaveShot {
 		this.rayCaster = new THREE.Raycaster(this.spawnPosition, this.spawnDirection, 0, 100);
 	}
 
+	/* 
+    Actions
+*/
+
 	shoot() {
 		// Set velocity to shoot velocity
 		this.body.velocity.set(
@@ -95,6 +123,20 @@ export default class WaveShot {
 		// Play the sound
 	}
 
+	// setMaterial(material) {
+	// 	this.group.traverse((child) => {
+	// 		if (child.isMesh) {
+    //             console.log(material);
+	// 			child.material = material;
+    //             child.material.needsUpdate = true;
+	// 		}
+	// 	});
+	// }
+
+	/* 
+        Update
+    */
+
 	update() {
 		this.group.position.copy(this.body.position);
 		this.group.updateMatrixWorld();
@@ -105,7 +147,8 @@ export default class WaveShot {
 
 		// Update pulsing
 		this.radius =
-			(WaveShot.radiusMax - WaveShot.radiusMin) * (Math.sin(WaveShot.waveSpeed * this.time.run / 1000) + 1) +
+			(WaveShot.radiusMax - WaveShot.radiusMin) *
+				(Math.sin((WaveShot.waveSpeed * this.time.run) / 1000) + 1) +
 			WaveShot.radiusMin;
 
 		for (let i = 0; i < this.meshes.length; i++) {

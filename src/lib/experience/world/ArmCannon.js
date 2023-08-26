@@ -44,7 +44,7 @@ export default class ArmCannon {
                     this.setMaterial(this.world.thermalHotMaterial);
                     break;
                 case VisorType.Xray:
-                    // materials = this.world.armCannonCombatMaterials;
+                    this.setMaterial(this.world.xrayTransparentMaterial);
                     break;
             }
 
@@ -89,27 +89,27 @@ export default class ArmCannon {
 		// Power Beam
 		const powerShotResource = this.resources.items.powerShotTexture;
 		const powerShotGeo = new THREE.SphereGeometry(0.2);
-		const powerShotMat = new THREE.MeshMatcapMaterial({ matcap: powerShotResource });
-		this.powerShotMesh = new THREE.Mesh(powerShotGeo, powerShotMat);
+		this.powerShotCombatMaterial = new THREE.MeshMatcapMaterial({ matcap: powerShotResource });
+		this.powerShotMesh = new THREE.Mesh(powerShotGeo, this.powerShotCombatMaterial);
 
 		// Wave Beam
 		const waveShotResource = this.resources.items.waveShotTexture;
 		const waveShotGeo = new THREE.SphereGeometry(0.2);
-		const waveShotMat = new THREE.MeshMatcapMaterial({ matcap: waveShotResource });
-		this.waveShotMesh = new THREE.Mesh(waveShotGeo, waveShotMat);
+		this.waveShotCombatMaterial = new THREE.MeshMatcapMaterial({ matcap: waveShotResource });
+		this.waveShotMesh = new THREE.Mesh(waveShotGeo, this.waveShotCombatMaterial);
 
 		// Ice Beam
 		const iceShotResource = this.resources.items.iceShotTexture;
 		const iceShotGeo = new THREE.ConeGeometry(0.6, 2, 32);
 		iceShotGeo.rotateX(-Math.PI / 2);
-		const iceShotMat = new THREE.MeshMatcapMaterial({ matcap: iceShotResource });
-		this.iceShotMesh = new THREE.Mesh(iceShotGeo, iceShotMat);
+		this.iceShotCombatMaterial = new THREE.MeshMatcapMaterial({ matcap: iceShotResource });
+		this.iceShotMesh = new THREE.Mesh(iceShotGeo, this.iceShotCombatMaterial);
 
 		// Plasma Beam
 		const plasmaShotResource = this.resources.items.plasmaShotTexture;
 		const plasmaShotGeo = new THREE.SphereGeometry(0.2);
-		const plasmaShotMat = new THREE.MeshMatcapMaterial({ matcap: plasmaShotResource });
-		this.plasmaShotMesh = new THREE.Mesh(plasmaShotGeo, plasmaShotMat);
+		this.plasmaShotCombatMaterial = new THREE.MeshMatcapMaterial({ matcap: plasmaShotResource });
+		this.plasmaShotMesh = new THREE.Mesh(plasmaShotGeo, this.plasmaShotCombatMaterial);
 	}
 
 	setBeamSounds() {

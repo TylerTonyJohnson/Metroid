@@ -71,7 +71,7 @@ export default class Metroid {
                     this.setMaterial(this.world.thermalHotMaterial);
                     break;
                 case VisorType.Xray:
-                    // materials = this.world.armCannonCombatMaterials;
+                    this.setMaterial(this.world.xrayTransparentMaterial);
                     break;
             }
 		});

@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 
 export default class PlasmaShot {
 	static fireVelocity = 20;
@@ -9,23 +11,45 @@ export default class PlasmaShot {
 		this.armCannon = armCannon;
 		this.samus = this.armCannon.samus;
 		this.scene = this.samus.scene;
-        this.world = this.samus.world;
+		this.world = this.samus.world;
 		this.physicsWorld = this.samus.world.physicsWorld;
 		this.time = this.samus.experience.time;
 
 		// Config
 		this.mesh = this.armCannon.plasmaShotMesh.clone();
-        this.mesh.quaternion.copy(this.samus.group.quaternion);
-		
-        // Tick event
+		this.mesh.quaternion.copy(this.samus.group.quaternion);
+
+		// Tick event
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
 
 		// Spawn
+        this.setStores();
 		this.setBody();
 		this.spawn();
-        this.setRay();
+		this.setRay();
+	}
+
+	// Setup
+	setStores() {
+		currentVisor.subscribe((value) => {
+			if (!this.mesh) return;
+
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.mesh.material = this.armCannon.plasmaShotCombatMaterial;
+					break;
+				case VisorType.Thermal:
+					this.mesh.material = this.world.thermalHotMaterial;
+					break;
+				case VisorType.Xray:
+					this.mesh.material = this.world.xrayTransparentMaterial;
+					break;
+			}
+		});
 	}
 
 	setBody() {
@@ -51,48 +75,43 @@ export default class PlasmaShot {
 		this.scene.add(this.mesh);
 		this.physicsWorld.addBody(this.body);
 
-        // this.distanceThreshold = 10;
+		// this.distanceThreshold = 10;
 	}
 
-    setRay() {
-        this.rayCaster = new THREE.Raycaster(
-            this.spawnPosition,
-            this.spawnDirection,
-            0,
-            100
-        );
-    }
+	setRay() {
+		this.rayCaster = new THREE.Raycaster(this.spawnPosition, this.spawnDirection, 0, 100);
+	}
 
-    shoot() {
-        // Set velocity to shoot velocity
-        this.body.velocity.set(
-            this.spawnDirection.x * PlasmaShot.fireVelocity,
-            this.spawnDirection.y * PlasmaShot.fireVelocity,
-            this.spawnDirection.z * PlasmaShot.fireVelocity
-        );
+	shoot() {
+		// Set velocity to shoot velocity
+		this.body.velocity.set(
+			this.spawnDirection.x * PlasmaShot.fireVelocity,
+			this.spawnDirection.y * PlasmaShot.fireVelocity,
+			this.spawnDirection.z * PlasmaShot.fireVelocity
+		);
 
-        // Set distance at which to delete the shot
-        const intersects = this.rayCaster.intersectObjects(this.world.shootableMeshes, false);
-        if (intersects.length) {
-            this.distanceThreshold = intersects[0].distance;
-        } else {
-            this.distanceThreshold = 100;
-        }
+		// Set distance at which to delete the shot
+		const intersects = this.rayCaster.intersectObjects(this.world.shootableMeshes, false);
+		if (intersects.length) {
+			this.distanceThreshold = intersects[0].distance;
+		} else {
+			this.distanceThreshold = 70;
+		}
 
-        // Play the sound
-    }
+		// Play the sound
+	}
 
 	update() {
 		this.mesh.position.copy(this.body.position);
-        this.mesh.scale.z += PlasmaShot.fireVelocity * 40 * this.time.delta / 1000;
-        
-        // Get distance from start
-        const distance = this.mesh.position.distanceTo(this.spawnPosition);
-        if (distance > this.distanceThreshold) this.destroy();
+		this.mesh.scale.z += (PlasmaShot.fireVelocity * 40 * this.time.delta) / 1000;
+
+		// Get distance from start
+		const distance = this.mesh.position.distanceTo(this.spawnPosition);
+		if (distance > this.distanceThreshold) this.destroy();
 	}
 
-    destroy() {
-        this.scene.remove(this.mesh);
-        this.physicsWorld.removeBody(this.body);
-    }
+	destroy() {
+		this.scene.remove(this.mesh);
+		this.physicsWorld.removeBody(this.body);
+	}
 }

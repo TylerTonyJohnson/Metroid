@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 
 export default class IceShot {
 	static fireVelocity = 12;
@@ -23,9 +25,31 @@ export default class IceShot {
 		});
 
 		// Spawn
+        this.setStores();
 		this.setBody();
 		this.spawn();
         this.setRay();
+	}
+
+    // Setup
+    setStores() {
+		currentVisor.subscribe((value) => {
+			if (!this.mesh) return;
+
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.mesh.material = this.armCannon.iceShotCombatMaterial;
+					break;
+				case VisorType.Thermal:
+					this.mesh.material = this.world.thermalColdMaterial;
+					break;
+				case VisorType.Xray:
+					this.mesh.material = this.world.xrayTransparentMaterial;
+					break;
+			}
+		});
 	}
 
 	setBody() {

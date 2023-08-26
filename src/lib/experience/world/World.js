@@ -136,7 +136,8 @@ export default class World {
 			Thermal Materials
 		*/
 		this.thermalHotMaterial = new THREE.MeshMatcapMaterial({
-			matcap: this.resources.items.powerShotTexture,
+			matcap: this.resources.items.thermalHotTexture,
+			fog: false,
 			// transparent: false,
 			// depthWrite: false,
 			// depthTest: false,
@@ -146,6 +147,29 @@ export default class World {
 			matcap: this.resources.items.thermalColdTexture,
 			
 		});
+
+		this.thermalGlassMaterial = new THREE.MeshMatcapMaterial({
+			matcap: this.resources.items.thermalColdTexture,
+			transparent: true,
+			opacity: 0.3,
+		})
+
+		/* 
+			Xray Materials
+		*/
+
+		this.xrayTransparentMaterial = new THREE.MeshBasicMaterial({ 
+			color: '#C9E8E8',
+			transparent: true,
+			opacity: 0.75,
+			// depthWrite: false,
+			depthTest: false,
+			fog: false,
+		});
+
+		this.xraySolidMaterial = new THREE.MeshBasicMaterial({
+			color: '#333853',
+		})
 	}
 
 	setDebug() {
@@ -176,7 +200,6 @@ export default class World {
 		this.physicsWorld.step(this.timestep, this.time.delta, 3);
 
 		if (this.samus) this.samus.update();
-		if (this.floatCreature) this.floatCreature.update();
 		if (this.betaMetroid) this.betaMetroid.update();
 		for (const metroid of this.metroids) {
 			metroid.update();
