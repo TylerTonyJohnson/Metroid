@@ -80,6 +80,9 @@ export default class Metroid {
 	setModel() {
 
 		this.resource = this.resources.items.metroidGLB;
+		this.resource.scene.children[0].position.set(0.35, 0, 0);
+
+		// console.log(this.resource.scene);
 
 		this.model = this.resource.scene.clone();
 		this.model.scale.set(2, 2, 2);

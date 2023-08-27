@@ -4,6 +4,7 @@ import FirstPersonControls from '../FirstPersonControls.js';
 import { tweened } from 'svelte/motion';
 import { lookMovement, lookDistance } from '../../stores.js';
 import ArmCannon from './ArmCannon.js';
+import Seeker from './Seeker.js';
 
 export default class Samus {
 	constructor(experience) {
@@ -24,6 +25,7 @@ export default class Samus {
 		this.setArmCannon();
 		this.setBody();
 		this.setControls();
+		this.setSeeker();
 		this.takeOver();
 
 		// Stores
@@ -41,6 +43,10 @@ export default class Samus {
 			this.resizeCamera();
 		});
 	}
+
+	/* 
+		Setup
+	*/
 
 	setGroup() {
 		this.group = new THREE.Group();
@@ -103,12 +109,20 @@ export default class Samus {
 		this.raycaster = new THREE.Raycaster();
 	}
 
+	/* 
+		Actions
+	*/
+
 	takeOver() {
 		this.experience.renderer.camera = this.camera;
 	}
 
 	setControls() {
 		this.controls = new FirstPersonControls(this.experience, this);
+	}
+
+	setSeeker() {
+		this.seeker = new Seeker(this);
 	}
 
 	resizeCamera() {
@@ -120,26 +134,36 @@ export default class Samus {
 		this.armCannon = new ArmCannon(this);
 	}
 
+/* 
+	Update
+*/
+
 	update() {
 		// Body and Mesh
 		this.controls.update();
 		this.group.position.copy(this.body.position);
 
+		// Update others
 		this.armCannon.update();
-		this.updateRayCaster();
+		this.updateSeeker();
+		// this.updateRayCaster();
 	}
 
-	updateRayCaster() {
-		// Ray caster
-		this.raycaster.setFromCamera(new THREE.Vector2(), this.camera);
-        const intersects = this.raycaster.intersectObjects(this.world.lookableMeshes, false);
-        
-        if (intersects.length > 0) {
-            lookDistance.set(intersects[0].distance);
-        } else {
-            lookDistance.set(Infinity);
-        }
+	updateSeeker() {
+		this.seeker.update();
 	}
+
+	// updateRayCaster() {
+	// 	// Ray caster
+	// 	this.raycaster.setFromCamera(new THREE.Vector2(), this.camera);
+    //     const intersects = this.raycaster.intersectObjects(this.world.lookableMeshes, false);
+        
+    //     if (intersects.length > 0) {
+    //         lookDistance.set(intersects[0].distance);
+    //     } else {
+    //         lookDistance.set(Infinity);
+    //     }
+	// }
 
 	setDebug() {
 		this.debugFolder = this.debug.gui.addFolder('Samus');

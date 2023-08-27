@@ -1,13 +1,11 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
-import { currentVisor } from '../../stores';
-import { VisorType } from '../../enums';
 import Environment from './Environment';
 import Hangar from './Hangar';
 import BetaMetroid from './BetaMetroid';
 import Metroid from './Metroid';
-import Samus from './Samus';
+import Samus from '../samus/Samus';
 
 export default class World {
 	constructor(experience) {
@@ -17,7 +15,6 @@ export default class World {
 
 		// Set data
 		this.setMeshArrays();
-		// this.setStores();
 
 		// Create render scene
 		this.scene = new THREE.Scene();
@@ -38,7 +35,7 @@ export default class World {
 			this.samus = new Samus(this.experience);
 			// this.floatCreature = new FloatCreature(this.experience);
 			this.metroids = [];
-			for (let i = 0; i < 20; i++) {
+			for (let i = 0; i < 10; i++) {
 				const metroid = new Metroid(this.experience);
 				this.metroids.push(metroid);
 			}
@@ -51,7 +48,7 @@ export default class World {
 	}
 
 	/* 
-		Setup Functions
+		Setup
 	*/
 	setMeshArrays() {
 		this.lookableMeshes = [];
@@ -59,24 +56,6 @@ export default class World {
 		this.targetableMeshes = [];
 		this.scannableMeshes = [];
 	}
-
-	// setStores() {
-	// 	currentVisor.subscribe((value) => {
-	// 		switch (value) {
-	// 			case VisorType.Combat:
-	// 			case VisorType.Scan:
-	// 				console.log('Kaka');
-	// 				break;
-	// 			case VisorType.Thermal:
-	// 				console.log('doodie');
-	// 				this.changeMaterials();
-	// 				break;
-	// 			case VisorType.Xray:
-	// 				console.log('poopie');
-	// 				break;
-	// 		}
-	// 	});
-	// }
 
 	setPhysicsWorld() {
 		this.physicsWorld = new CANNON.World();
@@ -197,8 +176,10 @@ export default class World {
 		Update
 	*/
 	update() {
+		// Update physics world
 		this.physicsWorld.step(this.timestep, this.time.delta, 3);
 
+		// Update meshes
 		if (this.samus) this.samus.update();
 		if (this.betaMetroid) this.betaMetroid.update();
 		for (const metroid of this.metroids) {

@@ -2,7 +2,7 @@
 	import { isRendering, isLockable, isLocked, closestSeekerPosition } from '../../../lib/stores';
 	import { mapRange } from '../../../lib/math';
 
-	let opacity;
+	let opacity = 1;
 
 	$: aspect = window.innerWidth / window.innerHeight;
 	$: matchingWidth = 100 / aspect;
@@ -11,15 +11,15 @@
 
 	$: x = (100 * ($closestSeekerPosition.x + 1)) / 2;
 	$: y = 100 * (1 - ($closestSeekerPosition.y + 1) / 2);
-	$: {
-		switch (true) {
-			case x < matchMin:
-				opacity = mapRange(x, 0, matchMin, 0, 1);
-				break;
-			case x > matchMax:
-				opacity = mapRange(x, matchMax, 100, 1, 0);
-		}
-	}
+	// $: {
+	// 	switch (true) {
+	// 		case x < matchMin:
+	// 			opacity = mapRange(x, 0, matchMin, 0, 1);
+	// 			break;
+	// 		case x > matchMax:
+	// 			opacity = mapRange(x, matchMax, 100, 1, 0);
+	// 	}
+	// }
 </script>
 
 {#if $isLockable}

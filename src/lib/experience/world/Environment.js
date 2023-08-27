@@ -167,7 +167,7 @@ export default class Environment {
 	setFogs() {
 		this.combatFog = new THREE.Fog('orange', 0, 200);
 		this.thermalFog = new THREE.Fog('#120618', 0, 1000);
-		this.xrayFog = new THREE.Fog('#01011B', 0, 20);
+		this.xrayFog = new THREE.Fog('#01011B', 0, 30);
 	}
 
 	/* 
