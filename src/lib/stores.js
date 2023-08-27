@@ -71,13 +71,16 @@ export const isScanned = derived(scanProgress, ($scanProgress) =>
 // Look variables
 export const isZoomed = writable(false);
 export const isLockable = writable(true);
-export const seekerPositions = writable([]);	// An array of positions
-export const closestSeekerPosition = writable({});	// The closest position
 export const isLocked = writable(false);
 export const lookMovement = writable({ x: 0, y: 0 });
 export const lookPosition = writable({ x: 0, y: 0 });
-export const vertLook = writable(50);	// Gonna get rid of these
-export const horzLook = writable(50);	// Gonna get rid of these
+
+// Seeker
+export const closestSeekerPosition = writable({});	// The closest position
+export const seekerPositions = writable([]);	// An array of positions
+
+// export const vertLook = writable(50);	// Gonna get rid of these
+// export const horzLook = writable(50);	// Gonna get rid of these
 
 
 export const readoutShow = writable(false);
