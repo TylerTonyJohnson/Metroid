@@ -1,6 +1,6 @@
 <script>
 	import { AppState } from '../../../lib/enums';
-	import { appState, isScanning, scanProgress, isScanned } from '../../../lib/stores';
+	import { appState, isScanning, scanProgress } from '../../../lib/stores';
 </script>
 
 <div id="frame">

@@ -6,6 +6,10 @@ import Hangar from './Hangar';
 import BetaMetroid from './BetaMetroid';
 import Metroid from './Metroid';
 import Samus from '../samus/Samus';
+import MissilePickup from './MissilePickup';
+import DamagePickup from './DamagePickup';
+import HealthPickup from './HealthPickup';
+import EnergyTank from './EnergyTank';
 
 export default class World {
 	constructor(experience) {
@@ -14,7 +18,7 @@ export default class World {
 		this.debug = this.experience.debug;
 
 		// Set data
-		this.setMeshArrays();
+		this.setWorldObjectArrays();
 
 		// Create render scene
 		this.scene = new THREE.Scene();
@@ -31,17 +35,28 @@ export default class World {
 		// Wait for resources to load
 		this.resources = this.experience.resources;
 		this.resources.addEventListener('loaded', () => {
-			// Setup
+			
+			// Samus
 			this.samus = new Samus(this.experience);
-			// this.floatCreature = new FloatCreature(this.experience);
+			
+			// Metroids
 			this.metroids = [];
 			for (let i = 0; i < 10; i++) {
 				const metroid = new Metroid(this.experience);
 				this.metroids.push(metroid);
 			}
 			this.betaMetroid = new BetaMetroid(this.experience);
+
+			// Hangar
 			this.hangar = new Hangar(this.experience);
 
+			// Damage ball
+			const damagePickup = new DamagePickup(this);
+			const healthPickup = new HealthPickup(this);
+			const energyTank = new EnergyTank(this);
+			const missilePickup = new MissilePickup(this);
+
+			// Environment
 			this.setMaterials();
 			this.environment = new Environment(this.experience);
 		});
@@ -50,11 +65,13 @@ export default class World {
 	/* 
 		Setup
 	*/
-	setMeshArrays() {
+	setWorldObjectArrays() {
 		this.lookableMeshes = [];
 		this.shootableMeshes = [];
 		this.targetableMeshes = [];
 		this.scannableMeshes = [];
+		this.objectsToTrigger = [];
+		this.bodiesToRemove = [];
 	}
 
 	setPhysicsWorld() {
@@ -64,7 +81,7 @@ export default class World {
 		const solver = new CANNON.GSSolver();
 		solver.iterations = 5;
 		solver.tolerance = 0.1;
-		this.physicsWorld.solver = new CANNON.SplitSolver(solver);
+		// this.physicsWorld.solver = new CANNON.SplitSolver(solver);
 		this.physicsWorld.gravity.set(0, -6, 0);
 
 		const defaultPhysicsMaterial = new CANNON.Material('default');
@@ -73,7 +90,8 @@ export default class World {
 			defaultPhysicsMaterial,
 			{
 				friction: 0,
-				restitution: 0
+				restitution: 0,
+				contactEquationStiffness: 1e9,
 			}
 		);
 		this.physicsWorld.defaultContactMaterial = this.defaultContactMaterial;
@@ -93,7 +111,9 @@ export default class World {
 		// Metroid
 		this.metroidCombatMaterials = [];
 		this.resources.items.metroidGLB.scene.traverse((child) => {
-			if (child.isMesh) this.metroidCombatMaterials.push(child.material);
+			if (child.isMesh) {
+				this.metroidCombatMaterials.push(child.material);
+			}
 		});
 
 		// Beta Metroid
@@ -120,35 +140,33 @@ export default class World {
 			// transparent: false,
 			// depthWrite: false,
 			// depthTest: false,
-
 		});
 		this.thermalColdMaterial = new THREE.MeshMatcapMaterial({
-			matcap: this.resources.items.thermalColdTexture,
-			
+			matcap: this.resources.items.thermalColdTexture
 		});
 
 		this.thermalGlassMaterial = new THREE.MeshMatcapMaterial({
 			matcap: this.resources.items.thermalColdTexture,
 			transparent: true,
-			opacity: 0.3,
-		})
+			opacity: 0.3
+		});
 
 		/* 
 			Xray Materials
 		*/
 
-		this.xrayTransparentMaterial = new THREE.MeshBasicMaterial({ 
+		this.xrayTransparentMaterial = new THREE.MeshBasicMaterial({
 			color: '#C9E8E8',
 			transparent: true,
 			opacity: 0.75,
 			// depthWrite: false,
 			depthTest: false,
-			fog: false,
+			fog: false
 		});
 
 		this.xraySolidMaterial = new THREE.MeshBasicMaterial({
-			color: '#333853',
-		})
+			color: '#333853'
+		});
 	}
 
 	setDebug() {
@@ -158,8 +176,11 @@ export default class World {
 	}
 
 	/* 
-	Actions
-*/
+		Actions
+	*/
+	build() {
+		
+	}
 
 	// changeMaterials() {
 	// 	const resource = this.resources.items.powerShotTexture;
@@ -176,6 +197,18 @@ export default class World {
 		Update
 	*/
 	update() {
+		// Trigger collided bodies
+		this.objectsToTrigger.forEach(object => {
+			object.trigger();
+		})
+		this.objectsToTrigger = [];
+
+		// Clear bodies
+		this.bodiesToRemove.forEach(body => {
+			this.physicsWorld.removeBody(body);
+		});
+		this.bodiesToRemove = [];
+		
 		// Update physics world
 		this.physicsWorld.step(this.timestep, this.time.delta, 3);
 

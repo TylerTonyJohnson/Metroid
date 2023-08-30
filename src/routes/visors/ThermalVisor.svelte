@@ -31,7 +31,7 @@
 		left: 50%;
 		top: 50%;
 		translate: -50% -50%;
-		opacity: 50%;
+		/* opacity: 50%; */
 	}
 
 	#backdrop {

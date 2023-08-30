@@ -4,6 +4,7 @@ export class AppState {
     static Ready = new AppState('ready');
     static Running = new AppState('running');
     static Paused = new AppState('paused');
+    static ScanPaused = new AppState('scanPaused')
 }
 
 export class VisorType {
@@ -44,4 +45,12 @@ export class ScanningState {
     static None = new ScanningState('none');
     static Scanning = new ScanningState('scanning');
     static Complete = new ScanningState('complete');
+}
+
+export class BodyGroup {
+    static Samus = 1;
+    static Weapons = 2;
+    static Enemies = 4;
+    static Pickups = 8;
+    static Walls = 16;
 }

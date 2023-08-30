@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { currentVisor } from '../../stores';
-import { VisorType } from '../../enums';
+import { BodyGroup, VisorType } from '../../enums';
 
 export default class Hangar {
 	constructor(experience) {
@@ -117,6 +117,8 @@ export default class Hangar {
 
 	setBodies() {
 		this.body = new CANNON.Body({ type: CANNON.Body.STATIC });
+		this.body.collisionFilterGroup = BodyGroup.Walls;
+		this.body.collisionFilterMask = BodyGroup.Samus;
 
 		// Floors
 		this.addBox(new CANNON.Vec3(64, 1, 64), new CANNON.Vec3(-9, -9, 0));

@@ -1,20 +1,18 @@
 import * as THREE from 'three';
-import { closestSeekerPosition } from '../../stores';
+import { seekerPositions, closestSeekerPosition, isLockable } from '../../stores';
 
 export default class Seeker {
 	constructor(samus) {
 		// References
 		this.samus = samus;
 		this.world = this.samus.world;
+		this.time = this.world.time;
 		this.scene = this.samus.scene;
 		this.camera = this.samus.camera;
 		this.seekableMeshes = this.world.targetableMeshes;
 
 		// Setup
-		this.visibleMeshes = [];
-        this.projectedPositions = [];
-		this.closestMesh = null;
-        this.closestPosition = null;
+		this.setSeekerMeshes();
 		this.setMesh();
 		this.setFrustum();
 		// this.setRaycaster();
@@ -23,6 +21,13 @@ export default class Seeker {
 	/* 
         Setup
     */
+	setSeekerMeshes() {
+		this.visibleMeshes = [];
+		this.projectedPositions = [];
+		this.closestMesh = null;
+		this.closestPosition = null;
+		this.lerpAlpha = 0.1;
+	}
 
 	setMesh() {
 		const geometry = new THREE.SphereGeometry(1);
@@ -32,6 +37,7 @@ export default class Seeker {
 		});
 
 		this.mesh = new THREE.Mesh(geometry, material);
+		this.mesh.visible = false;
 		this.scene.add(this.mesh);
 	}
 
@@ -56,20 +62,35 @@ export default class Seeker {
         Update
     */
 	update() {
+		// Get visible meshes
+		this.getVisibleMeshes();
 
-		// this.getVisibleMeshes();
+		// If there are none, reset
+		if (this.visibleMeshes.length < 1) {
+			this.resetSeekerMeshes();
+			// return;
+		}
 
-		// if (this.visibleMeshes.length > 0) this.getProjectedPositions();
+		// If there are visible meshes, find out where they are, find closest
+		const previousClosestMesh = this.closestMesh;
+		this.getProjectedPositions();
 
-		// // Set seeker position
-		// this.mesh.position.copy(closestMesh.position);
+		// If seeker mesh is the same or different, do something
+		if (this.closestMesh === null) {
+			this.mesh.position.lerp(this.samus.group.localToWorld(new THREE.Vector3(0, 0, 10)), this.lerpAlpha);
+		} else {
+			this.mesh.position.lerp(this.closestMesh.position, this.lerpAlpha);
+		}
 
-		// // Send seeker position to store
-		// const projectedVector = this.mesh.position.clone().project(this.camera);
-		// closestSeekerPosition.set(projectedVector);
+		// Send seeker position to store
+		seekerPositions.set(this.projectedPositions);
+		const projectedLerp = this.mesh.position.clone().project(this.camera);
+		closestSeekerPosition.set(projectedLerp);
+		isLockable.set(!!this.closestMesh);
 
 		// Cleanup
-		// this.visibleMeshes = [];
+		this.visibleMeshes = [];
+		this.projectedPositions = [];
 	}
 
 	getVisibleMeshes() {
@@ -80,32 +101,39 @@ export default class Seeker {
 		);
 		this.frustum.setFromProjectionMatrix(this.projectionMatrix);
 
-        // Check if this mesh is in the view frustum
+		// Check if this mesh is in the view frustum
 		for (const mesh of this.seekableMeshes) {
 			if (this.frustum.containsPoint(mesh.position)) this.visibleMeshes.push(mesh);
 		}
 	}
 
-    getProjectedPositions() {
+	getProjectedPositions() {
 		let closestMesh = null;
-		let closestPosition = Infinity;
+		let closestPosition = null;
+		let closestDistance = Infinity;
 		for (const mesh of this.visibleMeshes) {
-
-            // Keep track of this mesh's position
+			// Keep track of this mesh's position
 			const projectedMeshPosition = mesh.position.clone().project(this.camera);
-            this.projectedPositions.push(projectedMeshPosition);
+			this.projectedPositions.push(projectedMeshPosition);
 
-            // Check if this mesh is the closest to the center
+			// Check if this mesh is the closest to the center
 			const distanceFromCenter = Math.sqrt(
 				Math.pow(projectedMeshPosition.x, 2) + Math.pow(projectedMeshPosition.y, 2)
 			);
 
-			if (distanceFromCenter < closestPosition) {
+			if (distanceFromCenter < closestDistance) {
 				closestMesh = mesh;
-				closestPosition = distanceFromCenter;
+				closestPosition = projectedMeshPosition;
+				closestDistance = distanceFromCenter;
 			}
 		}
-        this.closestMesh = closestMesh;
-        this.closestPosition = closestPosition;
-    }
+		this.closestMesh = closestMesh;
+		this.closestPosition = closestPosition;
+	}
+
+	resetSeekerMeshes() {
+		this.closestPosition = null;
+		this.projectedPositions = [];
+		// closestSeekerPosition.set({ x: 0, y: 0 });
+	}
 }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { currentVisor } from '../../stores';
-import { VisorType } from '../../enums';
+import { VisorType, BodyGroup } from '../../enums';
 
 export default class IceShot {
 	static fireVelocity = 12;
@@ -55,7 +55,10 @@ export default class IceShot {
 	setBody() {
 		// Generate
 		const iceShotShape = new CANNON.Sphere(0.3);
-		this.body = new CANNON.Body({ type: CANNON.Body.KINEMATIC });
+		this.body = new CANNON.Body({ type: CANNON.Body.DYNAMIC });
+		this.body.collisionResponse = false;
+		this.body.collisionFilterGroup = BodyGroup.Weapons;
+		this.body.collisionFilterMask = BodyGroup.Enemies;
 		this.body.addShape(iceShotShape);
 
 		// Configure position  and direction

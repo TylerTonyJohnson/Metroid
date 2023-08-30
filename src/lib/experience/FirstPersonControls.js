@@ -8,7 +8,11 @@ import {
 	unlockedVisors,
 	currentVisor,
 	lookPosition,
-	lookMovement
+	lookMovement,
+	isScanning,
+	scanProgress,
+	isLocked,
+	isScanned
 } from '../stores';
 
 const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -18,58 +22,28 @@ const lookSpeedY = 8;
 const lockRotSpeed = 10;
 
 const targetQuaternion = new THREE.Quaternion();
+const targetMatrix = new THREE.Matrix4();
 
 export default class FirstPersonControls extends THREE.EventDispatcher {
-	constructor(experience, target) {
+	constructor(experience, samus) {
 		super();
 		this.experience = experience;
 		this.canvas = this.experience.canvas;
-		this.target = target;
-		this.object = this.target.group;
-		this.camera = this.target.camera;
-		this.cannonBody = this.target.body;
+		this.samus = samus;
+		this.object = this.samus.group;
+		this.camera = this.samus.camera;
+		this.cannonBody = this.samus.body;
 		this.time = this.experience.time;
-		this.armCannon = this.target.armCannon;
+		this.armCannon = this.samus.armCannon;
+		this.seeker = this.samus.seeker;
 
 		// Setup
-		this.minPolarAngle = 0;
-		this.maxPolarAngle = Math.PI;
-		this.enabled = false; // Set this control as disabled until it's ready
-
-		this.strafeSpeed = 10; // Unused right now
-		this.jumpSpeed = 20;
-		this.maxJumps = 2;
-		this.jumps = this.maxJumps;
-
 		this.setStores();
 		this.setPointerLock();
 		this.setCannonBody();
 		this.setEventListeners();
-
-		// Runtime
-		this.moveForward = false; // Set movement booleans
-		this.moveBackward = false;
-		this.moveLeft = false;
-		this.moveRight = false;
-		this.moveUp = false;
-		this.moveDown = false;
-		this.rotateLeft = false;
-		this.rotateRight = false;
-		this.rotationSpeed = { x: 0, y: 0 };
-
-		this.inputForce = new THREE.Vector3();
-
-		this.walkSpeed = 0.025;
-		this.sprintSpeed = this.walkSpeed * 2;
-		this.moveSpeed = this.walkSpeed;
-
-		this.currentInput = {
-			isLeftMouse: false,
-			isRightMouse: false,
-			isMiddleMouse: false,
-			movementX: 0,
-			movementY: 0
-		};
+		this.setMovement();
+		this.setLockOn();
 	}
 
 	/* 
@@ -77,16 +51,33 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 	*/
 
 	setStores() {
+		appState.subscribe((value) => {
+			this.$appState = value;
+		});
+
 		unlockedBeams.subscribe((value) => {
 			this.$unlockedBeams = value;
+		});
+
+		currentVisor.subscribe((value) => {
+			this.$currentVisor = value;
 		});
 
 		unlockedVisors.subscribe((value) => {
 			this.$unlockedVisors = value;
 		});
 
-		appState.subscribe((value) => {
-			this.$appState = value;
+		isLocked.subscribe((value) => {
+			this.$isLocked = value;
+		});
+
+		isScanned.subscribe((value) => {
+			this.$isScanned = value;
+			if (this.$isScanned) {
+				appState.set(AppState.ScanPaused);
+			} else {
+				// appState.set(AppState.Running);
+			}
 		});
 	}
 
@@ -147,6 +138,45 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		document.addEventListener('keyup', this.onKeyUp);
 	}
 
+	setMovement() {
+		this.minPolarAngle = 0;
+		this.maxPolarAngle = Math.PI;
+		this.enabled = false; // Set this control as disabled until it's ready
+
+		this.strafeSpeed = 10; // Unused right now
+		this.jumpSpeed = 20;
+		this.maxJumps = 2;
+		this.jumps = this.maxJumps;
+		// Runtime
+		this.moveForward = false; // Set movement booleans
+		this.moveBackward = false;
+		this.moveLeft = false;
+		this.moveRight = false;
+		this.moveUp = false;
+		this.moveDown = false;
+		this.rotateLeft = false;
+		this.rotateRight = false;
+		this.rotationSpeed = { x: 0, y: 0 };
+
+		this.inputForce = new THREE.Vector3();
+
+		this.walkSpeed = 0.025;
+		this.sprintSpeed = this.walkSpeed * 2;
+		this.moveSpeed = this.walkSpeed;
+
+		this.currentInput = {
+			isLeftMouse: false,
+			isRightMouse: false,
+			isMiddleMouse: false,
+			movementX: 0,
+			movementY: 0
+		};
+	}
+
+	setLockOn() {
+		this.lockOnMesh = null;
+	}
+
 	dispose() {
 		this.removeEventListeners();
 	}
@@ -189,6 +219,13 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		---------- CONTROLS INPUT ----------
 	*/
 
+	onMouseMove = (event) => {
+		if (!this.enabled) return; // If controls are disabled, don't update movement
+		// Keep track of how far the mouse has moved
+		this.currentInput.movementX = event.movementX || 0;
+		this.currentInput.movementY = event.movementY || 0;
+	};
+
 	onMouseDown = (event) => {
 		if (!this.enabled) return;
 		if (this.$appState !== AppState.Running) return;
@@ -216,13 +253,6 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 				this.lockOff();
 				break;
 		}
-	};
-
-	onMouseMove = (event) => {
-		if (!this.enabled) return; // If controls are disabled, don't update movement
-		// Keep track of how far the mouse has moved
-		this.currentInput.movementX = event.movementX || 0;
-		this.currentInput.movementY = event.movementY || 0;
 	};
 
 	onKeyDown = (event) => {
@@ -325,10 +355,26 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 	}
 
 	lockOn() {
-		console.log('locking on');
+		// Check if there's anything to lock onto
+		this.lockOnMesh = this.seeker.closestMesh;
+		if (!this.lockOnMesh) return;
+
+		// Check if we're scanning
+		if (this.$currentVisor === VisorType.Scan) {
+			isScanning.set(true);
+			scanProgress.set(100);
+		}
+		isLocked.set(true);
+		console.log('locking');
 	}
 
 	lockOff() {
+		if (!this.$isLocked) return;
+		isLocked.set(false);
+		isScanning.set(false);
+		// isScanned.set(false);
+		scanProgress.set(0, { duration: 0 });
+		this.lockOnMesh = null;
 		console.log('locking off');
 	}
 
@@ -399,6 +445,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		/* 
 			Calculate rotation and speed
 		*/
+		// Get current rotation
 		_euler.setFromQuaternion(this.object.quaternion);
 
 		const rotationStart = {
@@ -406,14 +453,23 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 			y: _euler.y
 		};
 
-		_euler.y -= this.currentInput.movementX * 0.0003 * lookSpeedX;
-		_euler.x += this.currentInput.movementY * 0.0003 * lookSpeedY;
-		_euler.x = Math.max(
-			Math.PI / 2 - this.maxPolarAngle,
-			Math.min(Math.PI / 2 - this.minPolarAngle, _euler.x)
-		);
-		_euler.z = 0;
-		targetQuaternion.setFromEuler(_euler);
+		if (this.$isLocked) {
+			targetMatrix.lookAt(this.lockOnMesh, this.object.position, this.object.up);
+			console.log(targetMatrix);
+			// targetQuaternion.setFromRotationMatrix(targetMatrix);
+			// _euler.setFromQuaternion(this.object.quaternion);
+		} else {
+			// Make changes to target rotation
+			_euler.y -= this.currentInput.movementX * 0.0003 * lookSpeedX;
+			_euler.x += this.currentInput.movementY * 0.0003 * lookSpeedY;
+			_euler.x = Math.max(
+				Math.PI / 2 - this.maxPolarAngle,
+				Math.min(Math.PI / 2 - this.minPolarAngle, _euler.x)
+			);
+			_euler.z = 0;
+
+			targetQuaternion.setFromEuler(_euler);
+		}
 
 		// Rotate toward target quaternion
 		const step = lockRotSpeed * this.time.delta;

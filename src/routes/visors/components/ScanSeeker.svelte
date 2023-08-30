@@ -1,19 +1,6 @@
 <script>
 	import { closestSeekerPosition } from '../../../lib/stores';
 
-	// Test section
-	// let transcomp;
-	// $: transitionComplete = transcomp;
-
-	// $: {
-	// 	if (!isSeeking) {
-	// 		setTimeout(() => {
-	// 			console.log('dood');
-	// 			transcomp = isSeeking;
-	// 		}, 220);
-	// 	}
-	// }
-
 	$: aspect = window.innerWidth / window.innerHeight;
 
 	// Calculate target's distance from center of screen

@@ -40,6 +40,7 @@
 		width: 170px;
 		aspect-ratio: 1;
 		border-radius: 50%;
+		pointer-events: none;
 	}
 
 	.inner {

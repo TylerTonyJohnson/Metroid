@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { currentVisor } from '../../stores';
-import { VisorType } from '../../enums';
+import { VisorType, BodyGroup } from '../../enums';
 
 export default class PlasmaShot {
 	static fireVelocity = 20;
@@ -55,7 +55,10 @@ export default class PlasmaShot {
 	setBody() {
 		// Generate
 		const plasmaShotShape = new CANNON.Sphere(0.15);
-		this.body = new CANNON.Body({ type: CANNON.Body.KINEMATIC });
+		this.body = new CANNON.Body({ type: CANNON.Body.DYNAMIC });
+		this.body.collisionResponse = false;
+		this.body.collisionFilterGroup = BodyGroup.Weapons;
+		this.body.collisionFilterMask = BodyGroup.Enemies;
 		this.body.addShape(plasmaShotShape);
 
 		// Configure position  and direction

@@ -130,6 +130,66 @@ export default [
 		type: 'sound',
 		path: 'Plasma Beam Sound.wav'
 	},
+	{
+		name: 'damageSound1',
+		type: 'sound',
+		path: 'Damage Sound 1.wav'
+	},
+	{
+		name: 'damageSound2',
+		type: 'sound',
+		path: 'Damage Sound 2.wav'
+	},
+	{
+		name: 'damageSound3',
+		type: 'sound',
+		path: 'Damage Sound 3.wav'
+	},
+	{
+		name: 'damageSound4',
+		type: 'sound',
+		path: 'Damage Sound 4.wav'
+	},
+	{
+		name: 'damageSound5',
+		type: 'sound',
+		path: 'Damage Sound 5.wav'
+	},
+	{
+		name: 'damageSound6',
+		type: 'sound',
+		path: 'Damage Sound 6.wav'
+	},
+	{
+		name: 'healthPickupSound',
+		type: 'sound',
+		path: 'Health Pickup Sound.wav'
+	},
+	{
+		name: 'missilePickupSound',
+		type: 'sound',
+		path: 'Missile Pickup Sound.wav'
+	},
+	{
+		name: 'energyTankPickupSound',
+		type: 'sound',
+		path: 'Energy Tank Pickup Sound.wav'
+	},
+	{
+		name: 'enemyHitSound',
+		type: 'sound',
+		path: 'Enemy Hit Sound.wav'
+	},
+	{
+		name: 'enemyFreezeSound',
+		type: 'sound',
+		path: 'Enemy Freeze Sound.wav'
+	},
+	{
+		name: 'metroidDeathSound',
+		type: 'sound',
+		path: 'Metroid Death Sound.wav'
+	},
 	// {
 	// 	name: 'scanVisorSound',
 	// 	type: 'sound',

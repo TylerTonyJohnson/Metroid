@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { currentVisor } from '../../stores';
-import { VisorType } from '../../enums';
+import { VisorType, BodyGroup } from '../../enums';
 
 export default class PowerShot {
 	static fireVelocity = 20;
@@ -12,6 +12,8 @@ export default class PowerShot {
 		this.samus = this.armCannon.samus;
 		this.scene = this.samus.scene;
 		this.world = this.samus.world;
+		this.listener = this.samus.listener;
+		this.resources = this.world.resources;
 		this.physicsWorld = this.samus.world.physicsWorld;
 		this.time = this.samus.experience.time;
 
@@ -23,10 +25,13 @@ export default class PowerShot {
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
+		this.damageValue = 50;
 
 		// Spawn
 		this.setStores();
 		this.setBody();
+		this.setCollisionEvent();
+		this.setSound();
 		this.spawn();
 		this.setRay();
 	}
@@ -57,12 +62,33 @@ export default class PowerShot {
 	setBody() {
 		// Generate
 		const powerShotShape = new CANNON.Sphere(0.2);
-		this.body = new CANNON.Body({ type: CANNON.Body.KINEMATIC });
+		this.body = new CANNON.Body({ type: CANNON.Body.DYNAMIC });
+		this.body.collisionResponse = false;
+		this.body.collisionFilterGroup = BodyGroup.Weapons;
+		this.body.collisionFilterMask = BodyGroup.Enemies;
 		this.body.addShape(powerShotShape);
 
 		// Configure position  and direction
 		this.spawnPosition = this.samus.group.localToWorld(new THREE.Vector3(-0.2, -0.2, 1));
 		this.body.position.copy(this.spawnPosition);
+	}
+
+	setCollisionEvent() {
+		// Setup collision event
+		this.body.addEventListener('collide', (event) => {
+			// Deal damage
+			event.body.parent.damage(this);
+
+			// Trigger sound events
+			this.setTrigger();
+
+			// Destroy this object
+			this.destroy();
+		});
+	}
+
+	setSound() {
+		this.soundResource = this.resources.items.enemyHitSound;
 	}
 
 	spawn() {
@@ -84,6 +110,10 @@ export default class PowerShot {
 		this.rayCaster = new THREE.Raycaster(this.spawnPosition, this.spawnDirection, 0, 100);
 	}
 
+	/* 
+		Actions
+	*/
+
 	shoot() {
 		// Set velocity to shoot velocity
 		this.body.velocity.set(
@@ -103,6 +133,21 @@ export default class PowerShot {
 		// Play the sound
 	}
 
+	setTrigger() {
+		if (!this.world.objectsToTrigger.includes(this)) {
+			this.world.objectsToTrigger.push(this);
+		}
+	}
+
+	trigger() {
+		console.log('boom');
+		this.playSound();
+	}
+
+	/* 
+		Update
+	*/
+
 	update() {
 		this.mesh.position.copy(this.body.position);
 
@@ -112,7 +157,20 @@ export default class PowerShot {
 	}
 
 	destroy() {
+		// Mesh
 		this.scene.remove(this.mesh);
-		this.physicsWorld.removeBody(this.body);
+
+		// Body
+		if (!this.world.bodiesToRemove.includes(this.body)) {
+			this.world.bodiesToRemove.push(this.body);
+		}
+	}
+
+	playSound() {
+		const sound = new THREE.Audio(this.listener);
+		sound.buffer = this.soundResource;
+		sound.playbackRate = 1;
+		sound.setVolume(0.15);
+		sound.play();
 	}
 }

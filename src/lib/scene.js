@@ -11,7 +11,7 @@ import {
 	maxHealth,
 	lookDistance,
 	currentBeam,
-	isZoomed,
+	// isZoomed,
 	seekerPositions,
 	closestSeekerPosition,
 	isLockable,

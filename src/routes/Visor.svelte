@@ -151,6 +151,7 @@
 	#visor-layer {
 		width: 104%;
 		height: 104%;
+		opacity: 40%;
 	}
 
 	#seeker-layer {

@@ -11,7 +11,7 @@ import PlasmaShot from './PlasmaShot';
 export default class ArmCannon {
 	constructor(samus) {
 		this.samus = samus;
-        this.world = this.samus.world;
+		this.world = this.samus.world;
 		this.time = this.samus.experience.time;
 		this.resources = this.samus.experience.resources;
 		this.listener = this.samus.listener;
@@ -32,23 +32,23 @@ export default class ArmCannon {
 		});
 
 		currentVisor.subscribe((value) => {
-            if (!this.model) return;
+			if (!this.model) return;
 
-            // Set material based on visor
-            switch (value) {
-                case VisorType.Combat:
-                case VisorType.Scan:
-                    this.setMaterials(this.world.armCannonCombatMaterials);
-                    break;
-                case VisorType.Thermal:
-                    this.setMaterial(this.world.thermalHotMaterial);
-                    break;
-                case VisorType.Xray:
-                    this.setMaterial(this.world.xrayTransparentMaterial);
-                    break;
-            }
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.setMaterials(this.world.armCannonCombatMaterials);
+					break;
+				case VisorType.Thermal:
+					this.setMaterial(this.world.thermalHotMaterial);
+					break;
+				case VisorType.Xray:
+					this.setMaterial(this.world.xrayTransparentMaterial);
+					break;
+			}
 
-            // Disable cannon while scanning
+			// Disable cannon while scanning
 			this.isActive = value !== VisorType.Scan;
 		});
 
@@ -127,6 +127,7 @@ export default class ArmCannon {
 		this.waveBeamTimer = 0.4;
 		this.iceBeamTimer = 0.8;
 		this.plasmaBeamTimer = 0.5;
+		this.missileTimer = 1.0;
 	}
 
 	/* 
@@ -148,30 +149,41 @@ export default class ArmCannon {
 				powerShot.shoot();
 				this.playSound(this.powerSoundResource);
 				this.coolDownTimer = this.powerBeamTimer;
-                this.recoil.set(0.1, { duration: 100 });
+				this.recoil.set(0.1, { duration: 100 });
 				break;
 			case BeamType.Wave:
 				const waveShot = new WaveShot(this);
 				waveShot.shoot();
 				this.playSound(this.waveSoundResource);
 				this.coolDownTimer = this.waveBeamTimer;
-                this.recoil.set(0.1, { duration: 100 });
+				this.recoil.set(0.1, { duration: 100 });
 				break;
 			case BeamType.Ice:
 				const iceShot = new IceShot(this);
 				iceShot.shoot();
 				this.playSound(this.iceSoundResource);
 				this.coolDownTimer = this.iceBeamTimer;
-                this.recoil.set(0.1, { duration: 100 });
+				this.recoil.set(0.1, { duration: 100 });
 				break;
 			case BeamType.Plasma:
 				const plasmaShot = new PlasmaShot(this);
 				plasmaShot.shoot();
 				this.playSound(this.plasmaSoundResource);
 				this.coolDownTimer = this.plasmaBeamTimer;
-                this.recoil.set(0.25, { duration: 100 });
+				this.recoil.set(0.25, { duration: 100 });
 				break;
 		}
+	}
+
+	shootMissile() {
+		if (!this.isActive) return;
+
+		// See if the beam cooldown has happened
+		this.lastShotDelta = (this.time.run - this.lastShotTime) / 1000;
+		if (this.lastShotDelta < this.coolDownTimer) return;
+		this.lastShotTime = this.time.run;
+
+		
 	}
 
 	playSound(resource) {
@@ -181,25 +193,25 @@ export default class ArmCannon {
 		sound.play();
 	}
 
-    setMaterials(materials) {
-        let i = 0;
-        this.model.traverse(child => {
-            if (child.isMesh) {
-                child.material = materials[i];
-                i++;
-            }
-        })
-    }
+	setMaterials(materials) {
+		let i = 0;
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = materials[i];
+				i++;
+			}
+		});
+	}
 
-    setMaterial(material) {
-        this.model.traverse(child => {
-            if (child.isMesh) {
-                child.material = material;
-            }
-        })
-    }
+	setMaterial(material) {
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = material;
+			}
+		});
+	}
 
-    /* 
+	/* 
         Update
     */
 
@@ -209,7 +221,7 @@ export default class ArmCannon {
 			y: -this.$lookMovement.y * this.movementMax
 		});
 
-        this.lastShotDelta = (this.time.run - this.lastShotTime) / 1000;
+		this.lastShotDelta = (this.time.run - this.lastShotTime) / 1000;
 		if (this.lastShotDelta >= this.coolDownTimer / 2) this.recoil.set(0);
 
 		// Arm cannon

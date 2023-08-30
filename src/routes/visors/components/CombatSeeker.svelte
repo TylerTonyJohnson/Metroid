@@ -1,8 +1,10 @@
 <script>
-	import { isRendering, isLockable, isLocked, closestSeekerPosition } from '../../../lib/stores';
+	import { appState, isRendering, isLockable, isLocked, closestSeekerPosition } from '../../../lib/stores';
+	import { AppState } from '../../../lib/enums';
 	import { mapRange } from '../../../lib/math';
+	import { fade } from 'svelte/transition';
+	import { tweened } from 'svelte/motion';
 
-	let opacity = 1;
 
 	$: aspect = window.innerWidth / window.innerHeight;
 	$: matchingWidth = 100 / aspect;
@@ -11,6 +13,10 @@
 
 	$: x = (100 * ($closestSeekerPosition.x + 1)) / 2;
 	$: y = 100 * (1 - ($closestSeekerPosition.y + 1) / 2);
+	
+	const opacity = tweened(0, { duration: 100 });
+	$: { opacity.set($isLockable ? 1 : 0) };
+
 	// $: {
 	// 	switch (true) {
 	// 		case x < matchMin:
@@ -22,14 +28,14 @@
 	// }
 </script>
 
-{#if $isLockable}
+<!-- {#if $isLockable} -->
 	<svg
 		class="cursor rotate"
 		style="left: {x}%;
             top: {y}%;
-			opacity: {opacity};"
+			opacity: {$opacity};"
 		class:locked={$isLocked}
-		class:paused={!$isRendering}
+		class:paused={$appState === AppState.Paused}
 		viewBox="0 0 540 540"
 		fill="none"
 		xmlns="http://www.w3.org/2000/svg"
@@ -56,7 +62,7 @@
 			d="M419.007 347.942L425.069 351.442L418.069 363.566L412.007 360.066L414.007 356.602L412.409 353.37L412.909 352.504L413.409 351.638L417.007 351.406L419.007 347.942Z"
 		/>
 	</svg>
-{/if}
+<!-- {/if} -->
 
 <style>
 	.cursor {

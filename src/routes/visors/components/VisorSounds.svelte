@@ -1,5 +1,5 @@
 <script>
-	import { appState, currentVisor, isRendering, isScanning, isScanned } from '../../../lib/stores';
+	import { appState, currentVisor, isScanning, isScanned } from '../../../lib/stores';
 	import * as THREE from 'three';
 	import { listener } from '../../../lib/scene';
 	import { AppState, VisorType } from '../../../lib/enums';
