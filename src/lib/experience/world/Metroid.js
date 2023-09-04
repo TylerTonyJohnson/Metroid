@@ -10,9 +10,9 @@ export default class Metroid {
 	static centerPoint = new THREE.Vector3(0, 3, 0);
 
 	static radiusMin = 8;
-	static radiusMax = 20;
-	static heightMin = -4;
-	static heightMax = 4;
+	static radiusMax = 16;
+	static heightMin = -6;
+	static heightMax = 2;
 
 	static speedMin = 0.25;
 	static speedMax = 0.5;
@@ -167,6 +167,7 @@ export default class Metroid {
 		this.world.shootableMeshes.push(this.model);
 		this.world.targetableMeshes.push(this.model);
 		this.world.scannableMeshes.push(this.model);
+		this.model.isAlive = true;
 	}
 
 	/* 
@@ -254,6 +255,7 @@ export default class Metroid {
 
 	kill() {
 		// this.playSound();
+		this.model.isAlive = false;
 		this.destroy();
 	}
 
@@ -272,6 +274,7 @@ export default class Metroid {
 	destroy() {
 		// Mesh
 		this.scene.remove(this.model);
+		
 
 		// Body
 		if (!this.world.bodiesToRemove.includes(this.body)) {

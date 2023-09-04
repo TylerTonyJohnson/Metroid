@@ -2,13 +2,7 @@
 	import World from './World.svelte';
 	import Hud from './HUD.svelte';
 	import ReadoutCenter from './readouts/ReadoutCenter.svelte';
-	import {
-		isRendering,
-		readoutShow,
-		readoutMessage,
-		isLoaded,
-		appState
-	} from '../lib/stores';
+	import { isRendering, readoutShow, readoutMessage, isLoaded, appState } from '../lib/stores';
 	import Instructions from './Instructions.svelte';
 	import PageLoader from './PageLoader.svelte';
 	import { onMount } from 'svelte';
@@ -18,8 +12,10 @@
 </script>
 
 <div id="body">
-	<World />
-	<Hud />
+	<!-- {#if $appState !== AppState.Loading } -->
+		<World />
+		<Hud />
+	<!-- {/if} -->
 	{#if $appState === AppState.None || $appState === AppState.Loading || $appState === AppState.Ready}
 		<PageLoader />
 	{/if}

@@ -44,6 +44,11 @@ export default [
 	//     type: 'texture',
 	//     path: 'RadialCracks_N.jpg'
 	// },
+
+	/* 
+		GLB Models
+	*/
+
 	{
 		name: 'metroidGLB',
 		type: 'gltfModel',
@@ -69,7 +74,27 @@ export default [
 		type: 'gltfModel',
 		path: 'Arm Cannon.glb'
 	},
-    /* 
+	{
+		name: 'missileAmmoGLB',
+		type: 'gltfModel',
+		path: 'Missile Ammo.glb'
+	},
+	{
+		name: 'healthGLB',
+		type: 'gltfModel',
+		path: 'Health.glb'
+	},
+	{
+		name: 'energyTankGLB',
+		type: 'gltfModel',
+		path: 'Energy Tank.glb'
+	},
+	{
+		name: 'missileExpansionGLB',
+		type: 'gltfModel',
+		path: 'Missile Expansion.glb'
+	},
+	/* 
         Matcaps
     */
 	{
@@ -189,7 +214,7 @@ export default [
 		name: 'metroidDeathSound',
 		type: 'sound',
 		path: 'Metroid Death Sound.wav'
-	},
+	}
 	// {
 	// 	name: 'scanVisorSound',
 	// 	type: 'sound',

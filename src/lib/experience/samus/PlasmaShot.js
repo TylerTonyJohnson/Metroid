@@ -2,9 +2,10 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { currentVisor } from '../../stores';
 import { VisorType, BodyGroup } from '../../enums';
+import { tweened } from 'svelte/motion';
 
 export default class PlasmaShot {
-	static fireVelocity = 20;
+	static fireVelocity = 40;
 
 	constructor(armCannon) {
 		// References
@@ -12,21 +13,23 @@ export default class PlasmaShot {
 		this.samus = this.armCannon.samus;
 		this.scene = this.samus.scene;
 		this.world = this.samus.world;
+		// this.listener = this.samus.listener;
+		this.resources = this.world.resources;
 		this.physicsWorld = this.samus.world.physicsWorld;
 		this.time = this.samus.experience.time;
-
-		// Config
-		this.mesh = this.armCannon.plasmaShotMesh.clone();
-		this.mesh.quaternion.copy(this.samus.group.quaternion);
 
 		// Tick event
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
+		this.damageValue = 10;
 
 		// Spawn
-        this.setStores();
+		this.setStores();
+		this.setMesh();
 		this.setBody();
+		this.setCollisionEvent();
+		// this.setSound();
 		this.spawn();
 		this.setRay();
 	}
@@ -50,6 +53,20 @@ export default class PlasmaShot {
 					break;
 			}
 		});
+
+		this.heat = tweened(1, { duration: 200 });
+
+		this.heat.subscribe(value => {
+			this.$heat = value;
+			if (this.$heat < 0.1) {
+				this.destroy();
+			}
+		})
+	}
+
+	setMesh() {
+		this.mesh = this.armCannon.plasmaShotMesh.clone();
+		this.mesh.quaternion.copy(this.samus.group.quaternion);
 	}
 
 	setBody() {
@@ -65,6 +82,24 @@ export default class PlasmaShot {
 		this.spawnPosition = this.samus.group.localToWorld(new THREE.Vector3(-0.3, -0.4, 1));
 		this.body.position.copy(this.spawnPosition);
 	}
+
+	setCollisionEvent() {
+		// Setup collision event
+		this.body.addEventListener('collide', (event) => {
+			// Deal damage
+			event.body.parent.damage(this);
+
+			// Trigger sound events
+			this.setTrigger();
+
+			// Destroy this object
+			this.decompose();
+		});
+	}
+
+		// setSound() {
+	// 	this.soundResource = this.resources.items.enemyHitSound;
+	// }
 
 	spawn() {
 		// Set position
@@ -85,6 +120,10 @@ export default class PlasmaShot {
 		this.rayCaster = new THREE.Raycaster(this.spawnPosition, this.spawnDirection, 0, 100);
 	}
 
+	/* 
+		Actions
+	*/
+
 	shoot() {
 		// Set velocity to shoot velocity
 		this.body.velocity.set(
@@ -104,17 +143,51 @@ export default class PlasmaShot {
 		// Play the sound
 	}
 
-	update() {
-		this.mesh.position.copy(this.body.position);
-		this.mesh.scale.z += (PlasmaShot.fireVelocity * 40 * this.time.delta) / 1000;
+	setTrigger() {
+		if (!this.world.objectsToTrigger.includes(this)) {
+			this.world.objectsToTrigger.push(this);
+		}
+	}
 
+	trigger() {
+		console.log('flah');
+		// this.playSound();
+	}
+
+	/* 
+		Update
+	*/
+
+	update() {
+		const meshPosition = this.spawnPosition.clone().add(this.body.position).divideScalar(2);
+		this.mesh.position.copy(meshPosition);
+
+		
 		// Get distance from start
-		const distance = this.mesh.position.distanceTo(this.spawnPosition);
-		if (distance > this.distanceThreshold) this.destroy();
+		const distance = this.body.position.distanceTo(this.spawnPosition);
+		this.mesh.scale.z = 3 * distance;
+		if (distance > this.distanceThreshold) this.decompose();
+	}
+
+	decompose() {
+		this.heat.set(0);
 	}
 
 	destroy() {
+		// Mesh
 		this.scene.remove(this.mesh);
-		this.physicsWorld.removeBody(this.body);
+
+		// Body
+		if (!this.world.bodiesToRemove.includes(this.body)) {
+			this.world.bodiesToRemove.push(this.body);
+		}
 	}
+
+	// playSound() {
+	// 	const sound = new THREE.Audio(this.listener);
+	// 	sound.buffer = this.soundResource;
+	// 	sound.playbackRate = 1;
+	// 	sound.setVolume(0.15);
+	// 	sound.play();
+	// }
 }

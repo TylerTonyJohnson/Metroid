@@ -7,6 +7,7 @@ import BetaMetroid from './BetaMetroid';
 import Metroid from './Metroid';
 import Samus from '../samus/Samus';
 import MissilePickup from './MissilePickup';
+import MissileExpansionPickup from './MissileExpansionPickup';
 import DamagePickup from './DamagePickup';
 import HealthPickup from './HealthPickup';
 import EnergyTank from './EnergyTank';
@@ -41,7 +42,7 @@ export default class World {
 			
 			// Metroids
 			this.metroids = [];
-			for (let i = 0; i < 10; i++) {
+			for (let i = 0; i < 5; i++) {
 				const metroid = new Metroid(this.experience);
 				this.metroids.push(metroid);
 			}
@@ -55,6 +56,7 @@ export default class World {
 			const healthPickup = new HealthPickup(this);
 			const energyTank = new EnergyTank(this);
 			const missilePickup = new MissilePickup(this);
+			const missileExpansionPickup = new MissileExpansionPickup(this);
 
 			// Environment
 			this.setMaterials();

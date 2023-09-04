@@ -14,6 +14,7 @@ export default class WaveShot {
 		this.armCannon = armCannon;
 		this.samus = this.armCannon.samus;
 		this.scene = this.samus.scene;
+		this.seeker = this.samus.seeker;
 		this.world = this.samus.world;
 		this.physicsWorld = this.samus.world.physicsWorld;
 		this.time = this.samus.experience.time;
@@ -22,11 +23,13 @@ export default class WaveShot {
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
+		this.damageValue = 50;
 
 		// Spawn
-		this.setMesh();
 		this.setStores();
+		this.setMesh();
 		this.setBody();
+		this.setCollisionEvent();
 		this.spawn();
 		this.setRay();
 	}
@@ -84,6 +87,20 @@ export default class WaveShot {
 		this.body.position.copy(this.spawnPosition);
 	}
 
+	setCollisionEvent() {
+		// Setup collision event
+		this.body.addEventListener('collide', (event) => {
+			// Deal damage
+			event.body.parent.damage(this);
+
+			// Trigger sound events
+			this.setTrigger();
+
+			// Destroy this object
+			this.destroy();
+		});
+	}
+
 	spawn() {
 		// Set position
 		this.group.position.copy(this.spawnPosition);
@@ -95,8 +112,6 @@ export default class WaveShot {
 		// Add to scene
 		this.scene.add(this.group);
 		this.physicsWorld.addBody(this.body);
-
-		// this.distanceThreshold = 10;
 	}
 
 	setRay() {
@@ -104,7 +119,7 @@ export default class WaveShot {
 	}
 
 	/* 
-    Actions
+    		Actions
 */
 
 	shoot() {
@@ -126,23 +141,26 @@ export default class WaveShot {
 		// Play the sound
 	}
 
-	// setMaterial(material) {
-	// 	this.group.traverse((child) => {
-	// 		if (child.isMesh) {
-    //             console.log(material);
-	// 			child.material = material;
-    //             child.material.needsUpdate = true;
-	// 		}
-	// 	});
-	// }
+	setTrigger() {
+		if (!this.world.objectsToTrigger.includes(this)) {
+			this.world.objectsToTrigger.push(this);
+		}
+	}
+
+	trigger() {
+		console.log('pow');
+		// this.playSound();
+	}
 
 	/* 
         Update
     */
 
 	update() {
+		
 		this.group.position.copy(this.body.position);
-		this.group.updateMatrixWorld();
+		console.log(this.seeker);
+		// this.group.updateMatrixWorld();
 
 		// Get distance from start
 		const distance = this.group.position.distanceTo(this.spawnPosition);
@@ -163,7 +181,12 @@ export default class WaveShot {
 	}
 
 	destroy() {
+		// Mesh
 		this.scene.remove(this.group);
-		this.physicsWorld.removeBody(this.body);
+
+		// Body
+		if (!this.world.bodiesToRemove.includes(this.body)) {
+			this.world.bodiesToRemove.push(this.body);
+		}
 	}
 }

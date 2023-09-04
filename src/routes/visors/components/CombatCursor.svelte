@@ -8,8 +8,10 @@
 
 	$: filtered = 1 - Math.sqrt((Math.max(Math.min($lookDistance, $lookDistMax), $lookDistMin) - $lookDistMin)/($lookDistMax - $lookDistMin));
 
-	$: innerSize = scale(filtered, innerMin, innerMax);
-	$: outerSize = scale(filtered, outerMin, outerMax);
+	// $: innerSize = scale(filtered, innerMin, innerMax);
+	// $: outerSize = scale(filtered, outerMin, outerMax);
+	const innerSize = innerMin;
+	const outerSize = outerMin;
 
 	function scale(inPercent, mapMin, mapMax) {
 		return (mapMax - mapMin) * inPercent + mapMin;

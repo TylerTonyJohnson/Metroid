@@ -12,14 +12,10 @@ export default class PowerShot {
 		this.samus = this.armCannon.samus;
 		this.scene = this.samus.scene;
 		this.world = this.samus.world;
-		this.listener = this.samus.listener;
+		// this.listener = this.samus.listener;
 		this.resources = this.world.resources;
 		this.physicsWorld = this.samus.world.physicsWorld;
 		this.time = this.samus.experience.time;
-
-		// Config
-		this.mesh = this.armCannon.powerShotMesh.clone();
-		this.mesh.quaternion.copy(this.samus.group.quaternion);
 
 		// Tick event
 		this.time.addEventListener('tick', (event) => {
@@ -29,9 +25,10 @@ export default class PowerShot {
 
 		// Spawn
 		this.setStores();
+		this.setMesh();
 		this.setBody();
 		this.setCollisionEvent();
-		this.setSound();
+		// this.setSound();
 		this.spawn();
 		this.setRay();
 	}
@@ -57,6 +54,11 @@ export default class PowerShot {
 					break;
 			}
 		});
+	}
+
+	setMesh() {
+		this.mesh = this.armCannon.powerShotMesh.clone();
+		this.mesh.quaternion.copy(this.samus.group.quaternion);
 	}
 
 	setBody() {
@@ -87,9 +89,9 @@ export default class PowerShot {
 		});
 	}
 
-	setSound() {
-		this.soundResource = this.resources.items.enemyHitSound;
-	}
+	// setSound() {
+	// 	this.soundResource = this.resources.items.enemyHitSound;
+	// }
 
 	spawn() {
 		// Set position
@@ -141,7 +143,7 @@ export default class PowerShot {
 
 	trigger() {
 		console.log('boom');
-		this.playSound();
+		// this.playSound();
 	}
 
 	/* 
@@ -166,11 +168,11 @@ export default class PowerShot {
 		}
 	}
 
-	playSound() {
-		const sound = new THREE.Audio(this.listener);
-		sound.buffer = this.soundResource;
-		sound.playbackRate = 1;
-		sound.setVolume(0.15);
-		sound.play();
-	}
+	// playSound() {
+	// 	const sound = new THREE.Audio(this.listener);
+	// 	sound.buffer = this.soundResource;
+	// 	sound.playbackRate = 1;
+	// 	sound.setVolume(0.15);
+	// 	sound.play();
+	// }
 }

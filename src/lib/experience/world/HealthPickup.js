@@ -2,10 +2,17 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { BodyGroup } from '../../enums';
 
+class HealthSize {
+    static Small = new HealthSize('small');
+    static Medium = new HealthSize('medium');
+    static Large = new HealthSize('large');
+}
+
 export default class HealthPickup {
 	constructor(world) {
 		// References
 		this.world = world;
+		this.time = this.world.time;
 		this.scene = this.world.scene;
 		this.samus = this.world.samus;
 		this.resources = this.world.resources;
@@ -13,9 +20,11 @@ export default class HealthPickup {
 		this.physicsWorld = this.world.physicsWorld;
 
 		// Setup
-		this.setMesh();
+		this.setType();
+		this.setModel();
 		this.setBody();
 		this.setCollisionEvent();
+		this.setTimeEvent();
 		this.setSound();
 		this.spawn();
 	}
@@ -23,10 +32,37 @@ export default class HealthPickup {
 	/* 
         Setup
     */
-	setMesh() {
-		const geometry = new THREE.SphereGeometry(1);
-		const material = new THREE.MeshBasicMaterial({ color: 'green' });
-		this.mesh = new THREE.Mesh(geometry, material);
+	setType() {
+		const healthSizeArray = Object.values(HealthSize);
+		this.size = healthSizeArray[Math.floor(Math.random() * healthSizeArray.length)];
+	}
+
+	setModel() {
+		const resource = this.resources.items.healthGLB;
+		this.model = resource.scene;
+		this.model.scale.set(0.25, 0.25, 0.25);
+
+		const sphereMesh = this.model.children[0].children[1];
+		// console.log(this.model.children[0].children[0]);
+
+		switch (this.size) {
+			case HealthSize.Small:
+				sphereMesh.material.color.set('purple');
+				break;
+			case HealthSize.Medium:
+				sphereMesh.material.color.set('red');
+				break;
+			case HealthSize.Large:
+				sphereMesh.material.color.set('yellow');
+				break;
+		}
+
+		// this.model.traverse(child => {
+		// 	if (child.isMesh) {
+		// 		child.material.blending = THREE.AdditiveBlending;
+
+		// 	}
+		// })
 	}
 
 	setBody() {
@@ -47,6 +83,10 @@ export default class HealthPickup {
 		});
 	}
 
+	setTimeEvent() {
+		this.time.addEventListener('tick', (event) => this.update());
+	}
+
 	setSound() {
 		this.soundResource = this.resources.items.healthPickupSound;
 	}
@@ -56,9 +96,10 @@ export default class HealthPickup {
     */
 	spawn() {
 		this.body.position.set(40, -7, 0);
-		this.mesh.position.copy(this.body.position);
-		this.scene.add(this.mesh);
+		this.model.position.copy(this.body.position);
+		this.scene.add(this.model);
 		this.physicsWorld.addBody(this.body);
+		this.world.scannableMeshes.push(this.model);
 	}
 
 	setTrigger() {
@@ -68,20 +109,35 @@ export default class HealthPickup {
 	}
 
 	destroy() {
-		// Mesh
-		this.mesh.geometry.dispose();
-		this.mesh.material.dispose();
-		this.scene.remove(this.mesh);
+		this.scene.remove(this.model);
 
 		// Body
 		if (!this.world.bodiesToRemove.includes(this.body)) {
 			this.world.bodiesToRemove.push(this.body);
 		}
-		// this.physicsWorld.removeBody(this.body);
+
+		// World
+		// this.world.damageBall = null;
+
+		// Events
+		this.body.removeEventListener('collide');
 	}
 
 	trigger() {
-		this.samus.updateCurrentHealth(37);
+		// Heal
+		switch (this.size) {
+			case HealthSize.Small:
+				this.samus.updateCurrentHealth(25);
+				break;
+			case HealthSize.Medium:
+				this.samus.updateCurrentHealth(50);
+				break;
+			case HealthSize.Large:
+				this.samus.updateCurrentHealth(100);
+				break;
+		}
+		
+		// Play sound
 		this.playSound();
 	}
 
@@ -90,5 +146,15 @@ export default class HealthPickup {
 		sound.buffer = this.soundResource;
 		sound.setVolume(0.15);
 		sound.play();
+	}
+
+	/* 
+		Update
+	*/
+	update() {
+		if (!this.model) return;
+		this.model.rotation.x = 1 * (this.time.run / 1000);
+		this.model.rotation.y = 2 * (this.time.run / 1000);
+		this.model.rotation.z = 1 * (this.time.run / 1000);
 	}
 }

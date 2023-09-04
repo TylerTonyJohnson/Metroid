@@ -19,10 +19,10 @@ const _euler = new THREE.Euler(0, 0, 0, 'YXZ');
 const rotationSpeedMax = { x: 1, y: 1 };
 const lookSpeedX = 5;
 const lookSpeedY = 8;
-const lockRotSpeed = 10;
+const lockRotSpeed = 5;
 
 const targetQuaternion = new THREE.Quaternion();
-const targetMatrix = new THREE.Matrix4();
+
 
 export default class FirstPersonControls extends THREE.EventDispatcher {
 	constructor(experience, samus) {
@@ -174,6 +174,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 	}
 
 	setLockOn() {
+		this.targetMatrix = new THREE.Matrix4();
 		this.lockOnMesh = null;
 	}
 
@@ -453,12 +454,15 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 			y: _euler.y
 		};
 
-		if (this.$isLocked) {
-			targetMatrix.lookAt(this.lockOnMesh, this.object.position, this.object.up);
-			console.log(targetMatrix);
-			// targetQuaternion.setFromRotationMatrix(targetMatrix);
-			// _euler.setFromQuaternion(this.object.quaternion);
+		if (this.$isLocked && this.lockOnMesh.isAlive) {
+			console.log(this.lockOnMesh.isObject3D)
+			this.targetMatrix.lookAt(this.lockOnMesh.position, this.object.position, this.object.up);
+			targetQuaternion.setFromRotationMatrix(this.targetMatrix);
+			_euler.setFromQuaternion(this.object.quaternion);
+
+			// console.log(this.camera);
 		} else {
+			this.lockOff();
 			// Make changes to target rotation
 			_euler.y -= this.currentInput.movementX * 0.0003 * lookSpeedX;
 			_euler.x += this.currentInput.movementY * 0.0003 * lookSpeedY;
@@ -472,7 +476,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		}
 
 		// Rotate toward target quaternion
-		const step = lockRotSpeed * this.time.delta;
+		const step = lockRotSpeed * this.time.delta /1000;
 		this.object.quaternion.rotateTowards(targetQuaternion, step);
 		this.cannonBody.quaternion.setFromEuler(0, _euler.y, 0);
 

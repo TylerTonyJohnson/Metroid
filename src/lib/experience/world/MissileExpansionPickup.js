@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { BodyGroup } from '../../enums';
 
-export default class EnergyTank {
+export default class MissileExpansionPickup {
 	constructor(world) {
 		// References
 		this.world = world;
@@ -26,19 +26,16 @@ export default class EnergyTank {
         Setup
     */
 	setModel() {
-		const resource = this.resources.items.energyTankGLB;
+		const resource = this.resources.items.missileExpansionGLB;
 		this.model = resource.scene;
 		this.model.scale.set(0.25, 0.25, 0.25);
-		this.model.rotation.y = Math.PI / 2;
-		this.model.rotation.z = Math.PI / 12;
-		this.model.rotation.order = 'YXZ';
 
-		this.model.traverse((child) => {
+		this.model.traverse(child => {
 			if (child.isMesh) {
 				// child.material.emissive = 'white'
 				child.material.blending = THREE.AdditiveBlending;
 			}
-		});
+		})
 	}
 
 	setBody() {
@@ -71,7 +68,7 @@ export default class EnergyTank {
         Actions
     */
 	spawn() {
-		this.body.position.set(40, -7, 5);
+		this.body.position.set(40, -7, -12);
 		this.model.position.copy(this.body.position);
 		this.scene.add(this.model);
 		this.physicsWorld.addBody(this.body);
@@ -100,7 +97,7 @@ export default class EnergyTank {
 	}
 
 	trigger() {
-		this.samus.updateMaxHealth(100);
+		this.samus.updateMaxAmmo(5);
 		this.playSound();
 	}
 
@@ -116,7 +113,7 @@ export default class EnergyTank {
 	*/
 	update() {
 		if (!this.model) return;
-		this.model.rotation.x = 2 * (this.time.run / 1000);
-		// this.model.rotation.y = 1 * (this.time.run / 1000);
+		this.model.rotation.y = 2 * (this.time.run / 1000);
 	}
+
 }

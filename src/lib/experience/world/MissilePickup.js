@@ -6,6 +6,7 @@ export default class MissilePickup {
 	constructor(world) {
 		// References
 		this.world = world;
+		this.time = this.world.time;
 		this.scene = this.world.scene;
 		this.samus = this.world.samus;
 		this.resources = this.world.resources;
@@ -13,9 +14,10 @@ export default class MissilePickup {
 		this.physicsWorld = this.world.physicsWorld;
 
 		// Setup
-		this.setMesh();
+		this.setModel();
 		this.setBody();
 		this.setCollisionEvent();
+		this.setTimeEvent();
 		this.setSound();
 		this.spawn();
 	}
@@ -23,10 +25,17 @@ export default class MissilePickup {
 	/* 
         Setup
     */
-	setMesh() {
-		const geometry = new THREE.SphereGeometry(1);
-		const material = new THREE.MeshBasicMaterial({ color: 'orange' });
-		this.mesh = new THREE.Mesh(geometry, material);
+	setModel() {
+		const resource = this.resources.items.missileAmmoGLB;
+		this.model = resource.scene;
+		this.model.scale.set(0.25, 0.25, 0.25);
+
+		this.model.traverse(child => {
+			if (child.isMesh) {
+				// child.material.emissive = 'white'
+				child.material.blending = THREE.AdditiveBlending;
+			}
+		})
 	}
 
 	setBody() {
@@ -47,6 +56,10 @@ export default class MissilePickup {
 		});
 	}
 
+	setTimeEvent() {
+		this.time.addEventListener('tick', (event) => this.update());
+	}
+
 	setSound() {
 		this.soundResource = this.resources.items.missilePickupSound;
 	}
@@ -56,9 +69,10 @@ export default class MissilePickup {
     */
 	spawn() {
 		this.body.position.set(40, -7, -10);
-		this.mesh.position.copy(this.body.position);
-		this.scene.add(this.mesh);
+		this.model.position.copy(this.body.position);
+		this.scene.add(this.model);
 		this.physicsWorld.addBody(this.body);
+		this.world.scannableMeshes.push(this.model);
 	}
 
 	setTrigger() {
@@ -68,19 +82,16 @@ export default class MissilePickup {
 	}
 
 	destroy() {
-		// Mesh
-		this.mesh.geometry.dispose();
-		this.mesh.material.dispose();
-		this.scene.remove(this.mesh);
+		this.scene.remove(this.model);
 
 		// Body
 		if (!this.world.bodiesToRemove.includes(this.body)) {
 			this.world.bodiesToRemove.push(this.body);
 		}
 
-        // World
-        this.world.damageBall = null;
-        
+		// World
+		// this.world.damageBall = null;
+
 		// Events
 		this.body.removeEventListener('collide');
 	}
@@ -89,11 +100,20 @@ export default class MissilePickup {
 		this.samus.updateCurrentAmmo(5);
 		this.playSound();
 	}
-	
+
 	playSound() {
 		const sound = new THREE.Audio(this.listener);
 		sound.buffer = this.soundResource;
 		sound.setVolume(0.15);
 		sound.play();
 	}
+
+	/* 
+		Update
+	*/
+	update() {
+		if (!this.model) return;
+		this.model.rotation.y = 2 * (this.time.run / 1000);
+	}
+
 }

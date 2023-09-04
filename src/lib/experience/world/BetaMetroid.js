@@ -72,6 +72,7 @@ export default class BetaMetroid {
 		this.scene.add(this.model);
 		this.world.targetableMeshes.push(this.model);
 		this.world.scannableMeshes.push(this.model);
+		this.model.isAlive = true;
 	}
 
 	setMovement() {

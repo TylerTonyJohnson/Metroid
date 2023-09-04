@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { seekerPositions, closestSeekerPosition, isLockable } from '../../stores';
+import { seekerPositions, closestSeekerPosition, isLockable, currentVisor } from '../../stores';
+import { VisorType } from '../../enums';
 
 export default class Seeker {
 	constructor(samus) {
@@ -9,9 +10,10 @@ export default class Seeker {
 		this.time = this.world.time;
 		this.scene = this.samus.scene;
 		this.camera = this.samus.camera;
-		this.seekableMeshes = this.world.targetableMeshes;
+		// this.seekableMeshes = this.world.targetableMeshes;
 
 		// Setup
+		this.setStores();
 		this.setSeekerMeshes();
 		this.setMesh();
 		this.setFrustum();
@@ -21,6 +23,22 @@ export default class Seeker {
 	/* 
         Setup
     */
+	setStores() {
+		currentVisor.subscribe((value) => {
+			this.$currentVisor = value;
+			switch (this.$currentVisor) {
+				case VisorType.Combat:
+				case VisorType.Thermal:
+				case VisorType.Xray:
+					this.seekableMeshes = this.world.targetableMeshes;
+					break;
+				case VisorType.Scan:
+					this.seekableMeshes = this.world.scannableMeshes;
+					break;
+			}
+		});
+	}
+
 	setSeekerMeshes() {
 		this.visibleMeshes = [];
 		this.projectedPositions = [];
@@ -72,12 +90,14 @@ export default class Seeker {
 		}
 
 		// If there are visible meshes, find out where they are, find closest
-		const previousClosestMesh = this.closestMesh;
 		this.getProjectedPositions();
 
 		// If seeker mesh is the same or different, do something
 		if (this.closestMesh === null) {
-			this.mesh.position.lerp(this.samus.group.localToWorld(new THREE.Vector3(0, 0, 10)), this.lerpAlpha);
+			this.mesh.position.lerp(
+				this.samus.group.localToWorld(new THREE.Vector3(0, 0, 10)),
+				this.lerpAlpha
+			);
 		} else {
 			this.mesh.position.lerp(this.closestMesh.position, this.lerpAlpha);
 		}
