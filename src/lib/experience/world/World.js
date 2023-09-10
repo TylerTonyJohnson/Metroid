@@ -190,7 +190,7 @@ export default class World {
 
 		// Metroids
 		this.metroids = [];
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < 20; i++) {
 			const metroid = new Metroid(this.experience);
 			this.metroids.push(metroid);
 		}
