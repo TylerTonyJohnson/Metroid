@@ -29,12 +29,11 @@ export default class Experience {
 		// this.camera = new DebugCamera(this);
 		this.camera = new FirstPersonCamera(this);
 		this.listener = new THREE.AudioListener();
-		console.log(this.listener);
 		this.renderer = new Renderer(this);
 
-		appState.subscribe(value => {
-			this.$appState = value;
-		})
+		// appState.subscribe(value => {
+		// 	this.$appState = value;
+		// })
 
 		// Resize event
 		this.sizes.addEventListener('resize', (event) => {

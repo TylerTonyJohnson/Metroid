@@ -22,11 +22,11 @@ export default class PlasmaShot {
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
-		this.damageValue = 10;
+		this.damageValue = 30;
 
 		// Spawn
-		this.setStores();
 		this.setMesh();
+		this.setStores();
 		this.setBody();
 		this.setCollisionEvent();
 		// this.setSound();

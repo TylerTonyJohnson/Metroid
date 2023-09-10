@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { currentVisor } from '../../stores';
 import { VisorType } from '../../enums';
+import { ScanType } from '../scanData';
 export default class BetaMetroid {
 	constructor(experience) {
 		this.experience = experience;
@@ -27,21 +28,21 @@ export default class BetaMetroid {
 
 	setStores() {
 		currentVisor.subscribe((value) => {
-            if (!this.model) return;
+			if (!this.model) return;
 
-            // Set material based on visor
-            switch (value) {
-                case VisorType.Combat:
-                case VisorType.Scan:
-                    this.setMaterials(this.world.betaMetroidCombatMaterials);
-                    break;
-                case VisorType.Thermal:
-                    this.setMaterial(this.world.thermalHotMaterial);
-                    break;
-                case VisorType.Xray:
-                    this.setMaterial(this.world.xrayTransparentMaterial);
-                    break;
-            }
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.setMaterials(this.world.betaMetroidCombatMaterials);
+					break;
+				case VisorType.Thermal:
+					this.setMaterial(this.world.thermalHotMaterial);
+					break;
+				case VisorType.Xray:
+					this.setMaterial(this.world.xrayTransparentMaterial);
+					break;
+			}
 		});
 	}
 
@@ -73,6 +74,9 @@ export default class BetaMetroid {
 		this.world.targetableMeshes.push(this.model);
 		this.world.scannableMeshes.push(this.model);
 		this.model.isAlive = true;
+
+		// Type
+		this.model.scanType = ScanType.BetaMetroid;
 	}
 
 	setMovement() {
@@ -83,28 +87,28 @@ export default class BetaMetroid {
 		this.squishSpeed = 2;
 	}
 
-/* 
+	/* 
 	Actions
 */
-setMaterials(materials) {
-	let i = 0;
-	this.model.traverse(child => {
-		if (child.isMesh) {
-			child.material = materials[i];
-			i++;
-		}
-	})
-}
+	setMaterials(materials) {
+		let i = 0;
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = materials[i];
+				i++;
+			}
+		});
+	}
 
-setMaterial(material) {
-	this.model.traverse(child => {
-		if (child.isMesh) {
-			child.material = material;
-		}
-	})
-}
+	setMaterial(material) {
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = material;
+			}
+		});
+	}
 
-/* 
+	/* 
 	Update
 */
 

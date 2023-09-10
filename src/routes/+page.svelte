@@ -9,20 +9,25 @@
 	import { navigating } from '$app/stores';
 	import { AppState } from '../lib/enums';
 	import PauseScreen from './PauseScreen.svelte';
+	import { scale } from 'svelte/transition';
 </script>
 
-<div id="body">
-	<!-- {#if $appState !== AppState.Loading } -->
+<div id='backdrop'></div>
+{#if $appState !== AppState.Dying}
+	<div id="body" out:scale>
+		<!-- {#if $appState !== AppState.Loading } -->
 		<World />
 		<Hud />
-	<!-- {/if} -->
-	{#if $appState === AppState.None || $appState === AppState.Loading || $appState === AppState.Ready}
-		<PageLoader />
-	{/if}
-	{#if $appState === AppState.Paused}
-		<PauseScreen />
-	{/if}
-</div>
+		<!-- {/if} -->
+		{#if $appState === AppState.None || $appState === AppState.Loading || $appState === AppState.Ready}
+			<PageLoader />
+		{/if}
+		{#if $appState === AppState.Paused}
+			<PauseScreen />
+		{/if}
+	</div>
+{/if}
+
 
 <style>
 	:global(*) {
@@ -31,10 +36,18 @@
 		box-sizing: border-box;
 	}
 
-	#body {
+	#backdrop {
+		position: absolute;
 		width: 100vw;
 		height: 100vh;
-		position: relative;
+		background-color: black;
+	}
+
+	#body {
+		position: absolute;
+		width: 100vw;
+		height: 100vh;
+		/* position: relative; */
 		overflow: hidden;
 	}
 </style>

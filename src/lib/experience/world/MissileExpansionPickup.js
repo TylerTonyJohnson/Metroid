@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { BodyGroup } from '../../enums';
+import { currentVisor } from '../../stores';
+import { VisorType, BodyGroup } from '../../enums';
+import { ScanType } from '../scanData';
 
 export default class MissileExpansionPickup {
-	constructor(world) {
+	constructor(world, position) {
 		// References
 		this.world = world;
 		this.time = this.world.time;
@@ -13,7 +15,11 @@ export default class MissileExpansionPickup {
 		this.listener = this.samus.listener;
 		this.physicsWorld = this.world.physicsWorld;
 
+		this.position = position;
+
 		// Setup
+		this.setMaterials();
+		this.setStores();
 		this.setModel();
 		this.setBody();
 		this.setCollisionEvent();
@@ -25,17 +31,50 @@ export default class MissileExpansionPickup {
 	/* 
         Setup
     */
+	setMaterials() {
+		// Get materials
+		this.combatMaterial = this.world.missileExpansionCombatMaterials;
+		this.thermalMaterial = this.world.thermalHotMaterial;
+		this.xrayMaterial = this.world.xrayTransparentMaterial;
+	}
+
+	setStores() {
+		currentVisor.subscribe((value) => {
+			if (!this.model) return;
+
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.updateMaterials(this.combatMaterial);
+					// console.log('scan');
+					break;
+				case VisorType.Thermal:
+					this.updateMaterial(this.thermalMaterial);
+					// console.log('thermal');
+					break;
+				case VisorType.Xray:
+					this.updateMaterial(this.xrayMaterial);
+					// console.log('xray');
+					break;
+			}
+		});
+	}
+
 	setModel() {
 		const resource = this.resources.items.missileExpansionGLB;
 		this.model = resource.scene;
 		this.model.scale.set(0.25, 0.25, 0.25);
 
-		this.model.traverse(child => {
+		this.model.traverse((child) => {
 			if (child.isMesh) {
 				// child.material.emissive = 'white'
 				child.material.blending = THREE.AdditiveBlending;
 			}
-		})
+		});
+
+		// Type
+		this.model.scanType = ScanType.MissileExpansion;
 	}
 
 	setBody() {
@@ -52,7 +91,6 @@ export default class MissileExpansionPickup {
 		// Setup collision event
 		this.body.addEventListener('collide', (event) => {
 			this.setTrigger();
-			this.destroy();
 		});
 	}
 
@@ -68,11 +106,30 @@ export default class MissileExpansionPickup {
         Actions
     */
 	spawn() {
-		this.body.position.set(40, -7, -12);
+		this.model.isAlive = true;
+		this.body.position.copy(this.position);
 		this.model.position.copy(this.body.position);
 		this.scene.add(this.model);
 		this.physicsWorld.addBody(this.body);
 		this.world.scannableMeshes.push(this.model);
+	}
+
+	updateMaterials(materials) {
+		let i = 0;
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = materials[i];
+				i++;
+			}
+		});
+	}
+
+	updateMaterial(material) {
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = material;
+			}
+		});
 	}
 
 	setTrigger() {
@@ -82,6 +139,7 @@ export default class MissileExpansionPickup {
 	}
 
 	destroy() {
+		this.model.isAlive = false;
 		this.scene.remove(this.model);
 
 		// Body
@@ -94,11 +152,18 @@ export default class MissileExpansionPickup {
 
 		// Events
 		this.body.removeEventListener('collide');
+
+		// Respawn
+		setTimeout(() => {
+			console.log('respawning');
+			this.world.spawnMissileExpansionPickup(this.position);
+		}, 2000);
 	}
 
 	trigger() {
 		this.samus.updateMaxAmmo(5);
 		this.playSound();
+		this.destroy();
 	}
 
 	playSound() {
@@ -115,5 +180,4 @@ export default class MissileExpansionPickup {
 		if (!this.model) return;
 		this.model.rotation.y = 2 * (this.time.run / 1000);
 	}
-
 }

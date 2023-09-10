@@ -21,11 +21,11 @@ export default class IceShot {
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
-		this.damageValue = 50;
+		this.damageValue = 20;
 
 		// Spawn
-		this.setStores();
 		this.setMesh();
+		this.setStores();
 		this.setBody();
 		this.setCollisionEvent();
 		// this.setSound();

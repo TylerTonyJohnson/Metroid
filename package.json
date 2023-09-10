@@ -38,7 +38,9 @@
 		"image-js": "^0.35.4",
 		"lil-gui": "^0.18.2",
 		"three": "^0.150.1",
+		"three-particle-fire": "^0.1.0",
 		"threex": "^1.0.0",
-		"vite-plugin-glsl": "^1.1.2"
+		"vite-plugin-glsl": "^1.1.2",
+		"volumetric-fire": "github:yomotsu/VolumetricFire"
 	}
 }

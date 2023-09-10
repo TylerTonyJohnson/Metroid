@@ -2,6 +2,7 @@
 	import { fly } from "svelte/transition";
 
 	export let side;
+    export let imageUrl;
     $: flyDistance = side === 'right' ? 100 : -100; 
 </script>
 
@@ -9,6 +10,7 @@
 	<div class="window-container"
         class:left={side === 'left'}
         class:right={side === 'right'}>
+        <img class='window-frame-image' src={imageUrl} alt='window contents'/>
         <div class='window-fuzz' style="background-image: url('Scan Result Window Seed 1x.png');"></div>
 		<img class='window-frame-image' src="Scan Result Window 1x.png" alt="window" />
 	</div>
@@ -23,6 +25,7 @@
 		top: 50%;
 		translate: -50% -50%;
         perspective: 175vh;
+        opacity: 1;
 	}
 
 	.window-container {

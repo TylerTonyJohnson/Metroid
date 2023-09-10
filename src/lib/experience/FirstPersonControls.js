@@ -23,7 +23,6 @@ const lockRotSpeed = 5;
 
 const targetQuaternion = new THREE.Quaternion();
 
-
 export default class FirstPersonControls extends THREE.EventDispatcher {
 	constructor(experience, samus) {
 		super();
@@ -76,7 +75,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 			if (this.$isScanned) {
 				appState.set(AppState.ScanPaused);
 			} else {
-				// appState.set(AppState.Running);
+				appState.set(AppState.Running);
 			}
 		});
 	}
@@ -235,6 +234,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 				this.armCannon.shootBeam();
 				break;
 			case 2:
+				this.armCannon.shootMissile();
 				break;
 			case 3:
 				this.lockOn();
@@ -244,7 +244,8 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 
 	onMouseUp = (event) => {
 		if (!this.enabled) return;
-		if (this.$appState !== AppState.Running) return;
+		if (this.$appState !== AppState.Running && this.$appState !== AppState.ScanPaused) return;
+		
 		switch (event.which) {
 			case 1:
 				break;
@@ -366,17 +367,16 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 			scanProgress.set(100);
 		}
 		isLocked.set(true);
-		console.log('locking');
+		// console.log('locking');
 	}
 
 	lockOff() {
 		if (!this.$isLocked) return;
 		isLocked.set(false);
 		isScanning.set(false);
-		// isScanned.set(false);
 		scanProgress.set(0, { duration: 0 });
 		this.lockOnMesh = null;
-		console.log('locking off');
+		// console.log('locking off');
 	}
 
 	changeBeam(beamType) {
@@ -455,12 +455,10 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		};
 
 		if (this.$isLocked && this.lockOnMesh.isAlive) {
-			console.log(this.lockOnMesh.isObject3D)
+			// Find the target rotation
 			this.targetMatrix.lookAt(this.lockOnMesh.position, this.object.position, this.object.up);
 			targetQuaternion.setFromRotationMatrix(this.targetMatrix);
 			_euler.setFromQuaternion(this.object.quaternion);
-
-			// console.log(this.camera);
 		} else {
 			this.lockOff();
 			// Make changes to target rotation
@@ -476,7 +474,7 @@ export default class FirstPersonControls extends THREE.EventDispatcher {
 		}
 
 		// Rotate toward target quaternion
-		const step = lockRotSpeed * this.time.delta /1000;
+		const step = (lockRotSpeed * this.time.delta) / 1000;
 		this.object.quaternion.rotateTowards(targetQuaternion, step);
 		this.cannonBody.quaternion.setFromEuler(0, _euler.y, 0);
 

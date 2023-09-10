@@ -3,8 +3,10 @@ import * as CANNON from 'cannon-es';
 import { currentVisor } from '../../stores';
 import { VisorType, BodyGroup } from '../../enums';
 
+const fireVelocity = 20;
+
 export default class PowerShot {
-	static fireVelocity = 20;
+	
 
 	constructor(armCannon) {
 		// References
@@ -21,11 +23,11 @@ export default class PowerShot {
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
-		this.damageValue = 50;
+		this.damageValue = 5;
 
 		// Spawn
-		this.setStores();
 		this.setMesh();
+		this.setStores();
 		this.setBody();
 		this.setCollisionEvent();
 		// this.setSound();
@@ -119,9 +121,9 @@ export default class PowerShot {
 	shoot() {
 		// Set velocity to shoot velocity
 		this.body.velocity.set(
-			this.spawnDirection.x * PowerShot.fireVelocity,
-			this.spawnDirection.y * PowerShot.fireVelocity,
-			this.spawnDirection.z * PowerShot.fireVelocity
+			this.spawnDirection.x * fireVelocity,
+			this.spawnDirection.y * fireVelocity,
+			this.spawnDirection.z * fireVelocity
 		);
 
 		// Set distance at which to delete the shot

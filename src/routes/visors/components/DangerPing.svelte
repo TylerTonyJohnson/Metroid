@@ -1,12 +1,13 @@
 <script>
 	import { onMount } from 'svelte';
-	import { currentDanger, thresholdDanger, capDanger, isRendering } from '../../../lib/stores';
+	import { appState, currentDanger, thresholdDanger, capDanger, isRendering } from '../../../lib/stores';
 	import * as THREE from 'three';
 	import { listener } from '../../../lib/scene';
+	import { AppState } from '../../../lib/enums';
 	let hasWarned = false;
 	let hasDamaged = false;
 
-	onMount(() => {
+	// onMount(() => {
 		const warnSound = new THREE.Audio(listener);
 		const damageSound = new THREE.Audio(listener);
 
@@ -47,17 +48,17 @@
 			}
 		});
 
-		isRendering.subscribe((value) => {
-			switch (value) {
-				case true:
-					warnSound.setVolume(0.25);
-					damageSound.setVolume(0.25);
+		appState.subscribe((value) => {
+			switch (true) {
+				case value === AppState.Running:
+					warnSound.setVolume(0.15);
+					damageSound.setVolume(0.15);
 					break;
-				case false:
+				case value !== AppState.Running:
 					warnSound.setVolume(0);
 					damageSound.setVolume(0);
 					break;
 			}
 		});
-	});
+	// });
 </script>

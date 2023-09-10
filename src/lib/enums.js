@@ -4,7 +4,8 @@ export class AppState {
     static Ready = new AppState('ready');
     static Running = new AppState('running');
     static Paused = new AppState('paused');
-    static ScanPaused = new AppState('scanPaused')
+    static ScanPaused = new AppState('scanPaused');
+    static Dying = new AppState('dying');
 }
 
 export class VisorType {
@@ -54,3 +55,4 @@ export class BodyGroup {
     static Pickups = 8;
     static Walls = 16;
 }
+

@@ -21,7 +21,7 @@ export const isRendering = writable(false);
 export const currentHealth = tweened(199, {
 	duration: 200
 });
-export const maxHealth = writable(599);
+export const maxHealth = writable(299);
 export const capHealth = readable(1499);
 
 // Danger
@@ -31,10 +31,10 @@ export const capDanger = readable(100);
 export const hasPingedDanger = writable(false);
 
 // Ammo
-export const currentAmmo = tweened(35, {
+export const currentAmmo = tweened(10, {
 	duration: 100
 });
-export const maxAmmo = tweened(65, {
+export const maxAmmo = tweened(25, {
 	duration: 100
 });
 export const capAmmo = readable(250);
@@ -77,6 +77,7 @@ export const seekerPositions = writable([]);	// An array of positions
 export const closestSeekerPosition = writable({});	// The closest position
 export const isLockable = writable(false);
 export const isLocked = writable(false);
+export const closestSeekerType = writable(null);
 
 
 export const readoutShow = writable(false);

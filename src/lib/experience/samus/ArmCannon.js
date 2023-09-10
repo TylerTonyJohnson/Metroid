@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { BeamType, VisorType } from '../../enums';
-import { currentBeam, currentVisor, lookMovement } from '../../stores';
+import { currentBeam, currentVisor, currentAmmo, lookMovement } from '../../stores';
 import { tweened } from 'svelte/motion';
 import PowerShot from './PowerShot';
 import WaveShot from './WaveShot';
 import IceShot from './IceShot';
 import PlasmaShot from './PlasmaShot';
+import MissileShot from './MissileShot';
 
 export default class ArmCannon {
 	constructor(samus) {
@@ -37,14 +38,20 @@ export default class ArmCannon {
 			// Set material based on visor
 			switch (value) {
 				case VisorType.Combat:
+					this.setMaterials(this.world.armCannonCombatMaterials);
+					this.disarmRotation.set(0, { duration: 100 });
+					break;
 				case VisorType.Scan:
 					this.setMaterials(this.world.armCannonCombatMaterials);
+					this.disarmRotation.set(Math.PI/2, { duration: 200 });
 					break;
 				case VisorType.Thermal:
 					this.setMaterial(this.world.thermalHotMaterial);
+					this.disarmRotation.set(0, { duration: 100 });
 					break;
 				case VisorType.Xray:
 					this.setMaterial(this.world.xrayTransparentMaterial);
+					this.disarmRotation.set(0, { duration: 100 });
 					break;
 			}
 
@@ -56,6 +63,11 @@ export default class ArmCannon {
 			this.$lookMovement = value;
 		});
 
+		currentAmmo.subscribe(value => {
+			this.$currentAmmo = value;
+		})
+
+		// Private
 		this.rotation = new tweened({ x: 0, y: 0 });
 
 		this.rotation.subscribe((value) => {
@@ -67,6 +79,12 @@ export default class ArmCannon {
 		this.recoil.subscribe((value) => {
 			this.$recoil = value;
 		});
+
+		this.disarmRotation = new tweened(0);
+
+		this.disarmRotation.subscribe(value => {
+			this.$disarmRotation = value;
+		})
 	}
 
 	setModel() {
@@ -117,6 +135,7 @@ export default class ArmCannon {
 		this.waveSoundResource = this.resources.items.waveBeamSound;
 		this.iceSoundResource = this.resources.items.iceBeamSound;
 		this.plasmaSoundResource = this.resources.items.plasmaBeamSound;
+		this.missileSoundResource = this.resources.items.missileSound;
 	}
 
 	setTimer() {
@@ -124,7 +143,7 @@ export default class ArmCannon {
 		this.lastShotTime = this.time.run;
 		this.lastShotDelta = 0;
 		this.powerBeamTimer = 0.1;
-		this.waveBeamTimer = 0.4;
+		this.waveBeamTimer = 0.5;
 		this.iceBeamTimer = 0.8;
 		this.plasmaBeamTimer = 0.5;
 		this.missileTimer = 1.0;
@@ -177,13 +196,19 @@ export default class ArmCannon {
 
 	shootMissile() {
 		if (!this.isActive) return;
+		if (!this.$currentAmmo) return;
 
 		// See if the beam cooldown has happened
 		this.lastShotDelta = (this.time.run - this.lastShotTime) / 1000;
 		if (this.lastShotDelta < this.coolDownTimer) return;
 		this.lastShotTime = this.time.run;
 
-		
+		const missileShot = new MissileShot(this);
+		missileShot.shoot();
+		this.playSound(this.missileSoundResource);
+		this.coolDownTimer = this.missileTimer;
+		this.recoil.set(0.1, { duration: 100 });
+		currentAmmo.update(n => n - 1);
 	}
 
 	playSound(resource) {
@@ -217,7 +242,7 @@ export default class ArmCannon {
 
 	update() {
 		this.rotation.set({
-			x: -this.$lookMovement.x * this.movementMax,
+			x: -this.$lookMovement.x * this.movementMax + this.$disarmRotation,
 			y: -this.$lookMovement.y * this.movementMax
 		});
 

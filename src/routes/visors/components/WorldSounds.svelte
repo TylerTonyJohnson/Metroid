@@ -19,7 +19,7 @@
 
 	// Pausing sounds
 	$: {
-		if ($appState === AppState.Running) {
+		if ($appState === AppState.Running || $appState === AppState.ScanPaused) {
             ambientSound.play();
 		} else {
             ambientSound.pause();

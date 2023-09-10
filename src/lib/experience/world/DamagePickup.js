@@ -3,7 +3,7 @@ import * as CANNON from 'cannon-es';
 import { BodyGroup } from '../../enums';
 
 export default class DamagePickup {
-	constructor(world) {
+	constructor(world, position) {
 		// References
 		this.world = world;
 		this.scene = this.world.scene;
@@ -11,6 +11,8 @@ export default class DamagePickup {
 		this.resources = this.world.resources;
 		this.listener = this.samus.listener;
 		this.physicsWorld = this.world.physicsWorld;
+
+		this.position = position;
 
 		// Setup
 		this.setMesh();
@@ -26,7 +28,7 @@ export default class DamagePickup {
 	setMesh() {
 		const geometry = new THREE.SphereGeometry(1);
 		const material = new THREE.MeshBasicMaterial({ color: 'red' });
-		this.mesh = new THREE.Mesh(geometry, material);
+		this.model = new THREE.Mesh(geometry, material);
 	}
 
 	setBody() {
@@ -43,7 +45,6 @@ export default class DamagePickup {
 		// Setup collision event
 		this.body.addEventListener('collide', (event) => {
 			this.setTrigger();
-			this.destroy();
 		});
 	}
 
@@ -54,7 +55,7 @@ export default class DamagePickup {
 			this.resources.items.damageSound3,
 			this.resources.items.damageSound4,
 			this.resources.items.damageSound5,
-			this.resources.items.damageSound6,
+			this.resources.items.damageSound6
 		];
 	}
 
@@ -62,9 +63,10 @@ export default class DamagePickup {
         Actions
     */
 	spawn() {
-		this.body.position.set(40, -7, -5);
-		this.mesh.position.copy(this.body.position);
-		this.scene.add(this.mesh);
+		this.model.isAlive = true;
+		this.body.position.copy(this.position);
+		this.model.position.copy(this.body.position);
+		this.scene.add(this.model);
 		this.physicsWorld.addBody(this.body);
 	}
 
@@ -75,26 +77,34 @@ export default class DamagePickup {
 	}
 
 	destroy() {
+		this.model.isAlive = false;
 		// Mesh
-		this.mesh.geometry.dispose();
-		this.mesh.material.dispose();
-		this.scene.remove(this.mesh);
+		this.model.geometry.dispose();
+		this.model.material.dispose();
+		this.scene.remove(this.model);
 
 		// Body
 		if (!this.world.bodiesToRemove.includes(this.body)) {
 			this.world.bodiesToRemove.push(this.body);
 		}
 
-        // World
-        this.world.damageBall = null;
+		// World
+		this.world.damageBall = null;
 
 		// Events
 		this.body.removeEventListener('collide');
+
+		// Respawn
+		setTimeout(() => {
+			console.log('respawning');
+			this.world.spawnHealthPickup(this.position);
+		}, 2000);
 	}
 
 	trigger() {
 		this.samus.updateCurrentHealth(-13);
 		this.playSound();
+		this.destroy();
 	}
 
 	playSound() {

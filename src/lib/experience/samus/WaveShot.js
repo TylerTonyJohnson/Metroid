@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { currentVisor } from '../../stores';
+import { currentVisor, isLocked } from '../../stores';
 import { VisorType, BodyGroup } from '../../enums';
 
 export default class WaveShot {
@@ -18,16 +18,17 @@ export default class WaveShot {
 		this.world = this.samus.world;
 		this.physicsWorld = this.samus.world.physicsWorld;
 		this.time = this.samus.experience.time;
+		this.seeker = this.samus.seeker;
 
 		// Tick event
 		this.time.addEventListener('tick', (event) => {
 			this.update();
 		});
-		this.damageValue = 50;
+		this.damageValue = 15;
 
 		// Spawn
-		this.setStores();
 		this.setMesh();
+		this.setStores();
 		this.setBody();
 		this.setCollisionEvent();
 		this.spawn();
@@ -37,27 +38,31 @@ export default class WaveShot {
 	// Setup
 	setStores() {
 		currentVisor.subscribe((value) => {
-			if (!this.group) return;
+			if (!this.model) return;
 
 			// Set material based on visor
 			switch (value) {
 				case VisorType.Combat:
 				case VisorType.Scan:
-					this.meshes.forEach(mesh => mesh.material = this.armCannon.waveShotCombatMaterial);
+					this.meshes.forEach((mesh) => (mesh.material = this.armCannon.waveShotCombatMaterial));
 					break;
 				case VisorType.Thermal:
-					this.meshes.forEach(mesh => mesh.material = this.world.thermalHotMaterial);
+					this.meshes.forEach((mesh) => (mesh.material = this.world.thermalHotMaterial));
 					break;
 				case VisorType.Xray:
-					this.meshes.forEach(mesh => mesh.material = this.world.xrayTransparentMaterial);
+					this.meshes.forEach((mesh) => (mesh.material = this.world.xrayTransparentMaterial));
 					break;
 			}
+		});
+
+		isLocked.subscribe((value) => {
+			this.$isLocked = value;
 		});
 	}
 
 	setMesh() {
-		this.group = new THREE.Group();
-		this.group.quaternion.copy(this.samus.group.quaternion);
+		this.model = new THREE.Group();
+		this.model.quaternion.copy(this.samus.group.quaternion);
 		this.radius = WaveShot.radiusMin;
 		this.meshCount = 3;
 		this.meshes = [];
@@ -69,7 +74,7 @@ export default class WaveShot {
 			const y = this.radius * Math.sin(theta);
 			mesh.position.set(x, y, 0);
 			this.meshes.push(mesh);
-			this.group.add(mesh);
+			this.model.add(mesh);
 		}
 	}
 
@@ -103,14 +108,14 @@ export default class WaveShot {
 
 	spawn() {
 		// Set position
-		this.group.position.copy(this.spawnPosition);
+		this.model.position.copy(this.spawnPosition);
 
 		// Set speed
 		this.spawnDirection = new THREE.Vector3();
 		this.samus.group.getWorldDirection(this.spawnDirection);
 
 		// Add to scene
-		this.scene.add(this.group);
+		this.scene.add(this.model);
 		this.physicsWorld.addBody(this.body);
 	}
 
@@ -123,6 +128,8 @@ export default class WaveShot {
 */
 
 	shoot() {
+		this.targetDirection = new THREE.Vector3();
+		this.currentDirection = this.spawnDirection.clone();
 		// Set velocity to shoot velocity
 		this.body.velocity.set(
 			this.spawnDirection.x * WaveShot.fireVelocity,
@@ -157,13 +164,16 @@ export default class WaveShot {
     */
 
 	update() {
-		
-		this.group.position.copy(this.body.position);
-		console.log(this.seeker);
-		// this.group.updateMatrixWorld();
+		if (this.$isLocked) {
+			// console.log('locked');
+			this.updateAimVector();
+		}
+
+		// Update position of mesh
+		this.model.position.copy(this.body.position);
 
 		// Get distance from start
-		const distance = this.group.position.distanceTo(this.spawnPosition);
+		const distance = this.model.position.distanceTo(this.spawnPosition);
 		if (distance > this.distanceThreshold) this.destroy();
 
 		// Update pulsing
@@ -182,11 +192,31 @@ export default class WaveShot {
 
 	destroy() {
 		// Mesh
-		this.scene.remove(this.group);
+		this.scene.remove(this.model);
 
 		// Body
 		if (!this.world.bodiesToRemove.includes(this.body)) {
 			this.world.bodiesToRemove.push(this.body);
 		}
+	}
+
+	/* 
+		Utilities
+	*/
+	updateAimVector() {
+		const seekerPosition = this.seeker.closestMesh.position;
+		const missilePosition = this.body.position;
+
+		// Figure out target vector
+		this.targetDirection.subVectors(seekerPosition, missilePosition).normalize();
+
+		// Lerp toward target vector
+		this.currentDirection.lerp(this.targetDirection, 0.05);
+		this.body.velocity.set(
+			this.currentDirection.x * WaveShot.fireVelocity,
+			this.currentDirection.y * WaveShot.fireVelocity,
+			this.currentDirection.z * WaveShot.fireVelocity
+		);
+		this.model.lookAt(seekerPosition);
 	}
 }

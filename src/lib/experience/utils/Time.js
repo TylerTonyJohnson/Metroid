@@ -33,7 +33,8 @@ export default class Time extends THREE.EventDispatcher {
 		// Run time
 		if (
 			this.$appState !== AppState.Paused &&
-			this.$appState !== AppState.Ready
+			this.$appState !== AppState.Ready &&
+			this.$appState !== AppState.ScanPaused
 		) {
 			this.run += this.delta;
 			this.dispatchEvent({ type: 'tick' });

@@ -5,6 +5,10 @@ import { currentVisor } from '../../stores';
 import { VisorType, BodyGroup } from '../../enums';
 import PowerShot from '../samus/PowerShot';
 import IceShot from '../samus/IceShot';
+import MissileShot from '../samus/MissileShot';
+import WaveShot from '../samus/WaveShot';
+import PlasmaShot from '../samus/PlasmaShot';
+import { ScanType } from '../scanData';
 
 export default class Metroid {
 	static centerPoint = new THREE.Vector3(0, 3, 0);
@@ -48,6 +52,7 @@ export default class Metroid {
 		this.debug = this.experience.debug;
 
 		// Setup
+		this.setMaterials();
 		this.setStores();
 		this.setModel();
 		this.setBody();
@@ -65,6 +70,12 @@ export default class Metroid {
 	/* 
 		Setup
 	*/
+	setMaterials() {
+		this.combatMaterial = this.world.metroidCombatMaterials;
+		this.thermalMaterial = this.world.thermalHotMaterial.clone();
+		this.xrayMaterial = this.world.xrayTransparentMaterial.clone();
+		this.standardColor = new THREE.Color('white');
+	}
 
 	setStores() {
 		currentVisor.subscribe((value) => {
@@ -74,13 +85,16 @@ export default class Metroid {
 			switch (value) {
 				case VisorType.Combat:
 				case VisorType.Scan:
-					this.setMaterials(this.world.metroidCombatMaterials);
+					this.updateMaterials(this.combatMaterial);
+					// console.log('scan');
 					break;
 				case VisorType.Thermal:
-					this.setMaterial(this.world.thermalHotMaterial);
+					this.updateMaterial(this.thermalMaterial);
+					// console.log('thermal');
 					break;
 				case VisorType.Xray:
-					this.setMaterial(this.world.xrayTransparentMaterial);
+					this.updateMaterial(this.xrayMaterial);
+					// console.log('xray');
 					break;
 			}
 		});
@@ -90,9 +104,20 @@ export default class Metroid {
 		this.resource = this.resources.items.metroidGLB;
 		this.resource.scene.children[0].position.set(0.35, 0, 0);
 
+		// Clone
 		this.model = this.resource.scene.clone();
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = child.material.clone();
+			}
+		});
+
+		// Config
 		this.model.scale.set(2, 2, 2);
 		this.model.rotation.y = Math.PI / 2;
+
+		// Type
+		this.model.scanType = ScanType.Metroid;
 	}
 
 	setBody() {
@@ -168,13 +193,15 @@ export default class Metroid {
 		this.world.targetableMeshes.push(this.model);
 		this.world.scannableMeshes.push(this.model);
 		this.model.isAlive = true;
+		this.isFrozen = false;
+		this.uptime = 0;
 	}
 
 	/* 
 		Actions
 	*/
 
-	setMaterials(materials) {
+	updateMaterials(materials) {
 		let i = 0;
 		this.model.traverse((child) => {
 			if (child.isMesh) {
@@ -184,7 +211,7 @@ export default class Metroid {
 		});
 	}
 
-	setMaterial(material) {
+	updateMaterial(material) {
 		this.model.traverse((child) => {
 			if (child.isMesh) {
 				child.material = material;
@@ -206,12 +233,23 @@ export default class Metroid {
 	*/
 
 	update() {
+		// Frozen
+		if (this.isFrozen) {
+			this.freezeTimer -= this.time.delta / 1000;
+			if (this.freezeTimer >= 0) {
+				return;
+			} else {
+				this.unfreeze;
+			}
+		}
+
 		// Set time
-		const thetaRotate = (this.rotationSpeed * this.direction * this.time.run) / 1000;
-		const thetaBob = (this.bobSpeed * this.time.run) / 1000;
-		const thetaWeave = (this.weaveSpeed * this.time.run) / 1000;
-		const thetaTilt = (this.tiltSpeed * this.time.run) / 1000;
-		const thetaPitch = (this.pitchSpeed * this.time.run) / 1000;
+		this.uptime += this.time.delta;
+		const thetaRotate = (this.rotationSpeed * this.direction * this.uptime) / 1000;
+		const thetaBob = (this.bobSpeed * this.uptime) / 1000;
+		const thetaWeave = (this.weaveSpeed * this.uptime) / 1000;
+		const thetaTilt = (this.tiltSpeed * this.uptime) / 1000;
+		const thetaPitch = (this.pitchSpeed * this.uptime) / 1000;
 
 		// Position
 		const x =
@@ -232,6 +270,13 @@ export default class Metroid {
 		const pitch = this.pitchAmp * Math.sin(thetaPitch + this.thetaOffset);
 		this.model.rotation.set(pitch, rotation, tilt);
 		this.model.position.copy(this.body.position);
+
+		// Color
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material.color.lerp(this.standardColor, 0.05);
+			}
+		});
 	}
 
 	setTrigger() {
@@ -241,16 +286,49 @@ export default class Metroid {
 	}
 
 	damage(shot) {
-		// Health
-		this.currentHealth = Math.max(this.currentHealth - shot.damageValue, 0);
-		if (this.currentHealth < 1) this.kill();
-
 		// // Color
 		// if (shot instanceof IceShot) {
-		// 	// this.freeze();
+		// 	this.freeze();
 		// } else {
-		// 	// this.flash();
+		// 	if (!this.isFrozen) {
+		// 		this.flash();
+		// 	}
 		// }
+		// // Health
+		// if (this.isFrozen && shot instanceof MissileShot) {
+		// 	damage = shot.damageValue * 4;
+		// } else {
+		// 	damage = shot.damageValue;
+		// }
+		
+		// Calculate damage and such
+		let damage = 0;
+		switch (true) {
+			case shot instanceof PowerShot:
+			case shot instanceof WaveShot:
+			case !this.isFrozen && shot instanceof PlasmaShot:
+			case !this.isFrozen && shot instanceof MissileShot:
+				damage = shot.damageValue;
+				this.flash();
+				break;
+			case shot instanceof IceShot:
+				damage = shot.damageValue;
+				this.freeze();
+				break;
+			case this.isFrozen && shot instanceof PlasmaShot:
+				damage = shot.damageValue;
+				this.unfreeze();
+				this.flash();
+				break;
+			case this.isFrozen && shot instanceof MissileShot:
+				damage = 4 * shot.damageValue;
+				this.unfreeze();
+				this.flash();
+				break;
+		}
+
+		this.currentHealth = Math.max(this.currentHealth - damage, 0);
+		if (this.currentHealth < 1) this.kill();
 	}
 
 	kill() {
@@ -260,21 +338,32 @@ export default class Metroid {
 	}
 
 	freeze() {
+		this.isFrozen = true;
+		this.freezeTimer = 5;
 
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material.color.set('blue');
+			}
+		});
 	}
 
-	// flash() {
-	// 	this.model.traverse(child => {
-	// 		if (child.isMesh) {
-	// 			child.material.color.set('red');
-	// 		}
-	// 	})
-	// }
+	unfreeze() {
+		this.isFrozen = false;
+		this.freezeTimer = 0;
+	}
+
+	flash() {
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material.color.set('red');
+			}
+		});
+	}
 
 	destroy() {
 		// Mesh
 		this.scene.remove(this.model);
-		
 
 		// Body
 		if (!this.world.bodiesToRemove.includes(this.body)) {
@@ -320,4 +409,8 @@ export default class Metroid {
 	// }
 
 	setDebug() {}
+
+	/* 
+		Utilities
+	*/
 }

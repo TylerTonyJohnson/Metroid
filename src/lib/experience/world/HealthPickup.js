@@ -1,15 +1,17 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { BodyGroup } from '../../enums';
+import { currentVisor } from '../../stores';
+import { VisorType, BodyGroup } from '../../enums';
+import { ScanType } from '../scanData';
 
 class HealthSize {
-    static Small = new HealthSize('small');
-    static Medium = new HealthSize('medium');
-    static Large = new HealthSize('large');
+	static Small = new HealthSize('small');
+	static Medium = new HealthSize('medium');
+	static Large = new HealthSize('large');
 }
 
 export default class HealthPickup {
-	constructor(world) {
+	constructor(world, position) {
 		// References
 		this.world = world;
 		this.time = this.world.time;
@@ -19,7 +21,11 @@ export default class HealthPickup {
 		this.listener = this.samus.listener;
 		this.physicsWorld = this.world.physicsWorld;
 
+		this.position = position;
+
 		// Setup
+		this.setMaterials();
+		this.setStores();
 		this.setType();
 		this.setModel();
 		this.setBody();
@@ -32,37 +38,87 @@ export default class HealthPickup {
 	/* 
         Setup
     */
+	setMaterials() {
+		// Get materials
+		this.combatMaterial = this.world.healthCombatMaterials;
+		this.thermalMaterial = this.world.thermalHotMaterial;
+		this.xrayMaterial = this.world.xrayTransparentMaterial;
+	}
+
+	setStores() {
+		currentVisor.subscribe((value) => {
+			if (!this.model) return;
+
+			// Set material based on visor
+			switch (value) {
+				case VisorType.Combat:
+				case VisorType.Scan:
+					this.updateMaterials(this.combatMaterial);
+					// console.log('scan');
+					break;
+				case VisorType.Thermal:
+					this.updateMaterial(this.thermalMaterial);
+					// console.log('thermal');
+					break;
+				case VisorType.Xray:
+					this.updateMaterial(this.xrayMaterial);
+					// console.log('xray');
+					break;
+			}
+		});
+	}
+
 	setType() {
 		const healthSizeArray = Object.values(HealthSize);
 		this.size = healthSizeArray[Math.floor(Math.random() * healthSizeArray.length)];
+		// switch (this.size) {
+		// 	case HealthSize.Small:
+				
+		// 		// console.log('small');
+		// 		break;
+		// 	case HealthSize.Medium:
+				
+		// 		// console.log('medium');
+		// 		break;
+		// 	case HealthSize.Large:
+				
+		// 		// console.log('large');
+		// 		break;
+		// }
 	}
 
 	setModel() {
 		const resource = this.resources.items.healthGLB;
-		this.model = resource.scene;
+
+		// Clone mmodel
+		this.model = resource.scene.clone(true);
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = child.material.clone();
+				// child.material.blending = THREE.AdditiveBlending;
+			}
+		});
+
+		// Config model
 		this.model.scale.set(0.25, 0.25, 0.25);
 
+		// Set material by type
 		const sphereMesh = this.model.children[0].children[1];
-		// console.log(this.model.children[0].children[0]);
 
 		switch (this.size) {
 			case HealthSize.Small:
 				sphereMesh.material.color.set('purple');
+				this.model.scanType = ScanType.SmallEnergy;
 				break;
 			case HealthSize.Medium:
 				sphereMesh.material.color.set('red');
+				this.model.scanType = ScanType.MediumEnergy;
 				break;
 			case HealthSize.Large:
 				sphereMesh.material.color.set('yellow');
+				this.model.scanType = ScanType.LargeEnergy;
 				break;
 		}
-
-		// this.model.traverse(child => {
-		// 	if (child.isMesh) {
-		// 		child.material.blending = THREE.AdditiveBlending;
-
-		// 	}
-		// })
 	}
 
 	setBody() {
@@ -79,7 +135,7 @@ export default class HealthPickup {
 		// Setup collision event
 		this.body.addEventListener('collide', (event) => {
 			this.setTrigger();
-			this.destroy();
+			// this.destroy();
 		});
 	}
 
@@ -95,11 +151,30 @@ export default class HealthPickup {
         Actions
     */
 	spawn() {
-		this.body.position.set(40, -7, 0);
+		this.model.isAlive = true;
+		this.body.position.copy(this.position);
 		this.model.position.copy(this.body.position);
 		this.scene.add(this.model);
 		this.physicsWorld.addBody(this.body);
 		this.world.scannableMeshes.push(this.model);
+	}
+
+	updateMaterials(materials) {
+		let i = 0;
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = materials[i];
+				i++;
+			}
+		});
+	}
+
+	updateMaterial(material) {
+		this.model.traverse((child) => {
+			if (child.isMesh) {
+				child.material = material;
+			}
+		});
 	}
 
 	setTrigger() {
@@ -109,6 +184,7 @@ export default class HealthPickup {
 	}
 
 	destroy() {
+		this.model.isAlive = false;
 		this.scene.remove(this.model);
 
 		// Body
@@ -116,28 +192,32 @@ export default class HealthPickup {
 			this.world.bodiesToRemove.push(this.body);
 		}
 
-		// World
-		// this.world.damageBall = null;
-
 		// Events
 		this.body.removeEventListener('collide');
+
+		// Respawn
+		setTimeout(() => {
+			console.log('respawning');
+			this.world.spawnHealthPickup(this.position);
+		}, 2000);
 	}
 
 	trigger() {
 		// Heal
 		switch (this.size) {
 			case HealthSize.Small:
-				this.samus.updateCurrentHealth(25);
+				this.samus.updateCurrentHealth(10);
 				break;
 			case HealthSize.Medium:
-				this.samus.updateCurrentHealth(50);
+				this.samus.updateCurrentHealth(20);
 				break;
 			case HealthSize.Large:
 				this.samus.updateCurrentHealth(100);
 				break;
 		}
-		
+
 		// Play sound
+		this.destroy();
 		this.playSound();
 	}
 

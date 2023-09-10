@@ -6,11 +6,12 @@ import Hangar from './Hangar';
 import BetaMetroid from './BetaMetroid';
 import Metroid from './Metroid';
 import Samus from '../samus/Samus';
-import MissilePickup from './MissilePickup';
+import MissileAmmoPickup from './MissileAmmoPickup';
 import MissileExpansionPickup from './MissileExpansionPickup';
 import DamagePickup from './DamagePickup';
 import HealthPickup from './HealthPickup';
 import EnergyTank from './EnergyTank';
+import DamageFire from './DamageFire';
 
 export default class World {
 	constructor(experience) {
@@ -36,31 +37,9 @@ export default class World {
 		// Wait for resources to load
 		this.resources = this.experience.resources;
 		this.resources.addEventListener('loaded', () => {
-			
-			// Samus
-			this.samus = new Samus(this.experience);
-			
-			// Metroids
-			this.metroids = [];
-			for (let i = 0; i < 5; i++) {
-				const metroid = new Metroid(this.experience);
-				this.metroids.push(metroid);
-			}
-			this.betaMetroid = new BetaMetroid(this.experience);
-
-			// Hangar
-			this.hangar = new Hangar(this.experience);
-
-			// Damage ball
-			const damagePickup = new DamagePickup(this);
-			const healthPickup = new HealthPickup(this);
-			const energyTank = new EnergyTank(this);
-			const missilePickup = new MissilePickup(this);
-			const missileExpansionPickup = new MissileExpansionPickup(this);
-
-			// Environment
+			// Materials
 			this.setMaterials();
-			this.environment = new Environment(this.experience);
+			this.build();
 		});
 	}
 
@@ -68,10 +47,14 @@ export default class World {
 		Setup
 	*/
 	setWorldObjectArrays() {
+		// Sort arrays
 		this.lookableMeshes = [];
 		this.shootableMeshes = [];
 		this.targetableMeshes = [];
 		this.scannableMeshes = [];
+		this.dangerMeshes = [];
+
+		// Management
 		this.objectsToTrigger = [];
 		this.bodiesToRemove = [];
 	}
@@ -93,7 +76,7 @@ export default class World {
 			{
 				friction: 0,
 				restitution: 0,
-				contactEquationStiffness: 1e9,
+				contactEquationStiffness: 1e9
 			}
 		);
 		this.physicsWorld.defaultContactMaterial = this.defaultContactMaterial;
@@ -129,16 +112,37 @@ export default class World {
 		this.resources.items.hangarGLB.scene.traverse((child) => {
 			if (child.isMesh) this.hangarCombatMaterials.push(child.material);
 		});
-		// Glass tube
 
-		// Glass window
+		// Missile Expansion
+		this.missileExpansionCombatMaterials = [];
+		this.resources.items.missileExpansionGLB.scene.traverse((child) => {
+			if (child.isMesh) this.missileExpansionCombatMaterials.push(child.material);
+		});
+
+		// Missile ammo
+		this.missileAmmoCombatMaterials = [];
+		this.resources.items.missileAmmoGLB.scene.traverse((child) => {
+			if (child.isMesh) this.missileAmmoCombatMaterials.push(child.material);
+		});
+
+		// Energy tank
+		this.energyTankCombatMaterials = [];
+		this.resources.items.energyTankGLB.scene.traverse((child) => {
+			if (child.isMesh) this.energyTankCombatMaterials.push(child.material);
+		});
+
+		// Health pickup
+		this.healthCombatMaterials = [];
+		this.resources.items.healthGLB.scene.traverse((child) => {
+			if (child.isMesh) this.healthCombatMaterials.push(child.material);
+		});
 
 		/* 
 			Thermal Materials
 		*/
 		this.thermalHotMaterial = new THREE.MeshMatcapMaterial({
 			matcap: this.resources.items.thermalHotTexture,
-			fog: false,
+			fog: false
 			// transparent: false,
 			// depthWrite: false,
 			// depthTest: false,
@@ -181,36 +185,69 @@ export default class World {
 		Actions
 	*/
 	build() {
+		// Samus
+		this.samus = new Samus(this.experience);
+
+		// Metroids
+		this.metroids = [];
+		for (let i = 0; i < 5; i++) {
+			const metroid = new Metroid(this.experience);
+			this.metroids.push(metroid);
+		}
+		this.betaMetroid = new BetaMetroid(this.experience);
+
+		// Hangar
+		this.hangar = new Hangar(this.experience);
+
+		// Pickups
+		// this.spawnDamagePickup(new THREE.Vector3(27, -7, 13));
+		this.spawnDamageFire(new THREE.Vector3(27, -8.5, 13));
+		this.spawnHealthPickup(new THREE.Vector3(36, -7, 13));
+		this.spawnHealthPickup(new THREE.Vector3(45, -7, 13));
+		this.spawnEnergyTankPickup(new THREE.Vector3(54, -7, 13));
+		this.spawnMissileAmmoPickup(new THREE.Vector3(27, -7, -13));
+		this.spawnMissileExpansionPickup(new THREE.Vector3(36, -7, -13));
 		
+
+		// Environment
+		this.environment = new Environment(this.experience);
 	}
 
-	// changeMaterials() {
-	// 	const resource = this.resources.items.powerShotTexture;
-	// 	const material = new THREE.MeshMatcapMaterial({ matcap: resource });
-
-	// 	this.scene.traverse(child => {
-	// 		if (child.isMesh) {
-	// 			child.material = material;
-	// 		}
-	// 	})
-	// }
+	spawnDamagePickup(position) {
+		const damagePickup = new DamagePickup(this, position);
+	}
+	spawnDamageFire(position) {
+		const damageFire = new DamageFire(this, position);
+	}
+	spawnHealthPickup(position) {
+		const healthPickup = new HealthPickup(this, position);
+	}
+	spawnEnergyTankPickup(position) {
+		const energyTankPickup = new EnergyTank(this, position);
+	}
+	spawnMissileAmmoPickup(position) {
+		const missileAmmoPickup = new MissileAmmoPickup(this, position);
+	}
+	spawnMissileExpansionPickup(position) {
+		const missileExpansionPickup = new MissileExpansionPickup(this, position);
+	}
 
 	/* 
 		Update
 	*/
 	update() {
 		// Trigger collided bodies
-		this.objectsToTrigger.forEach(object => {
+		this.objectsToTrigger.forEach((object) => {
 			object.trigger();
-		})
+		});
 		this.objectsToTrigger = [];
 
 		// Clear bodies
-		this.bodiesToRemove.forEach(body => {
+		this.bodiesToRemove.forEach((body) => {
 			this.physicsWorld.removeBody(body);
 		});
 		this.bodiesToRemove = [];
-		
+
 		// Update physics world
 		this.physicsWorld.step(this.timestep, this.time.delta, 3);
 
@@ -220,5 +257,7 @@ export default class World {
 		for (const metroid of this.metroids) {
 			metroid.update();
 		}
+
+
 	}
 }

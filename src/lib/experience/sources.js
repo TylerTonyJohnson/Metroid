@@ -214,7 +214,22 @@ export default [
 		name: 'metroidDeathSound',
 		type: 'sound',
 		path: 'Metroid Death Sound.wav'
-	}
+	},
+	{
+		name: 'missileSound',
+		type: 'sound',
+		path: 'Missile Sound.wav'
+	},
+	{
+		name: 'burningSound',
+		type: 'sound',
+		path: 'Burning Sound.wav'
+	},
+	{
+		name: 'deathSound',
+		type: 'sound',
+		path: 'Death Sound.wav'
+	},
 	// {
 	// 	name: 'scanVisorSound',
 	// 	type: 'sound',

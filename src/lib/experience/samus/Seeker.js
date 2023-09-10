@@ -1,5 +1,11 @@
 import * as THREE from 'three';
-import { seekerPositions, closestSeekerPosition, isLockable, currentVisor } from '../../stores';
+import {
+	seekerPositions,
+	closestSeekerPosition,
+	closestSeekerType,
+	isLockable,
+	currentVisor
+} from '../../stores';
 import { VisorType } from '../../enums';
 
 export default class Seeker {
@@ -105,13 +111,22 @@ export default class Seeker {
 		// Send seeker position to store
 		seekerPositions.set(this.projectedPositions);
 		const projectedLerp = this.mesh.position.clone().project(this.camera);
-		closestSeekerPosition.set(projectedLerp);
 		isLockable.set(!!this.closestMesh);
+		closestSeekerPosition.set(projectedLerp);
+		if (this.closestMesh) {
+			closestSeekerType.set(this.closestMesh.scanType);
+		} else {
+			closestSeekerType.set(null);
+		}
 
 		// Cleanup
 		this.visibleMeshes = [];
 		this.projectedPositions = [];
 	}
+
+	/* 
+		Utilities
+	*/
 
 	getVisibleMeshes() {
 		// Setup frustrum
