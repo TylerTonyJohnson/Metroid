@@ -44,10 +44,18 @@
 				target="_blank"
 				rel="noopener noreferrer"
 			>
-				<img class="link-image" src="github-mark.svg" alt="github link" />
+				<img class="link-image large" src="github-mark.svg" alt="github link" />
+			</a>
+			<a
+				class="link"
+				href="https://mail.google.com/mail/?view=cm&source=mailto&to=tyler.tony.johnson@gmail.com"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<img class="link-image small" src="email-svgrepo-com.svg" alt="github link" />
 			</a>
 			<button type="button" class="link" on:click={toggleCredits}>
-				<img class="link-image" src="link.png" alt="github link" />
+				<img class="link-image small" src="link.png" alt="github link" />
 			</button>
 		</div>
 		{#if credits}
@@ -144,7 +152,11 @@
 		background-color: #33b2cc;
 	}
 
-	.link-image {
+	.small {
+		height: 70%;
+	}
+
+	.large {
 		height: 105%;
 	}
 
